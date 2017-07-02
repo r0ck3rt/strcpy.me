@@ -60,15 +60,14 @@ a {
   width: 100%;
   height: 26px;
   padding: 16px 0;
-  background-color: transparent;
+  background-color: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 1px 12px rgba(0, 0, 0, 0.08);
   transition: all .6s;
   z-index: 1000; }
   .g-header .g-logo {
     float: left;
     margin-left: 2%;
-    width: 60px;
     height: 26px;
-    background: url("../icons/logo.svg") no-repeat center;
     background-size: 100% 100%;
     opacity: .8;
     transition: all .2s; }
@@ -105,7 +104,6 @@ a {
         display: inline-block;
         font-size: 14px;
         letter-spacing: 1px;
-        color: #fff;
         padding: 0 12px;
         opacity: .7; }
         .g-header .g-nav > ul > li > a:hover {
@@ -176,7 +174,7 @@ a {
   background-color: #FC6794; }
 
 .home-content {
-  margin: 40px auto 60px; }
+  margin: 80px auto 60px; }
   .home-content:before, .home-content:after {
     content: '';
     display: table; }
@@ -898,6 +896,7 @@ a {
       width: 695px;
       left: -100px; }
   .home-content {
+    margin-top: 95px;
     margin-bottom: 32px; }
   .article-list .article-item {
     padding: 20px 16px;

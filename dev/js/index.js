@@ -21,61 +21,6 @@ $(document).ready(function(){
     /*
     *  Header Bar
     */
-    if($(window).width() > 695) {
-
-        var header = $('.g-header');
-        var header_h = header.outerHeight();
-        var appLogo = $('.g-logo');
-        var navText = $('.g-nav a');
-
-        var themeColorFlag = $('.g-banner').attr('data-theme');
-
-        var scFlag = $(document).scrollTop();
-
-        $(document).scroll(function(){
-
-            var scrollTop = $(this).scrollTop();
-
-            if(scrollTop > header_h) {
-
-                if(scrollTop > 3*header_h) {
-                    header.addClass('headerUp');
-                }
-                header.css({
-                    'background-color': 'rgba(255, 255, 255, .98)',
-                    'box-shadow': '0 1px 12px rgba(0, 0, 0, .08)'
-                });
-                appLogo.css({
-                    'background': 'url(/assets/icons/logo_' + themeColorFlag + '.svg) no-repeat center',
-                    'background-size': '100% 100%'
-                });
-                navText.css('color', '#666');
-                $('.g-nav').addClass('nav-' + themeColorFlag);
-
-            }else{
-
-                header.removeClass('headerUp');
-                header.css({
-                    'background-color': 'transparent',
-                    'box-shadow': 'none'
-                });
-                appLogo.css({
-                    'background': 'url(/assets/icons/logo.svg) no-repeat center',
-                    'background-size': '100% 100%'
-                });
-                navText.css('color', '#fff');
-                $('.g-nav').removeClass('nav-' + themeColorFlag);
-
-            }
-            // scroll action
-            if(scFlag > scrollTop) {
-                header.addClass('headerDown');
-            }else{
-                header.removeClass('headerDown');
-            }
-            scFlag = scrollTop;
-        });
-    }
 
     /*
     * Post Cover Resize
@@ -129,66 +74,13 @@ $(document).ready(function(){
      */  
     function Search() {
         var self = this,
-            input = $('#search_input'),
-            result = $('.search_result');
+            input = $('#search_input');
+        result = $('.search_result');
         
         input.focus(function() {
             $('.icon-search').css('color', '#3199DB');
-            result.show();
-        });
-
-        input.keyup(debounce(this.autoComplete));
-
-        $(document).click(function(e) {
-            if(e.target.id === 'search_input' || e.target.className === 'search_result' || e.target.className === 'search_item') {
-                return;
-            }
-            $('.icon-search').css('color', '#CAD3DC');
-            result.hide();
         });
     }
-
-    Search.prototype.autoComplete = function() {
-        var keywords = this.value.toLowerCase();
-        
-        if(keywords.length) {
-            $('.icon-search').css('color', '#3199DB');
-        }else{
-            $('.icon-search').css('color', '#CAD3DC');
-        }
-
-        $.getJSON('../../search.json').done(function(data) {
-            var html = '';
-            for (var i in data) {
-                var item = data[i],
-                    title = item.title,
-                    tags = item.tags,
-                    url = item.url;
-
-                var k = title + tags;
-                if(keywords !== '' && k.toLowerCase().indexOf(keywords) >= 0) {
-                    html += '<a class="search_item" href="' + item.url + '">' + item.title + '</a>';
-                }
-            }
-            $('.search_result').html(html);
-        });
-    };
-
-    function debounce(fn, delay) {
-        var timer;
-        delay = delay || 120;
-
-        return function() {
-            var ctx = this,
-                args = arguments,
-                later = function() {
-                    fn.apply(ctx, args);
-                };
-            clearTimeout(timer);
-            timer = setTimeout(later, delay);
-        };
-    }
-
     new Search();
     
 });

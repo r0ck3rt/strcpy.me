@@ -11,15 +11,14 @@
     width: 100%;
     height: $g-header-h;
     padding: 16px 0;
-    background-color: transparent;
+    background-color: rgba(255, 255, 255, .98);
+    box-shadow: 0 1px 12px rgba(0, 0, 0, .08);
     transition: all .6s;
     z-index: 1000;
     .g-logo {
         float: left;
         margin-left: 2%;
-        width: 60px;
         height: $g-header-h;
-        background: url('../icons/logo.svg') no-repeat center;
         background-size: 100% 100%;
         opacity: .8;
         transition: all .2s;
@@ -64,7 +63,6 @@
                 display: inline-block;
                 font-size: 14px;
                 letter-spacing: 1px;
-                color: #fff;
                 padding: 0 12px;
                 opacity: .7;
                 &:hover {
@@ -156,7 +154,7 @@
 }
 
 .home-content {
-    margin: 40px auto 60px;
+    margin: 80px auto 60px;
     @include clearfix;
 }
 

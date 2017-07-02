@@ -1,18 +1,11 @@
 ---
 layout: default
-home-title: H2O Theme For Jekyll
-description: 或许是最漂亮的Jekyll主题
+home-title: virusdefender's blog
+description:
 ---
 
 {% include header.html %}
 
-<div class="g-banner home-banner {{ site.theme-color | prepend: 'banner-theme-' }}" data-theme="{{ site.theme-color }}">
-    <h2>{{ page.home-title }}</h2>
-    <h3>{{ page.description }}</h3>
-    {% if page.header-img %}
-    <img class="header-img" src="{{ site.baseurl }}{{ page.header-img }}" alt="">
-    {% endif %}
-</div>
 
 <main class="g-container home-content">
     <div class="article-list">
@@ -74,7 +67,6 @@ description: 或许是最漂亮的Jekyll主题
             </ul>
             {% endif %}
         </section>
-
         {% if site.recommend-tags and site.tags.size>0 %}
         <section class="tags-card">
             {% for tag in site.tags %}
@@ -92,7 +84,6 @@ description: 或许是最漂亮的Jekyll主题
     <aside class="search-card">
         <input id="search_input" type="text" placeholder="Search...">
          <i class="iconfont icon-search"></i>
-        <div class="search_result"></div>
     </aside>
     {% endif %}
 </main>

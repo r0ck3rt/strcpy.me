@@ -1,8 +1,8 @@
 # Site settings 配置站点
-title: '廖柯宇的独立博客'
-description: '昵称悟空，千禧一代，前端开发者/伪极客/灵魂摄影师，热爱技术&设计。很高兴能在这里与你分享我对技术和生活的思考。'
-keyword: '廖柯宇, 廖柯宇的独立博客, 廖柯宇的博客, 前端, 前端开发, 前端博客, javascript, vuejs, nodejs, 设计'
-url: 'http://liaokeyu.com' # your host
+title: "virusefender's blog"
+description: ' 学而不思则罔，思而不学则殆'
+keyword: 'virusdefender,blog'
+url: 'https://virusdefender.net' # your host
 baseurl: '/'
 
 # Navigation links
@@ -11,9 +11,9 @@ nav:
   tags: '/tags.html'
 
 # Author 配置博主信息
-author: '廖柯宇'
-nickname: '悟空'
-bio: '前端开发者，热爱技术&设计，简单乐观爱创造'
+author: 'virusdefender'
+nickname: 'virusefender'
+bio: 'biu biu biu'
 avatar: 'assets/img/profile.png'
 
 # Search
@@ -23,7 +23,7 @@ search: true
 disqus: true
 
 # Share
-social-share: true
+social-share: false
 social-share-items: ['wechat', 'weibo', 'douban', 'twitter']
 
 # theme color 主题皮肤
@@ -34,19 +34,20 @@ postPatterns: 'circuitBoard'
 
 # SNS settings 配置社交网站url: weibo, zhihu, twitter, instagrame, juejin, github, douban, facebook, dribble, uicn, jianshu, medium, linkedin
 sns:
-  weibo: '//weibo.com/lovecolcol'
-  juejin: '//juejin.im/user/57a6f434165abd006159b4cc'
-  instagram: '//www.instagram.com/steveliaocn'
-  github: '//github.com/kaeyleo'
+  weibo: '//weibo.com/virusdefender'
+  github: '//github.com/virusdefender'
 
 # Tags 设置标签
 recommend-tags: true # whether or not display recommend-tags on the sidebar
-recommend-condition-size: 12 # a tag will be recommended if the size of it is more than this value
+recommend-condition-size: 0 # a tag will be recommended if the size of it is more than this value
 
 # Build settings
-paginate: 6
-paginate_path: 'page:num'
+paginate: 1
+paginate_path: 'index.php/page/:num/'
 exclude: ['node_modules', 'dev', 'package.json', 'gulpfile.js', '.gitignore', 'README.md']
+
+permalink: /index.php/archives/:id/
+permalink_custom_vars: ['id']
 
 # Markdown
 markdown: kramdown
@@ -54,7 +55,7 @@ highlighter: rouge
 kramdown:
   input: GFM
 
-RSS: false
+RSS: true
 
 # Plugins
 gems: [jekyll-paginate]
