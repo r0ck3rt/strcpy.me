@@ -35,7 +35,7 @@ description:
                             {% endfor %}
                         {% endif %}
                     </div>
-                    <time class="post-date" datetime="{{ post.date | date:"%y-%m-%d" }}">{{ post.date | date_to_string }}</time>
+                    <time class="post-date" datetime="{{ post.date | date:"%Y-%m-%d %H:%M" }}">{{ post.date | date:"%Y-%m-%d %H:%M" }}</time>
                 </footer>
             </article>
         {% endfor %}

@@ -20,7 +20,7 @@ avatar: 'assets/img/profile.png'
 search: true
 
 # Comments
-disqus: true
+disqus: false
 
 # Share
 social-share: false
@@ -42,7 +42,7 @@ recommend-tags: false # whether or not display recommend-tags on the sidebar
 recommend-condition-size: 4 # a tag will be recommended if the size of it is more than this value
 
 # Build settings
-paginate: 1
+paginate: 2
 paginate_path: 'index.php/page/:num/'
 exclude: ['node_modules', 'dev', 'package.json', 'gulpfile.js', '.gitignore', 'README.md']
 

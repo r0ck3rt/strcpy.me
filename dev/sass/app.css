@@ -40,6 +40,9 @@ a {
   cursor: pointer;
   transition: .2s; }
 
+video {
+  max-width: 100%; }
+
 ::selection {
   background-color: rgba(0, 147, 254, 0.2); }
 
@@ -48,6 +51,23 @@ a {
 
 ::-webkit-selection {
   background-color: rgba(0, 147, 254, 0.2); }
+
+pre {
+  white-space: pre-wrap; }
+
+code[class*="language-"], pre[class*="language-"] {
+  white-space: pre-wrap; }
+
+.markdown-body p {
+  text-align: left; }
+
+code {
+  padding: 0.2em 0.4em;
+  margin: 0;
+  font-size: 85%;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+  background-color: rgba(27, 31, 35, 0.05);
+  border-radius: 3px; }
 
 /*** Main style ***/
 .g-container {
