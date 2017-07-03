@@ -54,6 +54,8 @@ markdown: kramdown
 highlighter: rouge
 kramdown:
   input: GFM
+  extensions:
+    - autolink
 
 RSS: true
 

@@ -31,7 +31,7 @@ __utmz=123456.123456789.11.2.utmcsr=blackfan.ru|utmccn=(referral)|utmcmd=referra
  - 但是很多 web server 也可以接收使用逗号分隔的
 
 
-```js
+```
 Cookie: param1=value2, param2=value2
 Cookie: param1=value2,param2=value2
 ``` 

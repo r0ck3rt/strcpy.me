@@ -69,6 +69,9 @@ code {
   background-color: rgba(27, 31, 35, 0.05);
   border-radius: 3px; }
 
+pre code {
+  display: block; }
+
 /*** Main style ***/
 .g-container {
   width: 960px; }
@@ -638,8 +641,7 @@ code {
   box-sizing: border-box;
   padding: 0 0 32px; }
   .markdown-body .highlight {
-    margin: 0 0 16px;
-    overflow: scroll; }
+    margin: 0 0 16px; }
   .markdown-body img {
     transition: .3s; }
   .markdown-body ul li p, .markdown-body ol li p {
