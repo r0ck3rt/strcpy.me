@@ -48,11 +48,23 @@ description:
 
     {% if site.search %}
     <aside class="search-card">
-        <input id="search_input" type="text" placeholder="Search...">
+        <input type="text" id="search-input" placeholder="Search..." onkeypress="return _search(event)">
          <i class="iconfont icon-search"></i>
     </aside>
     {% endif %}
 
 </main>
+
+<script>
+function search() {
+    window.open('https://www.google.com/search?q=site:virusdefender.net ' + document.getElementById('search-input').value, '_blank');
+}
+
+function _search(event) {
+    if (event.which == 13 || event.keyCode == 13) {
+        search();
+    }
+}
+</script>
 
 {% include footer.html %}

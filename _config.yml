@@ -1,5 +1,5 @@
 # Site settings 配置站点
-title: "virusefender's blog"
+title: "virusdefender's blog"
 description: ' 学而不思则罔，思而不学则殆'
 keyword: 'virusdefender,blog'
 url: 'https://virusdefender.net' # your host
@@ -9,6 +9,7 @@ baseurl: '/'
 nav:
   home: '/'
   tags: '/tags'
+  about: '/index.php/archives/about/'
 
 # Author 配置博主信息
 author: 'virusdefender'
