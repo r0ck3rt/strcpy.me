@@ -4,7 +4,7 @@ layout: post
 title: 'sql注入时case when ... then ... else ...end 的应用'
 date: 2016-05-13 18:37:00
 author: virusdefender
-tags: 
+tags: 安全
 ---
 
 在基于时间的盲注的时候，一般使用的是if语句，如果符合条件就sleep，但是部分不能使用逗号的场景下，还可以使用`case when #condition then ... else ... end`语句来代替if语句，参考http://dev.mysql.com/doc/refman/5.7/en/control-flow-functions.html。
@@ -22,10 +22,6 @@ if( !empty( $_SERVER['HTTP_X_FORWARDED_FOR'] ) ){
 
 然后注入点在insert和update语句中。一个盲注场景，没有报错和回显。
 
-
-<!--more-->
-
-
 这里在`X-FORWARDED-FOR`中按照逗号分隔取IP，而这个字段是用户可控的，需要不出现逗号，或者第一个逗号之前是完整的payload，所以这里不能使用if了，而是使用case语句代替。
 
 当然mid函数也不能用了，需要替换为`substr($string from $post for $length)`的写法。
@@ -36,7 +32,7 @@ if( !empty( $_SERVER['HTTP_X_FORWARDED_FOR'] ) ){
 
 一个例子是`1.1.1.1' and case when ord(substr((select username from db.table limit 1) from 1 for 1))=98 then sleep(2) else 1 end and '1.2.3.4`
 
-![请输入图片描述][1]
+![img][1]
 
 最终实现的代码是
 

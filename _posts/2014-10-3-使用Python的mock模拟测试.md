@@ -4,7 +4,7 @@ layout: post
 title: '使用Python的mock模拟测试'
 date: 2014-10-03 09:54:00
 author: virusdefender
-tags: 
+tags: Python
 ---
 
 最近写的项目里面有一个创建预约成功后就给客户发一条短信或者邮件的功能，但是怎么去自动化的测试这个功能呢，难道每次都要发送一遍，然后去看么。这时候我们就可以引入Python的mock测试，我们首先来看一个[网上流传的比较广的教程][1]里面的例子。

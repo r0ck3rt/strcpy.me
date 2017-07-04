@@ -4,7 +4,7 @@ layout: post
 title: '2015 is coming in 48 hours'
 date: 2014-12-29 19:06:22
 author: virusdefender
-tags: 
+tags: 生活
 ---
 
 现在是29号晚上了，距离2015年还有两天的时间。

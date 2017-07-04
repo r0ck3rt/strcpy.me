@@ -4,7 +4,7 @@ layout: post
 title: 'WordPress和Typecho xmlrpc漏洞'
 date: 2016-04-20 21:12:00
 author: virusdefender
-tags: 
+tags: 安全
 ---
 
 一般大家都关注WordPress，毕竟用户量巨大，而国内的Typecho作为轻量级的博客系统就关注的人并不多。Typecho有很多借鉴WordPress的，包括兼容的xmlrpc接口，而WordPress的这个接口爆出过多个漏洞，Typecho无一幸免。

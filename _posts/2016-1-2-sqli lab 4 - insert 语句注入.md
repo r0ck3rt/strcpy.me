@@ -4,7 +4,7 @@ layout: post
 title: 'sqli lab 4 - insert 语句注入'
 date: 2016-01-02 16:20:00
 author: virusdefender
-tags: 
+tags:  安全
 ---
 
 这一次直接跳到 Lesson-18，之前的课程都可以之前三篇文章的方法去解决的。

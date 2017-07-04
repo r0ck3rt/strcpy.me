@@ -4,7 +4,7 @@ layout: post
 title: '两个非常隐蔽的bug导致的Python xss filter绕过'
 date: 2014-11-14 18:49:00
 author: virusdefender
-tags: 
+tags: 其他
 ---
 
 最近在搜索Python的xss filter的时候看到这样一篇文章 http://www.tuicool.com/articles/RjyqYn (时间有点久远了，原文不知道为什么删掉了)。

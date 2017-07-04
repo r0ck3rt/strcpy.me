@@ -4,7 +4,7 @@ layout: post
 title: '使用类来写 Python 的 decorator'
 date: 2015-10-13 18:07:00
 author: virusdefender
-tags: 
+tags: Python
 ---
 
 平时看到的 Python 的 decorator 都是使用函数来写的，比如说我之前在写的 `login_required`

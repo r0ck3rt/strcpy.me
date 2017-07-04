@@ -4,7 +4,7 @@ layout: post
 title: 'To be lazy'
 date: 2015-05-06 16:00:00
 author: virusdefender
-tags: 
+tags: Python
 ---
 
 平时人们做事的时候谁说lazy也是不好的，但是在程序设计的时候，lazy是一种有效的提供性能的方法，大致的思想就是需要的时候再计算，尽量的缓存计算结果。

@@ -4,7 +4,7 @@ layout: post
 title: 'nginx对自定义http头的处理'
 date: 2015-04-14 15:04:00
 author: virusdefender
-tags: 
+tags: 其他
 ---
 
 有一个app调用后端api的时候，会在http头里面放置`AUTH_TOKEN`字段，用来用户鉴权，但是后端一直返回用户没有登录，但是本地使用django自带的runserver是可以的。后端的代码是这样的。

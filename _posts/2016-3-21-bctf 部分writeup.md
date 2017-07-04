@@ -4,7 +4,7 @@ layout: post
 title: 'bctf 部分writeup'
 date: 2016-03-21 02:02:00
 author: virusdefender
-tags: 
+tags: 安全 CTF
 ---
 
 又是一个和ctf一起度过的疲惫的周末。

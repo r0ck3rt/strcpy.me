@@ -4,7 +4,7 @@ layout: post
 title: 'sqli lab 1 - union 注入，入门'
 date: 2015-12-02 20:24:00
 author: virusdefender
-tags: 
+tags: 安全
 ---
 
 基于 [sqli labs][1]，下载后自行安装。

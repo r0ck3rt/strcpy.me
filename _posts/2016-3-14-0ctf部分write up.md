@@ -4,7 +4,7 @@ layout: post
 title: '0ctf部分write up'
 date: 2016-03-14 03:03:00
 author: virusdefender
-tags: 
+tags: 安全 CTF
 ---
 
 首先不得不说这场比赛题目水平还是相当相当高的，毕竟是0ops团队。

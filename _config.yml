@@ -38,11 +38,11 @@ sns:
   github: '//github.com/virusdefender'
 
 # Tags 设置标签
-recommend-tags: false # whether or not display recommend-tags on the sidebar
-recommend-condition-size: 4 # a tag will be recommended if the size of it is more than this value
+recommend-tags: true # whether or not display recommend-tags on the sidebar
+recommend-condition-size: 2 # a tag will be recommended if the size of it is more than this value
 
 # Build settings
-paginate: 2
+paginate: 15
 paginate_path: 'index.php/page/:num/'
 exclude: ['node_modules', 'dev', 'package.json', 'gulpfile.js', '.gitignore', 'README.md']
 

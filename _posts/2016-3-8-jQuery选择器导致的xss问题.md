@@ -4,7 +4,7 @@ layout: post
 title: 'jQuery选择器导致的xss问题'
 date: 2016-03-08 13:56:00
 author: virusdefender
-tags: 
+tags: 安全
 ---
 
 小伙伴发了某站的一个链接，xss payload在url的hash后面，然后页面弹框了，但是查看页面源代码，就只有`jquery.js`和`jquery.fullpage.js`，猜测是`fullpage.js`的问题，因为记得自己用`fullpage.js`的时候，hash部分会是`#first`、`#second`，然后切换页面的时候会变，可能是fullpage.js处理不当导致的。使用Chrome的调试工具发现还并不是这样的。

@@ -4,7 +4,7 @@ layout: post
 title: 'Redis和SSRF'
 date: 2016-07-20 17:57:00
 author: virusdefender
-tags: 
+tags: 安全
 ---
 
 > 你以为bind了127.0.0.1就安全了么？

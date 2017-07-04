@@ -9,7 +9,6 @@
       <case-sensitivity plain-identifiers="exact" quoted-identifiers="exact" />
       <secret-storage>master_key</secret-storage>
       <user-name>root</user-name>
-      <introspection-schemas>*:blog</introspection-schemas>
       <ssh-properties>
         <enabled>true</enabled>
         <proxy-host>backend.qduoj.com</proxy-host>

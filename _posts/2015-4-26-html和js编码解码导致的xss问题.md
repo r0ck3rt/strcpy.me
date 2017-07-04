@@ -4,7 +4,7 @@ layout: post
 title: 'html和js编码解码导致的xss问题'
 date: 2015-04-26 19:17:00
 author: virusdefender
-tags: 
+tags: 安全
 ---
 
 在js中对特殊字符进行转义我们可以使用下面的函数，

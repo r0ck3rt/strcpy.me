@@ -4,7 +4,7 @@ layout: post
 title: '开源的 OnlineJudge'
 date: 2016-02-04 01:07:00
 author: virusdefender
-tags: 
+tags: 其他
 ---
 
 qduoj 是 青岛大学开源的一个 OnlineJudge，GitHub 地址 https://github.com/QingdaoU/OnlineJudge

@@ -4,7 +4,7 @@ layout: post
 title: 'python __new__和__metaclass__'
 date: 2014-12-15 00:16:00
 author: virusdefender
-tags: 
+tags: Python
 ---
 
 先说`__new__`

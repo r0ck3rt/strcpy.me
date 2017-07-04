@@ -4,7 +4,7 @@ layout: post
 title: 'winnowing 算法'
 date: 2015-10-02 17:35:00
 author: virusdefender
-tags: 
+tags: 其他
 ---
 
 最近尝试将 winnowing 算法应用于抄袭检测中，这是一种字符串指纹算法，详细的内容见下面这篇论文。

@@ -4,7 +4,7 @@ layout: post
 title: 'Hey Jude'
 date: 2015-04-06 22:22:00
 author: virusdefender
-tags: 
+tags: 其他
 ---
 
 Hey Jude, don't make it bad.

@@ -4,7 +4,7 @@ layout: post
 title: 'Typecho 反垃圾评论原理和 Python 模拟'
 date: 2015-07-28 08:57:00
 author: virusdefender
-tags: 
+tags: 安全
 ---
 
 最近在看 Typecho 的时候，在页面中发现了这样一段奇怪的代码

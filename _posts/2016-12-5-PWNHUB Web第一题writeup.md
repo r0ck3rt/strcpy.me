@@ -4,14 +4,14 @@ layout: post
 title: 'PWNHUB Web第一题writeup'
 date: 2016-12-05 20:04:00
 author: virusdefender
-tags: 
+tags: 安全 CTF
 ---
 
 题目地址 http://54.223.46.206:8003/
 
-首先在HTTP头中可以看到`Server:gunicorn/19.6.0 Django/1.10.3 CPython/3.5.2`，引用的站内资源只有一个js，然后回想起ph师傅的写过的Python Web安全的文章 http://www.lijiejie.com/python-django-directory-traversal/ ，发现在处理静态文件的时候有一个任意文件读取，但是任何`.py`结尾的文件都会提示403，其他的不会，考虑读取`pyc`，看了下自己的Django项目，Python 3.5的`pyc`都是在一个`__pycache__`目录中的，然后是`xxx.cpython-35.pyc`的文件名。
+首先在HTTP头中可以看到 `Server:gunicorn/19.6.0 Django/1.10.3 CPython/3.5.2`，引用的站内资源只有一个js，然后回想起ph师傅的写过的Python Web安全的文章还有 http://www.lijiejie.com/python-django-directory-traversal/ ，发现在处理静态文件的时候有一个任意文件读取，但是任何`.py`结尾的文件都会提示403，其他的不会，考虑读取`pyc`，看了下自己的Django项目，Python 3.5的`pyc`都是在一个`__pycache__`目录中的，然后是`xxx.cpython-35.pyc`的文件名。
 
-Django是一个MVC框架，默认的主要代码都在`models.py`和`views.py`，成功的得到pyc。然后使用`unpyc3` https://github.com/figment/unpyc3 得到了源码。
+Django 是一个 MVC 框架，默认的主要代码都在 `models.py` 和 `views.py`，成功的得到 pyc。然后使用 [unpyc3](https://github.com/figment/unpyc3) 得到了源码。
 
 核心代码如下
 
@@ -56,7 +56,7 @@ class Group(models.Model):
     created_time = models.DateTimeField('创建时间', auto_now_add=True)
 ```
 
-可以看到直接将用户发送的数据作为filter的条件传递了，如果用户存在，而data中没有`passkey`就会造成500，如果用户不存在就会403，所以可以使用Django中的like查询。它的特点就是字段名后面添加两个下划线，接着才是搜索条件，可以作为参数传给filter。
+可以看到直接将用户发送的数据作为 filter 的条件传递了，如果用户存在，而 data 中没有 `passkey` 就会造成 500，如果用户不存在就会403，所以可以使用 Django 中的 like 查询。它的特点就是字段名后面添加两个下划线，接着才是搜索条件，可以作为参数传给 filter。
 
 ```python
 # 精确查询 where name="test"
