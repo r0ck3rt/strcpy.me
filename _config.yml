@@ -64,3 +64,4 @@ RSS: true
 gems: [jekyll-paginate, jekyll-feed]
 feed:
   path: feed/index.xml
+timezone: asia/Shanghai
