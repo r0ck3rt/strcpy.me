@@ -7,25 +7,25 @@ author: virusdefender
 tags: 安全
 ---
 
-某天小黑以修理网络的名义潜入某企业公司办公室，想窃取一位运维台式机上的某个私钥文件，根据之前的信息收集，该公司电脑不能连接外网，而且有 DLP 产品监控的 agent，插入优盘后会提示，如果向优盘复制文件，会立即报警，文件也会被加密，无线网卡类设备也也不可以，只有键盘鼠标可以随便使用。办公环境下有一个 SSID 和密码已知的 guest 网络，可以访问外网。这种情况下怎么窃取私钥，并尽可能长时间的维持权限呢？
+某天小黑以修理网络的名义潜入某公司办公室，想窃取一位运维台式机上的某个私钥文件，根据之前的信息收集，该公司电脑不能连接外网，而且有 DLP 产品监控的 agent，插入优盘后会提示，如果向优盘复制文件，会立即报警，文件也会被加密，无线网卡类设备也也不可以，只有键盘鼠标可以随便使用。办公环境下有一个 SSID 和密码已知的 guest 网络，可以访问外网。这种情况下怎么窃取私钥，并尽可能长时间的维持权限呢？
 
-很多人也许会说 [BadUSB](https://security.tencent.com/index.php/blog/msg/74) ，但是这种情况下怎么植入木马然后传回私钥呢？
+很多人也许会说 [BadUSB](https://security.tencent.com/index.php/blog/msg/74) ，但是这种情况下真的可以用么，怎么植入木马然后传回私钥呢？
 
 ## 现有的 BadUSB 设备的缺点
 
 ### 底层硬件和驱动修改复杂
 
-Bad USB 火了有几年了，网上的教程也是花式繁多，主要分为 Teensy 系列和 USB Rubber Ducky 系列，它们是使用 Arduino 或者优盘实现的，相对来说制作的难度比较大，因为宽泛来说都是属于"嵌入式编程"了，而且因为很多固件并不是真正开源的，是通过[各种 Hack 实现的](https://electronics.stackexchange.com/questions/49140/what-exactly-are-the-difference-between-a-usb-host-and-device)。还有一点就是这个硬件平台都是很简化的，和其他的硬件对于一般人并不是特别容易搞定的。
+BadUSB 火了有几年了，网上的教程也是花式繁多，主要分为 Teensy 系列和 USB Rubber Ducky 系列，它们是使用 Arduino 或者优盘实现的，相对来说制作的难度比较大，因为宽泛来说都是属于"嵌入式编程"了，而且因为很多固件并不是真正开源的，是通过[各种 Hack 实现的](https://electronics.stackexchange.com/questions/49140/what-exactly-are-the-difference-between-a-usb-host-and-device)。还有一点就是这个硬件平台都是很简化的，想增加功能，还受到硬件的限制。
 
 ![](http://storage.virusdefender.net/blog/images/773/1.jpg)
 
 ### 单向数据传递，没有回显，无法更新 Paylaod
 
-黑客们在进行渗透测试的时候，很是很讨厌没有回显的洞的，因为看不到是否执行成功，甚至看不到执行结果，只能靠运气和人品。而且设备插上之后，是否成功就已经决定了，即使执行失败，也没有办法去更新和修复自己的 Payload，不是一个持久化的方案。我们希望的是能实现攻击者、BadUSB 和受害者三部分两条链路的双向通信。
+黑客在进行渗透测试的时候，很是很讨厌没有回显的洞的，因为看不到是否执行成功，甚至看不到执行结果，只能靠运气和人品。而且设备插上之后，是否成功就已经决定了，即使执行失败，也没有办法去更新和修复自己的 Payload，不是一个持久化的方案。我们希望的是能实现攻击者、BadUSB 和受害者三部分两条链路的长时间的双向通信。
 
 ### 遇到密码就懵逼
 
-如果你的 Payload 会弹出 UAC 或者需要 root 权限，那基本上避免不了需要输入密码了。有几个办法可以尝试下，首先是通过社工尝试收集密码字典然后暴力尝试，其次是自带一个提权脚本，比如很多洞的提权脚本并不长，而且很好用，最后那就是寄希望于人品了，如果对方直接就是使用的高权限用户，那就是人品大爆发了。这个问题的解决方案我们会放在展望章节中，并不在这一次的文章中解决。
+如果你的 Payload 会弹出 UAC 或者需要 root 权限，那基本上避免不了需要输入密码了。有几个办法可以尝试下，首先是通过社工尝试收集密码字典然后暴力尝试，其次是自带一个提权脚本，很多洞的提权脚本并不长，而且很好用，最后那就是寄希望于人品了，如果对方直接就是使用的高权限用户，那就是人品大爆发了。这个问题的解决方案我们会放在展望章节中，并不在这一次的文章中解决。
 
 ## 树莓派也可以做 BadUSB？
 
@@ -33,7 +33,7 @@ Bad USB 火了有几年了，网上的教程也是花式繁多，主要分为 Te
 
 市面上稍早些的树莓派，比如树莓派2B，树莓派3等，它们都只支持作为 Host，而迷你的[树莓派 Zero 和 Zero w](https://www.raspberrypi.org/products/raspberry-pi-zero/) 同时支持作为 Host 和 Device。
 
-和 Zero 比，Zero w 主要是增加了 WiFi 和蓝牙，所以以下都是用的这个型号，官方价10刀，某宝大约需要25刀才能买到。当然缺点还是体积稍大，长度略长，而宽度就是正常优盘的两倍多了。
+和 Zero 比，Zero w 主要是增加了 WiFi 和蓝牙，所以以下都是用的这个型号，官方价10刀，某宝大约需要25刀才能买到。缺点是体积稍大，长度略长，而宽度就是正常优盘的两倍多了。
 
 ![](http://storage.virusdefender.net/blog/images/773/7.jpg)
 
@@ -45,9 +45,9 @@ http://www.usb.org/developers/hidpage/Hut1_12v2.pdf 是 HID 设备（人机交�
 
 ### 声明 USB HID 设备
 
-[USB Gadget](https://www.kernel.org/doc/htmldocs/gadget/index.html) 实现了 USB 协议定义的设备端的软件功能，它需要一些配置，比如自己的类型，序列号等等。如果要创建一个 USB Gadget，就需要先配置那些信息。
+[USB Gadget](https://www.kernel.org/doc/htmldocs/gadget/index.html) 实现了 USB 协议定义的设备端的软件功能，它需要一些配置，比如声明设备类型，序列号等。如果要创建一个 USB Gadget，就需要先配置那些信息。
 
-Linux 中一切皆文件，配置也是，操作 Configfs 就可以告诉内核相关的配置，这一段就是围绕着这个来的。
+Linux 中一切皆文件，配置也是，使用创建文件和目录的方式就可以操作 configfs，告诉内核相关的配置，这一段就是围绕着这个来的。
 
 在 https://www.kernel.org/doc/Documentation/usb/gadget_configfs.txt 也有相关的配置说明。
 
@@ -68,7 +68,7 @@ echo 0x0100 > bcdDevice # v1.0.0
 echo 0x0200 > bcdUSB # USB2
 ```
 
-每个 gadget还需要序列号，制造商等信息，Linux 要求的是在一个子文件夹中存储
+每个设备还需要序列号，制造商等信息，Linux 要求的是在一个子文件夹中存储
 
 ```
 mkdir -p strings/0x409
@@ -145,7 +145,7 @@ KeyCode 顾名思义就是一个键就是一个编号，告诉系统对应的编
 
 在上文提到的 USB 协议 PDF 的 `10 Keyboard/keypad page(0x07)` 章节规定了所有的 KeyCode，可以查阅，网上也有一些转换脚本。然后通过输入连续的8个 null 数据，代表按键结束了。
 
-要注意的是，在协议中，大小写字母还有部分数字和符号的 KeyCode 是一样的，这个时候，需要修改第一个位为 Shift，和平时使用键盘是一样的。比如
+在协议中，大小写字母还有部分数字和符号的 KeyCode 是一样的，这个时候，需要修改第一个位为 Shift，和平时使用键盘是一样的。比如
 
 ```python
 # t
@@ -188,7 +188,7 @@ with open("/dev/hidg0", "wb") as f:
 
 ### 自带网卡和蓝牙的树莓派
 
-相对其他 BadUSB 的平台，树莓派 Zero w 自带网卡和蓝牙，这样我们就可以实现远程的交互了。比如可以使用蓝牙在实施攻击的初期进行配置，比如 WiFi 密码和 Payload 类型，之后就可以使用 client，通过 socket 远程加密连接到控制端，如果发现自己的 Payload 有 bug 或者有更好的 Payload 就可以随时更新了，是不是很棒。
+相对其他 BadUSB 的平台，树莓派 Zero w 自带网卡和蓝牙，这样我们就可以实现远程的交互了。比如可以使用蓝牙在实施攻击的初期进行配置，比如 WiFi 密码和 Payload 类型，之后就可以使用 client，通过 socket 远程加密连接到控制端，如果发现 Payload 有 bug 或者有更好的 Payload 就可以随时更新了，是不是很棒。
 
 ### 黑夜中的那盏灯
 
@@ -230,10 +230,10 @@ with open("/dev/hidg0", "wb") as f:
 使用 `00` 和 `01` 状态代表数据0，使用 `10` 和 `11` 状态代表数据1，假设初始状态为`00`，如果下一位是1，则使用 `10` 状态，只改变第一个灯的开关，如果下一位还是0，那使用 `01` 状态，以此类推，就可以发现，无论下一位是什么状态，总可以只改变一个灯的状态，这一点和数字电路中的[格雷码](https://zh.wikipedia.org/wiki/%E6%A0%BC%E9%9B%B7%E7%A0%81)有点像。
 
 ```python
-state_table = [[1, 2],
-               [0, 3],
-               [0, 3],
-               [1, 2]]
+state_table = [[0b01, 0b10],
+               [0b00, 0b11],
+               [0b00, 0b11],
+               [0b01, 0b10]]
 
 last_state = 0
 
@@ -274,7 +274,7 @@ os.close(fd)
 
 美中不足的是:
 
-  1. 需要 BadUSB 输入一个脚本或者可执行文件，然后才可以与键盘交互。
+  1. 需要 BadUSB 输入一个脚本或者可执行文件，然后才可以与键盘交互。这也是所有 BadUSB 存在的问题。
   2. bit 传递数据太暴力了，如果中间有一位丢失或者发生错误，可能导致整个数据乱掉，如果想实现一些更高级的校验，就会进一步的降低带宽。
   3. Linux 上操作 sysfs 和使用 Input Event 都需要 root 权限。
 
@@ -294,7 +294,7 @@ os.write(fd, data)
 os.close(fd)
 ```
 
-而且这个是可读的，也就是你在树莓派中向 `/dev/hidg0` 写入的数据，这里可以直接读取到，而且不会再出发输入动作。除了第一步写 client，之后就再也不需要使用键盘打开 shell，输入，然后快速关闭 shell 的流程了，可以在后台完成一切的操作。这个也大大的降低了被发现的几率。
+而且这个是可读的，也就是你在树莓派中向 `/dev/hidg0` 写入的数据，这里可以直接读取到，而且不会再触发输入动作。除了第一步写 client，之后就再也不需要使用键盘打开 shell，输入，然后快速关闭 shell 的流程了，可以在后台完成一切的操作。这个也大大的降低了被发现的几率。
 
 我们发现事情是越做越简单了，而且这个接口速度要快的多，一般的命令执行结果，都几乎可以实时读取到。
 
@@ -320,7 +320,7 @@ os.close(fd)
 
 ### Bad Bridge
 
-其实薛恩鹏的机器人还可以做的更多，比如使用机器拔掉电脑的网线，然后植入 [Throwing Star LAN Tap](https://greatscottgadgets.com/throwingstar/) 类似的流量抓包工具，360也要一款类似的产品，原理都很简单，就是 Hub。
+其实薛恩鹏的机器人还可以做的更多，比如使用机器拔掉电脑的网线，然后植入 [Throwing Star LAN Tap](https://greatscottgadgets.com/throwingstar/) 类似的流量抓包工具，360也有一款类似的产品，原理都很简单，就是 Hub。
 
 ![](http://storage.virusdefender.net/blog/images/773/6.jpg)
 
@@ -329,8 +329,8 @@ os.close(fd)
 ## 防范
 
  - 安全意识，不要随便插来历不明的 USB 设备，不仅仅是优盘，包括键盘鼠标。
- - USB 白名单，DLP 产品应该使用更加严格的 USB 限制策略
- - 全盘加密，对开机密码、root密码等引入多因素认证
+ - USB 白名单，DLP 产品应该使用更加严格的 USB 限制策略。
+ - 全盘加密，对开机密码、root密码等引入多因素认证。
 
 8月3日，Red Hat 发表[文章](http://rhelblog.redhat.com/2017/08/03/built-in-protection-against-usb-security-attacks-with-usbguard/)，声称 Red Hat Enterprise Linux 7.4 版本开始集成 USBGuard 软件框架，利用黑白名单等技术抵御流氓 USB 设备的攻击。
  
