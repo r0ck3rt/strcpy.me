@@ -74,7 +74,7 @@ cmd.send('save\r\n');
 
 <video src="https://dn-virusdefender-blog.qbox.me/redis-ssrf.mp4" controls="controls"></video>
 
-##思考
+## 思考
  - 还有那些服务像Redis一样是很好利用？
  - http://www.freebuf.com/articles/web/19622.html 还有哪些跨协议攻击？
 
