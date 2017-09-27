@@ -4,7 +4,7 @@ layout: post
 title: 'Vulnerable Docker VM WriteUp'
 date: 2017-09-27 04:46:07
 author: virusdefender
-tags: 安全
+tags: 安全 CTF
 ---
 
 半夜发烧睡不着，看到一个有意思的类CTF的题目，就看了下。
@@ -126,7 +126,7 @@ docker run -it --rm -v /:/vol wordpress /bin/bash
 
 ![](https://storage.virusdefender.net/blog/images/775/9.jpg)
 
-然后在 `/vol/root/.ssh` 下面又把自己的公钥写了进入，这样就可以直接 ssh 到虚拟机了。
+然后在 `/vol/root/.ssh` 下面又把自己的公钥写了进去，这样就可以直接 ssh 到虚拟机了。
 
 ![](https://storage.virusdefender.net/blog/images/775/10.jpg)
 
