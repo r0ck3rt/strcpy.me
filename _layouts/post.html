@@ -15,7 +15,6 @@ layout: default
         </div>
         <h1>{{ page.title }}</h1>
         <div class="post-meta">
-            <span class="post-meta-item"><i class="iconfont icon-author"></i><a href="{{ site.url }}" target="_blank" rel="author">{% if page.author %}{{ page.author }}{% else %}{{ site.author }}{% endif %}</a></></span>
             <time class="post-meta-item" datetime="{{ page.date | date:"%Y-%m-%d %H:%M" }}"><i class="iconfont icon-date"></i>{{ page.date | date:"%Y-%m-%d %H:%M" }}</time>
         </div>
     </div>
@@ -31,6 +30,12 @@ layout: default
     {% endif %}
     <article class="markdown-body">
         {{ page.content }}
+
+        <section class="author-detail">
+            <section class="post-footer-item comment">
+                <a href="https://jinshuju.net/f/K6m6rn?x_field_1={{ page.title }}" target="_blank">评论</a> | <a href="http://storage.virusdefender.net/blog/images/utils/wx_pay.JPG" target="_blank">打赏</a> | 转载必须注明原文链接
+            </section>
+        </section>
     </article>
     {% if site.social-share %}
     <div class="social-share-wrapper">
@@ -39,10 +44,5 @@ layout: default
     {% endif %}
 </div>
 
-<section class="author-detail">
-    <section class="post-footer-item comment">
-        <a href="https://jinshuju.net/f/K6m6rn?x_field_1={{ page.title }}" target="_blank">评论</a> | <a href="http://storage.virusdefender.net/blog/images/utils/wx_pay.JPG" target="_blank">打赏</a> | 转载必须注明原文链接
-    </section>
-</section>
 
 {% include footer.html %}

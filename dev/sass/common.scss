@@ -393,7 +393,7 @@
     position: relative;
     padding: 0;
     margin: 0;
-    color: #fff;
+    color: #4e4e4e;
     overflow: hidden;
     background-color: #4285f4;
     z-index: 0;
@@ -421,7 +421,7 @@
         .post-meta-item {
             display: inline-block;
             font-size: 16px;
-            color: #fff;
+            color: #4e4e4e;
             margin-right: 4px;
             opacity: .8;
             &:last-child {
@@ -467,7 +467,7 @@
 }
 
 .post-no-cover {
-    height: 360px;
+    height: 250px;
     .post-tags {
         margin-top: 100px;
     }
@@ -498,6 +498,7 @@
     background-color: #fff;
     overflow: hidden;
     padding: 40px 0 80px;
+    background-image: url(https://storage.virusdefender.net/blog/static/background.png);
     .post-subtitle {
         position: relative;
         width: $post-content-w;
@@ -533,6 +534,10 @@
     width: $post-content-w;
     box-sizing: border-box;
     padding: 0 0 32px;
+    background-color: white;
+    padding: 40px;
+    border: 1px solid #e7eaf1;
+    border-radius: 3px;
     .highlight {
         margin: 0 0 16px;
     }
@@ -567,11 +572,7 @@
 }
 
 .author-detail {
-    position: relative;
-    top: -35px;
-    .comment {
-        margin-bottom: 60px;
-    }
+    padding-top: 35px;
 }
 
 .read-next {
@@ -656,7 +657,7 @@
 }
 .tags-content {
     width: 695px;
-    margin: -100px auto 0;
+    margin: 100px auto 0;
 }
 .tags-list {
     padding: 40px 0;
