@@ -160,7 +160,6 @@ pre code {
     text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2); }
   .home-banner h2 {
     padding-top: 190px;
-    line-height: 38px;
     font-size: 42px;
     font-family: 'Arial', 'Hiragino Sans GB', 'Microsoft YaHei', 'WenQuanYi Micro Hei', sans-serif;
     font-weight: bold;
@@ -506,7 +505,7 @@ pre code {
   margin: 0 auto; }
 
 .post-wrapper {
-  width: 800px; }
+  width: 850px; }
 
 .post-header {
   position: relative;
@@ -620,7 +619,7 @@ pre code {
   background: transparent; }
   .post-content .post-subtitle {
     position: relative;
-    width: 800px;
+    width: 850px;
     font-size: 18px;
     color: #a6a6a6;
     font-weight: normal;
@@ -644,9 +643,8 @@ pre code {
 
 .markdown-body {
   font-family: "Merriweather-Light", -apple-system, Verdana, "PingFang SC", "Helvetica Neue", "Arial", "Hiragino Sans GB", "Microsoft YaHei", "WenQuanYi Micro Hei", sans-serif;
-  width: 800px;
+  width: 850px;
   box-sizing: border-box;
-  padding: 0 0 32px;
   background-color: white;
   padding: 40px;
   border: 1px solid #e7eaf1;
@@ -670,14 +668,14 @@ pre code {
 
 .post-footer-item {
   margin: 0 auto;
-  width: 800px; }
+  width: 850px; }
 
 .author-detail {
   padding-top: 35px; }
 
 .read-next {
   display: flex;
-  width: 800px;
+  width: 850px;
   margin: 60px auto; }
 
 .read-next-item {
