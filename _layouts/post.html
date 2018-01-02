@@ -29,8 +29,9 @@ layout: default
 
         <section class="author-detail">
             <section class="post-footer-item comment">
-                <a href="https://jinshuju.net/f/K6m6rn?x_field_1={{ page.title }}" target="_blank">评论</a> | <a href="http://storage.virusdefender.net/blog/images/utils/wx_pay.JPG" target="_blank">打赏</a> | 转载必须注明原文链接
+                <a href="https://jinshuju.net/f/K6m6rn?x_field_1={{ page.title }}" target="_blank">评论</a> | <a href="#" onclick="document.getElementById('wx-pay').style.display = ''; return false;">微信打赏</a> | 转载必须注明原文链接
             </section>
+            <img src="https://storage.virusdefender.net/blog/images/utils/wx_pay_new.JPG" style="max-width: 90%;max-height: 90%; display: none;" id="wx-pay">
         </section>
     </article>
     {% if site.social-share %}
