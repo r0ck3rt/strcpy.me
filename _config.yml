@@ -8,7 +8,6 @@ baseurl: '/'
 # Navigation links
 nav:
   home: '/'
-  story: '/story'
   about: '/index.php/archives/about/'
 
 # Author 配置博主信息
