@@ -3,4 +3,5 @@ services:
     - docker
 before_install:
     - docker pull jekyll/jekyll
-    - docker run -it --privileged=true --rm -e PASS=$PASS -v $PWD:/src jekyll/jekyll /bin/bash -c "apk update && apk add lftp && chown -R jekyll:jekyll /src && cd /src && ./deploy/deploy.sh"
+script:
+    - docker run -it --rm -e PASS=$PASS -v $PWD:/src jekyll/jekyll /bin/bash -c "apk update && apk add lftp && chown -R jekyll:jekyll /src && cd /src && ./deploy/deploy.sh"
