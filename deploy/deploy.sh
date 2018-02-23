@@ -1,11 +1,8 @@
 #!/bin/bash
 jekyll build
 cp deploy/.htaccess _site
-TARGETFOLDER='/'
+TARGETFOLDER='/WEB'
 SOURCEFOLDER='_site'
-
-HOST='cu.ftp.zeus.smartgslb.com'
-USER='ftp@b18b742f.host.smartgslb.com'
 
 lftp -f "
 open $HOST
