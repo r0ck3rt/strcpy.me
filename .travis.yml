@@ -4,4 +4,4 @@ services:
 before_install:
     - docker pull jekyll/jekyll
 script:
-    - docker run -it --rm -e HOST=$HOST -e USER=$USER -e PASS=$PASS -v $PWD:/src jekyll/jekyll /bin/bash -c "apk update && apk add lftp && chown -R jekyll:jekyll /src && cd /src && ./deploy/deploy.sh"
+    - docker run -it --rm -e HOST=$HOST -e USER=$USER -e PASS=$PASS -v $PWD:/src jekyll/jekyll /src/deploy/deploy.sh
