@@ -134,21 +134,33 @@ int main() {
 
 如果改成`execve(file_name1, argv, env);`，就没法执行了。
 
+当然要注意的是，`execve` 第一个参数匹配是内存地址匹配，毕竟是一个指针，而不是字符串匹配。Linux 系统开启 ASLR 之后，内存地址会随机化，用户代码几乎不可能简单的在相同的地址下面再放置一个路径。但是如果 `file_name` 不在栈上或者是指定地址加载的，那用户代码也可能通过 mmap 来加载到同一个地址上，可以参考 [Google CTF](https://dangokyo.me/2018/07/12/googlectf-2018-qual-pwn-execve-sandbox-write-up/) 的一道题。
+
 ## seccomp 应该怎么用
 
 文档看 http://man7.org/linux/man-pages/man3/seccomp_rule_add.3.html 就够了，可以看到 seccomp 是支持某个参数的原始数据大小比较和掩码后数据一致比较的。
 
-对于 C/C++ 等，我们可以开放[白名单](https://github.com/QingdaoU/Judger/blob/newnew/src/rules/c_cpp.c#L10)，类似 execve 这种需要特殊处理，然后就是 `open` 了，
-我们不期望这些程序可以写任何文件。这种想法的直觉是限制 `write` 的第一个参数 fd 不能大于 stderr，但是实际是可绕过的，那就是 `mmap`。 http://man7.org/linux/man-pages/man2/mmap.2.html
-最下面的例子修改下然后 strace 运行就会发现只需要 open 然后 mmap 也可以写文件的。
+对于 C/C++ 等，我们可以开放[白名单](https://github.com/QingdaoU/Judger/blob/newnew/src/rules/c_cpp.c#L10)，类似 execve 这种需要特殊处理。 
 
-根本还是限制 `open`，不能带写权限。[open 的 man page](http://man7.org/linux/man-pages/man2/open.2.html) 中说
+### 控制写文件
+
+我们不期望这些程序可以写任何文件。这种想法的直觉是限制 `write` 的第一个参数 fd 不能大于 stderr，但是实际是可绕过的，那就是 `mmap`。 参考 http://man7.org/linux/man-pages/man2/mmap.2.html
+
+页面最下面的例子修改下然后 strace 运行就会发现只需要 open 然后 mmap 也可以写文件的。
+
+正确的方法是限制 `open`，不能带写权限。[open 的 man page](http://man7.org/linux/man-pages/man2/open.2.html) 中说
 
 > The argument flags must include one of the following access modes: O_RDONLY, O_WRONLY, or O_RDWR
 
 所以这里就需要之前的掩码后比较了，其实掩码操作就是使用掩码和原数据进行与操作，`SCMP_CMP(1, SCMP_CMP_MASKED_EQ, O_WRONLY | O_RDWR, 0)` 就是说这两位上都是0才可以通过。
 
-对于非 C/C++，白名单不太现实，可能会涉及到各种奇奇怪怪的系统调用，所以可以尝试使用黑名单，毕竟在 docker 中如果做好了权限的话，基本上没什么问题的，当然这方面我没法保证，因为我也在探索。
+和 `mmap` 类似的是 `creat` 系统调用，也可以创建一个文件。
+
+这种问题的根本解决办法是修改文件系统的用户权限。
+
+### \__x32_compat 系统调用
+
+https://github.com/torvalds/linux/blob/master/arch/x86/entry/syscalls/syscall_64.tbl#L353 有一些 `__x32_compat` 开头的系统调用，很容易忽略它们，没有加入黑名单，这些系统调用和不带 `_x32_compat` 的用法基本一致。
 
 ## 资源占用的限制
 
@@ -157,7 +169,9 @@ int main() {
 主要是的区别是子进程能否继承限制，进程能否捕获超时错误。
 
 当 `setitimer` 定时器计时结束时,系统就会给进程发送一个信号。
-需要关心的两个计数器分别是 ITIMER_REAL,进程实际运行时间计数器,结束的时候发 送 SIGALRM 信号;ITIMER_VIRTUAL,进程 CPU 时间计数器,结束的时候发送 SIGVTALRM 信 号。我们设置好定时器之后,如果捕获到了对应的信号,说明当前进程运行超时。
+
+需要关心的两个计数器分别是 `ITIMER_REAL` 进程实际运行时间计数器，结束的时候发送 `SIGALRM` 信号；`ITIMER_VIRTUAL` 进程 CPU 时间计数器，结束的时候发送 `SIGVTALRM` 信号。我们设置好定时器之后，如果捕获到了对应的信号，说明当前进程运行超时。
+
 具体实现代码如下
 
 ```clike
@@ -175,7 +189,8 @@ int set_timer(int sec, int ms, int is_cpu_time) {
 ```
 
 但是有一点是需要注意的，[setitimer 不能限制子进程的 CPU 和实际运行时间](http://man7.org/linux/man-pages/man2/setitimer.2.html)。
-在部分只限制资源占用而不启用沙箱的场景下,这可能导致资源限制失效。
+
+在部分只限制资源占用而不启用沙箱的场景下,这可能导致资源限制失效，因为进程可以取消这个设定。
 
 Linux 中 `setrlimit` 函数可以用来限制进程的资源占用, 其中支持 `RLIMIT_CPU`、`RLIMIT_AS` 等参数, 同时子进程会继承父进程的设置。RLIMIT_CPU 也可以控制进程 CPU 时间, 所以要设置为 CPU 时间向上取整的值，然后和最后获取的时间再比较。
 
@@ -206,7 +221,7 @@ Linux 中 `setrlimit` 函数可以用来限制进程的资源占用, 其中支�
 
  - 引用某些可以无限输出的文件，比如 `#include</dev/random>`，编译器会一直读取, 导致卡死
  - 让编译器产生大量的错误信息，比如下面一段代码，可以让 g++ 编译器产生数 G 的错误日志
- 
+
 ```clike
 int main() {
     struct x struct z<x(x(x(x(x(x(x(x(x(x(x(x(x(x(x(y,x(y><y*,x(y*w>v<y*,w,x{}
@@ -218,9 +233,9 @@ int main() {
  - C++ 的模板元编程，部分代码是编译期执行的，可以构造出让编译器产生大量计算的代码。类似的有 Python 的编译器常量优化等等。
  - 引用一些敏感文件可能导致信息泄露，比如 `#include</etc/shadow/>` 或者测试用例等，会在编译错误的信息中泄露文件开头的内容。需要给编译器和运行代码设置单独的用户。
 
-### 上面说的基础环境其实都在 docker 里面
+### 上面说的基础环境其实都在 Docker 里面
 
-docker 默认会[屏蔽一些系统调用和 capability](https://docs.docker.com/engine/security/security/)，所以上面的很多方案都是基于这个前提的，否则需要自己处理 docker 默认屏蔽的系统调用调用黑名单和降权。
+Docker 默认会[屏蔽一些系统调用和 capability](https://docs.docker.com/engine/security/security/)，所以上面的很多方案都是基于这个前提的，否则需要自己处理 Docker 默认屏蔽的系统调用调用黑名单和降权。
 
 开源 https://github.com/QingdaoU/Judger
 
