@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>~评论页~</title>
+    <link rel="stylesheet" href="/assets/css/bootstrap-material-design.min.css">
+    <script src="/assets/js/av-min.js"></script>
+    <style>
+        .comment {
+            margin-top: 20px;
+        }
+
+        .submit-comment {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="comment">
+        <div>
+            <h3>【<a id="article-url" href=""><span id="article-title"></span></a>】文章的评论</h3>
+            <div class="alert alert-info" role="alert" id="no-comment">还没有评论 o(╯□╰)o 等你呢</div>
+            <div class="card" id="comment-list">
+
+            </div>
+        </div>
+        <div class="submit-comment">
+            <h3>提交评论</h3>
+            <hr>
+            <div class="form-group">
+                <label>昵称</label>
+                <input type="text" class="form-control" id="username" placeholder="作为用户名展示出来，必填" required>
+            </div>
+            <div class="form-group">
+                <label>邮箱</label>
+                <input type="email" class="form-control" id="email" placeholder="我可能会回复你，选填">
+            </div>
+            <div class="form-group">
+                <label>内容</label>
+                <textarea class="form-control" rows="3" id="content" placeholder="想说什么，必填" required></textarea>
+            </div>
+            <button type="button" class="btn btn-outline-primary" onclick="submitComment()">提交</button>
+        </div>
+    </div>
+</div>
+<script>
+    var articleID = getParams("article_id");
+    var title = getParams("title");
+    if (!articleID || !title) {
+        alert("您是何方神圣~");
+        window.location.href = "/";
+    }
+    document.getElementById("article-title").innerText = escapeHtml(getParams("title"));
+    document.getElementById("article-url").href = articleID;
+    var APP_ID = "DtDfEVB7C3HUGv5tgwF0kTtu-gzGzoHsz";
+    var APP_KEY = "diD5ri3GRuyqIwUwA2ibfBgF";
+
+    AV.init({
+        appId: APP_ID,
+        appKey: APP_KEY
+    });
+
+    var Comment = AV.Object.extend("comment");
+
+    function getFormattedDate(timestamp) {
+        var date = new Date(timestamp * 1000);
+
+        var month = date.getMonth() + 1;
+        var day = date.getDate();
+        var hour = date.getHours();
+        var min = date.getMinutes();
+        var sec = date.getSeconds();
+
+        month = (month < 10 ? "0" : "") + month;
+        day = (day < 10 ? "0" : "") + day;
+        hour = (hour < 10 ? "0" : "") + hour;
+        min = (min < 10 ? "0" : "") + min;
+        sec = (sec < 10 ? "0" : "") + sec;
+
+        var str = date.getFullYear() + "-" + month + "-" + day + " " + hour + ":" + min + ":" + sec;
+        return str;
+    }
+
+    function getParams(key) {
+        return new URL(location.href).searchParams.get(key)
+    }
+
+    function escapeHtml(unsafe) {
+        return unsafe
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
+    function makeComment(username, timestamp, content) {
+        return '<div class="card-body"><h6 class="card-subtitle mb-2 text-muted">' +
+            escapeHtml(username) + " @" + getFormattedDate(timestamp) + '</h6><p class="card-text">' + escapeHtml(content) + '</p></div>';
+    }
+
+    function queryComment() {
+        var query = new AV.Query("comment");
+        query.equalTo("article_id", articleID);
+        query.descending("timestamp");
+        query.find().then(function (result) {
+            if (result.length) {
+                document.getElementById("no-comment").style = "display: none";
+                var commentHtml = "";
+                for (var i = 0; i < result.length; i++) {
+                    commentHtml += makeComment(result[i].get("username"), result[i].get("timestamp"), result[i].get("content"));
+                }
+                document.getElementById("comment-list").innerHTML = commentHtml;
+            }
+        }).catch(function (err) {
+            alert("评论加载失败~");
+        })
+    }
+
+    function submitComment() {
+        var username = document.getElementById("username").value;
+        var email = document.getElementById("email").value;
+        var content = document.getElementById("content").value;
+        var timestamp = Math.round(+new Date() / 1000);
+
+        if (!username) {
+            alert("填个名字吧~");
+            return;
+        }
+        if (!content) {
+            alert("为啥没内容啊~");
+            return;
+        }
+
+        var comment = new Comment();
+        comment.set("article_id", articleID);
+        comment.set("username", username);
+        comment.set("content", content);
+        comment.set("timestamp", timestamp);
+        comment.set("email", email);
+        comment.save().then(function () {
+            queryComment();
+            document.getElementById("username").value = "";
+            document.getElementById("email").value = "";
+            document.getElementById("content").value = "";
+            (new Image()).src = "https://sc.ftqq.com/SCU645T57f2913b7c0fc69372e997031f7cc4e0561b7f85f2b3d.send?text=有新评论了&desp=" + escape(articleID);
+        }).catch(function (err) {
+            alert("评论提交失败~");
+        })
+    }
+
+    queryComment()
+</script>
+</body>
+</html>
