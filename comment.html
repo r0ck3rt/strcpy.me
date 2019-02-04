@@ -21,6 +21,7 @@
 <div class="container">
     <div class="comment">
         <div>
+            <div class="alert alert-info" role="alert">本博客是纯静态网站，本评论系统依赖于 <a href="https://leancloud.cn" target="_blank">LeanCloud</a> 和 <a href="http://sc.ftqq.com/3.version" target="_blank">Server 酱</a>。源代码右键即可查看。</div>
             <h3>【<a id="article-url" href=""><span id="article-title"></span></a>】文章的评论</h3>
             <div class="alert alert-info" role="alert" id="no-comment">还没有评论 o(╯□╰)o 等你呢</div>
             <div class="card" id="comment-list">
@@ -146,7 +147,7 @@
             document.getElementById("username").value = "";
             document.getElementById("email").value = "";
             document.getElementById("content").value = "";
-            (new Image()).src = "https://sc.ftqq.com/SCU645T57f2913b7c0fc69372e997031f7cc4e0561b7f85f2b3d.send?text=有新评论了&desp=" + escape(articleID);
+            (new Image()).src = "https://sc.ftqq.com/SCU645T57f2913b7c0fc69372e997031f7cc4e0561b7f85f2b3d.send?text=有新评论了&desp=" + escape(content);
         }).catch(function (err) {
             alert("评论提交失败~");
         })
