@@ -8,7 +8,7 @@ tags: 后端
 ---
 
 
-作者：@monouno，现实习于长亭科技。原文发表在 (https://zhuanlan.zhihu.com/p/50167673)[https://zhuanlan.zhihu.com/p/50167673]
+作者：@monouno，现实习于长亭科技。原文发表在 [https://zhuanlan.zhihu.com/p/50167673](https://zhuanlan.zhihu.com/p/50167673)
 
 BRIN 索引（块范围索引，Block Range Indexes）是 PostgreSQL 9.5 版本新增的索引类型。该索引维护每一定范围内数据块的最大最小值和其他一些统计数据，当数据库查询时可根据索引的统计信息筛选出不符合查询条件的数据块，以避免全表扫描，提高性能和减少 IO。和 BTree 索引比较所占用的空间足够小<sup>[1]</sup>，因此 BRIN 索引一般用于线性相关较强字段的精确和范围查询，如在一张很大的日志表中通过 id 或时间查询。
 

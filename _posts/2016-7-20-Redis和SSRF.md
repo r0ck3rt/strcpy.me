@@ -69,14 +69,13 @@ cmd.send('save\r\n');
  - 解析`evil.com`到`127.0.0.1`，因为TTL很小，所以生效很快，而且浏览器也会重新发送DNS查询
  - 100秒后，请求实际被发送到了`127.0.0.1`
 
-
-录了一个小视频
-
-<video src="https://dn-virusdefender-blog.qbox.me/redis-ssrf.mp4" controls="controls"></video>
-
 ## 思考
  - 还有那些服务像Redis一样是很好利用？
  - http://www.freebuf.com/articles/web/19622.html 还有哪些跨协议攻击？
+
+## Update
+
+后续 redis 3.2.6 版本加强了判断，将 Host 和 Post 两个单词当做了结束指令。
 
 
 
