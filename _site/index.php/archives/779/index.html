@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="content-language" content="zh-cn">
+    <title>二进制安全之栈溢出（四） - virusdefender's blog (＾－＾)V</title>
+    <link rel="shortcut icon" href="/assets/img/favicon.ico">
+    <meta name="author"  content="virusdefender">
+    <meta name="description" content=" 学而不思则罔，思而不学则殆">
+    <meta name="keywords"  content="virusdefender,blog">
+    <!-- Open Graph -->
+    <meta property="og:title" content="二进制安全之栈溢出（四） - virusdefender's blog (＾－＾)V">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://strcpy.me/index.php/archives/779/">
+    <meta property="og:description" content=" 学而不思则罔，思而不学则殆">
+    <meta property="og:site_name" content="virusdefender's blog (＾－＾)V">
+    <link rel="stylesheet" href="//cdn.staticfile.org/normalize/6.0.0/normalize.min.css">
+    <link rel="stylesheet" href="//at.alicdn.com/t/font_roc50gemkxpw4s4i.css">
+    <link rel="stylesheet" href="/assets/css/github-markdown.css">
+    <link rel="stylesheet" href="/assets/css/prism.css">
+    <link rel="stylesheet" href="/assets/css/app.min.css">
+    <link rel="alternate" type="application/rss+xml" title="RSS 2.0" href="https://strcpy.me/feed/" />
+</head>
+
+<body>
+    <!--[if lt IE 10]>
+<div class="alert-danger" role="alert">你的浏览器实在太太太旧了，放学别走，升级完浏览器再说！<a target="_blank" class="alert-link" href="http://browsehappy.com">立即升级</a></div>
+<![endif]-->
+    <header class="g-header">
+    <div class="g-logo">
+        <a href="/">virusdefender's blog (＾－＾)V</a>
+    </div>
+    <i id="menu-toggle" class="iconfont icon-menu"></i>
+    <nav class="g-nav">
+        <ul>
+            
+            <li><a href="/">home</a></li>
+            
+            <li><a href="http://www.npc.gov.cn/npc/xinwen/2016-11/07/content_2001605.htm">law</a></li>
+            
+            <li><a href="/index.php/archives/about/">about</a></li>
+            
+        </ul>
+    </nav>
+</header>
+
+
+<header class="g-banner post-header post-pattern-circuitBoard bgcolor-default post-no-cover" data-theme="default">
+    <div class="post-wrapper">
+        <div class="post-tags">
+             
+            
+            <a href="/tags/#安全" class="post-tag">安全</a>
+            
+            <a href="/tags/#CTF" class="post-tag">CTF</a>
+            
+            
+        </div>
+        <h1>二进制安全之栈溢出（四）</h1>
+        <div class="post-meta">
+            <time class="post-meta-item" datetime="2017-10-23 12:46"><i class="iconfont icon-date"></i>2017-10-23 12:46</time>
+        </div>
+    </div>
+</header>
+
+<div class="post-content">
+    
+    <article class="markdown-body">
+        <p>这一篇会总结一下前面一笔带过的几个问题，否则那仅仅是一个理想环境下的漏洞利用，在真实环境下很难遇到这么好用的。</p>
+
+<h2 id="canary">canary</h2>
+
+<p>canary 就是在栈溢出发生的高危区域的尾部插入一个值，当函数返回之时检测 canary 的值是否经过了改变，以此来判断是否发生栈溢出。</p>
+
+<p>使用 <code class="highlighter-rouge">gcc -S -fno-stack-protector -o 1.s main.c</code> 和 <code class="highlighter-rouge">gcc -S -o 2.s main.c</code> 分别生成两个汇编文件，然后 diff 结果如下。</p>
+
+<div class="language-diff highlighter-rouge"><pre class="highlight"><code>35,37d34
+&lt; 	movq	%fs:40, %rax
+&lt; 	movq	%rax, -8(%rbp)
+&lt; 	xorl	%eax, %eax
+88,92d84
+&lt; 	movq	-8(%rbp), %rdx
+&lt; 	xorq	%fs:40, %rdx
+&lt; 	je	.L8
+&lt; 	call	__stack_chk_fail
+&lt; .L8:
+</code></pre>
+</div>
+
+<p>实际调试也很清楚的展示了这一点</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>[----------------------------------registers-----------------------------------]
+RAX: 0x1a5ab696c6c08700
+RBP: 0x7fffffffe340 --&gt; 0x400810 (&lt;__libc_csu_init&gt;:	push   r15)
+...
+[-------------------------------------code-------------------------------------]
+   0x400721 &lt;main+11&gt;:	mov    QWORD PTR [rbp-0x60],rsi
+   0x400725 &lt;main+15&gt;:	mov    rax,QWORD PTR fs:0x28
+   0x40072e &lt;main+24&gt;:	mov    QWORD PTR [rbp-0x8],rax
+=&gt; 0x400732 &lt;main+28&gt;:	xor    eax,eax
+...
+[------------------------------------------------------------------------------]
+Legend: code, data, rodata, value
+0x0000000000400732	9	int main(int argc, char **argv) {
+gdb-peda$ x 0x7fffffffe338
+0x7fffffffe338:	0x1a5ab696c6c08700
+</code></pre>
+</div>
+
+<p>在部分情况下，<code class="highlighter-rouge">__stack_chk_fail</code> 也可以来漏洞利用，以后会提到。</p>
+
+<h2 id="aslr">ASLR</h2>
+
+<p>在第二篇文章中硬编码了 <code class="highlighter-rouge">system</code> 函数的地址，在第三篇文章中硬编码了 <code class="highlighter-rouge">student</code> 结构体的地址，但是一个是指令地址，一个是栈上数据的地址，在多次运行的时候，这两个地址是否会变化呢？</p>
+
+<pre><code class="language-clike">#include &lt;stdio.h&gt;
+
+int main() {
+    int a = 100;
+    printf("%p", &amp;a);
+    return 0;
+}
+</code></pre>
+
+<p>使用 <code class="highlighter-rouge">gcc -g -o aslr aslr.c</code> 编译，然后 <code class="highlighter-rouge">cat /proc/sys/kernel/randomize_va_space</code> 是默认值 <code class="highlighter-rouge">2</code>，发现每次输出都是不一样的，说明堆栈的地址会每次都变化。</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>➜  new ./aslr
+0x7ffe9fbb2374                                                                                                                                         ➜  new ./aslr
+0x7ffd2d1286b4                                                                                                                                         ➜  new ./aslr
+0x7ffc697f8af4
+</code></pre>
+</div>
+
+<p>但是如果在 GDB 中多次运行，然后 <code class="highlighter-rouge">p &amp;a</code> 会发现地址是固定不变的。</p>
+
+<p>然后使用 <code class="highlighter-rouge">echo 0 | sudo tee /proc/sys/kernel/randomize_va_space</code> 禁用 ASLR，再次运行，发现直接运行地址也是固定了的。</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>➜  new ./aslr
+0x7fffffffe3a4                                                                                                                                       ➜  new ./aslr
+0x7fffffffe3a4                                                                                                                                        ➜  new ./aslr
+0x7fffffffe3a4
+</code></pre>
+</div>
+
+<p>ASLR 会随机化堆栈地址和共享库的地址，这样的话，我们就无法在 payload 中硬编码 <code class="highlighter-rouge">student</code> 的地址，也就是 shellcode 的地址了。因为 GDB 在调试的时候会默认禁用 ASLR，所以我们的 payload 在 GDB 中还是可以运行的。</p>
+
+<p>由于函数参数、环境变量等很多因素会影响栈地址，即使在关闭 ASLR 的情况下，直接运行的栈地址和 GDB 中的栈地址也不一定是一样的，运行时就会 <code class="highlighter-rouge">segmentation fault</code>。</p>
+
+<p>这时候可以使用 GDB attach 到那个进程上。</p>
+
+<h3 id="gdb-attach">GDB attach</h3>
+
+<p>先运行 <code class="highlighter-rouge">vuln</code> 进程，然后运行 <code class="highlighter-rouge">sudo gdb --pid $(pidof vuln)</code> attach 到指定的进程上。</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>gdb-peda$ p &amp;student
+No symbol "student" in current context.
+</code></pre>
+</div>
+
+<p>因为目前的栈 frame 不对，要切换到 main 函数所在的 frame。</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>gdb-peda$ bt
+#0  0x00007ffff7b04230 in __read_nocancel () at ../sysdeps/unix/syscall-template.S:84
+#1  0x00007ffff7a875e8 in _IO_new_file_underflow (fp=0x7ffff7dd18e0 &lt;_IO_2_1_stdin_&gt;) at fileops.c:592
+#2  0x00007ffff7a8860e in __GI__IO_default_uflow (fp=0x7ffff7dd18e0 &lt;_IO_2_1_stdin_&gt;) at genops.c:413
+#3  0x00007ffff7a69260 in _IO_vfscanf_internal (s=&lt;optimized out&gt;, format=&lt;optimized out&gt;, argptr=argptr@entry=0x7fffffffe278, errp=errp@entry=0x0)
+    at vfscanf.c:634
+#4  0x00007ffff7a785df in __isoc99_scanf (format=&lt;optimized out&gt;) at isoc99_scanf.c:37
+#5  0x00000000004006ed in main (argc=0x1, argv=0x7fffffffe498) at main.c:13
+#6  0x00007ffff7a2d830 in __libc_start_main (main=0x4006b6 &lt;main&gt;, argc=0x1, argv=0x7fffffffe498, init=&lt;optimized out&gt;, fini=&lt;optimized out&gt;,
+    rtld_fini=&lt;optimized out&gt;, stack_end=0x7fffffffe488) at ../csu/libc-start.c:291
+#7  0x00000000004005e9 in _start ()
+gdb-peda$ up 5
+#5  0x00000000004006ed in main (argc=0x1, argv=0x7fffffffe498) at main.c:13
+13	    scanf("%d", &amp;student.birth);
+gdb-peda$ p &amp;student
+$1 = (struct Student *) 0x7fffffffe360
+</code></pre>
+</div>
+
+<p>确定了 <code class="highlighter-rouge">student</code> 直接运行时候的地址，直接修改 payload 即可。</p>
+
+<p>最后记得 <code class="highlighter-rouge">echo 2 | sudo tee /proc/sys/kernel/randomize_va_space</code> 再打开 ASLR。</p>
+
+<h2 id="nx">NX</h2>
+
+<p>在第三篇文章中已经说过，所以那个 shellcode 能成功运行是禁用了两大安全机制的结果 （捂脸</p>
+
+<h2 id="参考">参考</h2>
+
+<ul>
+  <li><a href="https://hardenedlinux.github.io/2016/11/27/canary.html">https://hardenedlinux.github.io/2016/11/27/canary.html</a></li>
+  <li><a href="https://hardenedlinux.github.io/system-security/2016/07/01/PIC_PIE_and_ASLR_analysis.html">https://hardenedlinux.github.io/system-security/2016/07/01/PIC_PIE_and_ASLR_analysis.html</a></li>
+</ul>
+
+
+
+        <section class="author-detail">
+            <section class="post-footer-item comment">
+                <a href="/comment.html?title=二进制安全之栈溢出（四）&article_id=/index.php/archives/779/" target="_blank">评论</a> | <a href="#" onclick="document.getElementById('wx-pay').style.display = ''; return false;">微信打赏</a> | 转载必须注明原文链接
+            </section>
+            <img src="https://storage.virusdefender.net/blog/images/utils/wx_pay_new.JPG" style="max-width: 90%;max-height: 90%; display: none;" id="wx-pay">
+        </section>
+    </article>
+</div>
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?e5ec0a55646c7c7c90dc530c56c80171";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+<footer class="g-footer">
+    <section>virusdefender's blog (＾－＾)V © 2019</section>
+    <section>Powered by <a href="//jekyllrb.com">Jekyll</a> | <a href="https://github.com/kaeyleo/jekyll-theme-H2O">Theme H2O</a></section>
+</footer>
+
+
+    <script src="https://cdn.staticfile.org/jquery/3.2.1/jquery.min.js"></script>
+    <script src="/assets/js/prism.js"></script>
+    <script src="/assets/js/index.min.js"></script>
+</body>
+</html>

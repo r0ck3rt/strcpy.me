@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="content-language" content="zh-cn">
+    <title>第二届青岛高校网络攻防竞赛暨国内高校邀请赛 write up - virusdefender's blog (＾－＾)V</title>
+    <link rel="shortcut icon" href="/assets/img/favicon.ico">
+    <meta name="author"  content="virusdefender">
+    <meta name="description" content=" 学而不思则罔，思而不学则殆">
+    <meta name="keywords"  content="virusdefender,blog">
+    <!-- Open Graph -->
+    <meta property="og:title" content="第二届青岛高校网络攻防竞赛暨国内高校邀请赛 write up - virusdefender's blog (＾－＾)V">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://strcpy.me/index.php/archives/22/">
+    <meta property="og:description" content=" 学而不思则罔，思而不学则殆">
+    <meta property="og:site_name" content="virusdefender's blog (＾－＾)V">
+    <link rel="stylesheet" href="//cdn.staticfile.org/normalize/6.0.0/normalize.min.css">
+    <link rel="stylesheet" href="//at.alicdn.com/t/font_roc50gemkxpw4s4i.css">
+    <link rel="stylesheet" href="/assets/css/github-markdown.css">
+    <link rel="stylesheet" href="/assets/css/prism.css">
+    <link rel="stylesheet" href="/assets/css/app.min.css">
+    <link rel="alternate" type="application/rss+xml" title="RSS 2.0" href="https://strcpy.me/feed/" />
+</head>
+
+<body>
+    <!--[if lt IE 10]>
+<div class="alert-danger" role="alert">你的浏览器实在太太太旧了，放学别走，升级完浏览器再说！<a target="_blank" class="alert-link" href="http://browsehappy.com">立即升级</a></div>
+<![endif]-->
+    <header class="g-header">
+    <div class="g-logo">
+        <a href="/">virusdefender's blog (＾－＾)V</a>
+    </div>
+    <i id="menu-toggle" class="iconfont icon-menu"></i>
+    <nav class="g-nav">
+        <ul>
+            
+            <li><a href="/">home</a></li>
+            
+            <li><a href="http://www.npc.gov.cn/npc/xinwen/2016-11/07/content_2001605.htm">law</a></li>
+            
+            <li><a href="/index.php/archives/about/">about</a></li>
+            
+        </ul>
+    </nav>
+</header>
+
+
+<header class="g-banner post-header post-pattern-circuitBoard bgcolor-default post-no-cover" data-theme="default">
+    <div class="post-wrapper">
+        <div class="post-tags">
+             
+            
+            <a href="/tags/#安全" class="post-tag">安全</a>
+            
+            <a href="/tags/#CTF" class="post-tag">CTF</a>
+            
+            
+        </div>
+        <h1>第二届青岛高校网络攻防竞赛暨国内高校邀请赛 write up</h1>
+        <div class="post-meta">
+            <time class="post-meta-item" datetime="2014-04-21 08:23"><i class="iconfont icon-date"></i>2014-04-21 08:23</time>
+        </div>
+    </div>
+</header>
+
+<div class="post-content">
+    
+    <article class="markdown-body">
+        <p>昨天去中国海洋大学参加第二届青岛高校网络攻防竞赛暨国内高校邀请赛，类似于ACTF, BCTF的形式，主要有逆向，溢出，破解，隐写，web安全等等。</p>
+
+<p>连续7个小时的比赛，最终做出来4道题，500分，三等奖，毕竟就是没经验。而第一名的竟然是清华的蓝莲花团队，他们到底有多么牛，见这里http://www.freebuf.com/news/others/10552.html</p>
+
+<p>下面把做出来的几道题目总结一下。</p>
+
+<p>第一题：</p>
+
+<p>这个是逆向，直接上IDA，注意这是一个linux下的可执行程序。
+<img src="http://storage.virusdefender.net/blog/images/22/1.png" alt="210809531549234.png" />
+<img src="http://storage.virusdefender.net/blog/images/22/2.png" alt="210810047955213.png" />
+明显的，主函数中调用cal函数，然后看cal函数，
+<img src="http://storage.virusdefender.net/blog/images/22/3.png" alt="210810386706630.png" />
+<img src="http://storage.virusdefender.net/blog/images/22/4.png" alt="4.png" />
+cal函数，大致就是自己通过一系列的运算产生一个字符串，</p>
+
+<p>然后看<code class="highlighter-rouge">putin</code>函数，
+<img src="http://storage.virusdefender.net/blog/images/22/5.png" alt="5.png" />
+接受用户输入，然后比较，如果是对的，提示good luck。
+<img src="http://storage.virusdefender.net/blog/images/22/6.png" alt="6.png" />
+这个程序的逻辑搞清了，自己实现以下那个cal函数就好了。注意里面有一个全局变量，先去找到它的值。
+<img src="http://storage.virusdefender.net/blog/images/22/7.png" alt="7.png" />
+然后自己把c代码复制过来，稍加调整。</p>
+<div class="language-c highlighter-rouge"><pre class="highlight"><code><span class="cp">#include &lt;stdio.h&gt;
+#include&lt;string.h&gt;
+</span><span class="kt">char</span> <span class="n">word</span><span class="p">[</span><span class="mi">34</span><span class="p">]</span> <span class="o">=</span> <span class="s">"sAFHLJAacKFvS@FeL;S_Ja*FMFSuasDnsd"</span><span class="p">;</span>
+
+<span class="kt">int</span> <span class="kr">__cdecl</span> <span class="nf">Cal</span><span class="p">()</span>
+<span class="p">{</span>
+    <span class="kt">char</span> <span class="n">v1</span><span class="p">[</span><span class="mi">8</span><span class="p">];</span> <span class="c1">// [sp+1Bh] [bp-3Dh]@5
+</span>    <span class="kt">char</span> <span class="n">v2</span><span class="p">;</span> <span class="c1">// [sp+23h] [bp-35h]@7
+</span>    <span class="kt">int</span> <span class="n">v3</span><span class="p">[</span><span class="mi">9</span><span class="p">];</span> <span class="c1">// [sp+24h] [bp-34h]@1
+</span>    <span class="kt">int</span> <span class="n">i</span><span class="p">;</span> <span class="c1">// [sp+48h] [bp-10h]@1
+</span>    <span class="kt">int</span> <span class="n">v5</span><span class="p">;</span> <span class="c1">// [sp+4Ch] [bp-Ch]@1
+</span>
+    <span class="n">v5</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+    <span class="n">v3</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">i</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;=</span> <span class="mi">8</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="n">v5</span> <span class="o">+=</span> <span class="mi">4</span><span class="p">;</span>
+        <span class="n">v3</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">v5</span> <span class="o">-</span> <span class="mi">1</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;=</span> <span class="mi">7</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span>
+        <span class="n">v1</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">word</span><span class="p">[</span><span class="n">v3</span><span class="p">[</span><span class="n">i</span><span class="p">]];</span>
+    <span class="n">v2</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+    <span class="k">return</span> <span class="n">v1</span><span class="p">;</span>
+<span class="p">}</span>
+
+
+<span class="kt">int</span> <span class="kr">__cdecl</span> <span class="nf">main</span><span class="p">()</span>
+<span class="p">{</span>
+    
+    <span class="n">Cal</span><span class="p">();</span>
+    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre>
+</div>
+<p>程序写的不全，在return v1那下断点，看到值为have_fun!
+<img src="http://storage.virusdefender.net/blog/images/22/8.png" alt="8.png" /></p>
+
+<p>第二题：你会用vim么</p>
+
+<p>这个文件直接打开也是有一点信息的，但是没啥用，后来使用file命令判断文件格式，发现是vim交换文件。</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>liyang@vm:~/Desktop$ file hacker
+hacker: Vim swap file, version 7.3
+</code></pre>
+</div>
+<p>以前 其实没见过这个，初步的猜测就是vim崩溃的时候的内存dump，搜索一下，发现有由交换文件获取之前文件的办法。
+<code class="highlighter-rouge">vim -r xxx.swp</code>
+<img src="http://storage.virusdefender.net/blog/images/22/9.png" alt="9.png" />
+base64编码，那就解码，
+<img src="http://storage.virusdefender.net/blog/images/22/10.png" alt="10..png" /></p>
+
+<p>第三题：二维码第二题，拓展名改成rar，直接解压就好了。</p>
+
+<p>第四题：web第一题</p>
+
+<p>这个明显的是sql注入漏洞，加一个单引号是报错，但是看着数据好熟悉，跟我搭建的DVWA渗透测试系统的数据都是一样的。</p>
+
+<p>使用万能密码 <code class="highlighter-rouge">1'or'1'='1</code> ，获取flag。</p>
+
+<p>一开始想使用sqlmap去跑，但是提示不存在注入，蛋疼。后来发现没那么麻烦。</p>
+
+<p>第五题：web第二题 200分。</p>
+
+<p>第一个网页上面写着大大的只有本机才可以运行程序，如果直接点进去就会提示不是本机。判断ip也就是判断X-Fordwarded-For吧，使用python脚本，加一个自定义的http头，发现还是不行。</p>
+
+<p>后来不经意的刷新了一下网页，有一个提示，如果继续会重复提交网页，奇怪，这个不应该是post么？回到首页。发现果然有一个隐藏的表单，把里面ip的值改成127.0.0.1，通过。</p>
+
+<p>之后提示打开另一个网页，还是提示不是本机，这个确实是修改<code class="highlighter-rouge">X-Fordwarded-For</code>（参考http://www.cnblogs.com/meil/archive/2007/03/06/665843.html）,修改后进入另一个网页，说<code class="highlighter-rouge">COOKIE:get out</code>，你不是admin。</p>
+
+<p>这个是伪造cookie，但是cookie是什么名字呢，后来尝试了很多才想起来<code class="highlighter-rouge">user=admin</code>，这个，之前的username, account都试了。。。</p>
+
+<p>5 网站入侵</p>
+
+<p>http://wooyun.org/searchbug.php?q=xdcms</p>
+
+<p>使用的是这样一个满是漏洞的cms系统，首先想到的就是网上去搜一下，但是搜到的利用都是有限制的，</p>
+
+<p>队友最终也没有搞定。其中也搞出来了报路径，任意文件包含等等，可能是因为这个是被修改过的了。</p>
+
+<p>就会这么几道题，赛后的技术交流会也讲解了部分题目，不会的题目确实就是不会了。</p>
+
+<p>很多都是文件格式混淆，也没学过汇编啥的，逆向，溢出，不会看汇编代码。不过还是学到了很多，500分也不错了，很多的队伍还是0分呢。</p>
+
+<p>明年继续，加油~~</p>
+
+<p><img src="http://storage.virusdefender.net/blog/images/22/11.jpg" alt="a.jpg" />
+<img src="http://storage.virusdefender.net/blog/images/22/12.jpg" alt="b.jpg" />
+<img src="http://storage.virusdefender.net/blog/images/22/13.jpg" alt="c.jpg" /></p>
+
+
+
+        <section class="author-detail">
+            <section class="post-footer-item comment">
+                <a href="/comment.html?title=第二届青岛高校网络攻防竞赛暨国内高校邀请赛 write up&article_id=/index.php/archives/22/" target="_blank">评论</a> | <a href="#" onclick="document.getElementById('wx-pay').style.display = ''; return false;">微信打赏</a> | 转载必须注明原文链接
+            </section>
+            <img src="https://storage.virusdefender.net/blog/images/utils/wx_pay_new.JPG" style="max-width: 90%;max-height: 90%; display: none;" id="wx-pay">
+        </section>
+    </article>
+</div>
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?e5ec0a55646c7c7c90dc530c56c80171";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+<footer class="g-footer">
+    <section>virusdefender's blog (＾－＾)V © 2019</section>
+    <section>Powered by <a href="//jekyllrb.com">Jekyll</a> | <a href="https://github.com/kaeyleo/jekyll-theme-H2O">Theme H2O</a></section>
+</footer>
+
+
+    <script src="https://cdn.staticfile.org/jquery/3.2.1/jquery.min.js"></script>
+    <script src="/assets/js/prism.js"></script>
+    <script src="/assets/js/index.min.js"></script>
+</body>
+</html>

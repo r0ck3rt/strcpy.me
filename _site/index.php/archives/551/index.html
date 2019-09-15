@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="content-language" content="zh-cn">
+    <title>第四届山东省大学生网络安全技能大赛 write up - virusdefender's blog (＾－＾)V</title>
+    <link rel="shortcut icon" href="/assets/img/favicon.ico">
+    <meta name="author"  content="virusdefender">
+    <meta name="description" content=" 学而不思则罔，思而不学则殆">
+    <meta name="keywords"  content="virusdefender,blog">
+    <!-- Open Graph -->
+    <meta property="og:title" content="第四届山东省大学生网络安全技能大赛 write up - virusdefender's blog (＾－＾)V">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://strcpy.me/index.php/archives/551/">
+    <meta property="og:description" content=" 学而不思则罔，思而不学则殆">
+    <meta property="og:site_name" content="virusdefender's blog (＾－＾)V">
+    <link rel="stylesheet" href="//cdn.staticfile.org/normalize/6.0.0/normalize.min.css">
+    <link rel="stylesheet" href="//at.alicdn.com/t/font_roc50gemkxpw4s4i.css">
+    <link rel="stylesheet" href="/assets/css/github-markdown.css">
+    <link rel="stylesheet" href="/assets/css/prism.css">
+    <link rel="stylesheet" href="/assets/css/app.min.css">
+    <link rel="alternate" type="application/rss+xml" title="RSS 2.0" href="https://strcpy.me/feed/" />
+</head>
+
+<body>
+    <!--[if lt IE 10]>
+<div class="alert-danger" role="alert">你的浏览器实在太太太旧了，放学别走，升级完浏览器再说！<a target="_blank" class="alert-link" href="http://browsehappy.com">立即升级</a></div>
+<![endif]-->
+    <header class="g-header">
+    <div class="g-logo">
+        <a href="/">virusdefender's blog (＾－＾)V</a>
+    </div>
+    <i id="menu-toggle" class="iconfont icon-menu"></i>
+    <nav class="g-nav">
+        <ul>
+            
+            <li><a href="/">home</a></li>
+            
+            <li><a href="http://www.npc.gov.cn/npc/xinwen/2016-11/07/content_2001605.htm">law</a></li>
+            
+            <li><a href="/index.php/archives/about/">about</a></li>
+            
+        </ul>
+    </nav>
+</header>
+
+
+<header class="g-banner post-header post-pattern-circuitBoard bgcolor-default post-no-cover" data-theme="default">
+    <div class="post-wrapper">
+        <div class="post-tags">
+             
+            
+            <a href="/tags/#安全" class="post-tag">安全</a>
+            
+            <a href="/tags/#CTF" class="post-tag">CTF</a>
+            
+            
+        </div>
+        <h1>第四届山东省大学生网络安全技能大赛 write up</h1>
+        <div class="post-meta">
+            <time class="post-meta-item" datetime="2015-11-01 19:22"><i class="iconfont icon-date"></i>2015-11-01 19:22</time>
+        </div>
+    </div>
+</header>
+
+<div class="post-content">
+    
+    <article class="markdown-body">
+        <p>先吐槽一下，比赛题目质量一般，技巧题太多，各种原题和网上能搜到的。开始的选择题也是，概念混淆题目，简直不像是专业比赛。</p>
+
+<p>第二部分就是解密逆向题目，共30道，部分题目下载 http://pan.baidu.com/s/1eQudFyi 密码 wphu</p>
+
+<p>里面只有 zip 才是，其余的文件是我解压后的或者分析的结果。</p>
+
+<p>没写的题就是不会或者没有把文件留下来。所有的 exe 逆向都没做，主要用 Mac，没工具。</p>
+
+<p>先简单的写的，还在补充。</p>
+
+<p>第四题，看文本中中的字符串，前几位是 png 的文件头格式，然后复制所有的字符到16进制编辑器保存为 png 格式，然后得到一个二维码，扫描结果是<code class="highlighter-rouge">号外！号外！山东省大学生信息安全知识大赛开始了！！！！ AAB aaaaa aaa ABB baaa aaa ABBB bbaaa aaa BB bbbbb</code>。按照摩尔斯电码处理，A是-  B 是.，字母的大小写表示 key 的大小写。
+<img src="http://storage.virusdefender.net/blog/images/551/1.png" alt="key" /></p>
+
+<p>第五题，apk 逆向，解压得到 class.dex，使用 dex2jar 命令逆向得到 jar 包，解压后得到一堆 Java classes 文件，我是使用的 Idea 反编译，命令行也有工具，下面是部分代码</p>
+
+<div class="language-java highlighter-rouge"><pre class="highlight"><code><span class="kd">private</span> <span class="kt">void</span> <span class="nf">operatecontext</span><span class="o">()</span> <span class="o">{</span>
+        <span class="k">this</span><span class="o">.</span><span class="na">abc</span> <span class="o">=</span> <span class="k">this</span><span class="o">.</span><span class="na">exit</span><span class="o">.</span><span class="na">getText</span><span class="o">().</span><span class="na">toString</span><span class="o">();</span>
+        <span class="k">if</span><span class="o">(</span><span class="k">this</span><span class="o">.</span><span class="na">checkansaw</span><span class="o">(</span><span class="k">this</span><span class="o">.</span><span class="na">abc</span><span class="o">)</span> <span class="o">==</span> <span class="mi">1</span><span class="o">)</span> <span class="o">{</span>
+            <span class="k">this</span><span class="o">.</span><span class="na">msg</span><span class="o">.</span><span class="na">setText</span><span class="o">(</span><span class="s">"恭喜你！答对了！"</span><span class="o">);</span>
+        <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+            <span class="k">this</span><span class="o">.</span><span class="na">msg</span><span class="o">.</span><span class="na">setText</span><span class="o">(</span><span class="s">"很遗憾！答错了"</span><span class="o">);</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+
+    <span class="kd">private</span> <span class="n">String</span> <span class="nf">productanswer</span><span class="o">()</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="s">""</span> <span class="o">+</span> <span class="sc">'T'</span> <span class="o">+</span> <span class="sc">'h'</span> <span class="o">+</span> <span class="sc">'e'</span> <span class="o">+</span> <span class="sc">'a'</span> <span class="o">+</span> <span class="sc">'n'</span> <span class="o">+</span> <span class="sc">'s'</span> <span class="o">+</span> <span class="sc">'w'</span> <span class="o">+</span> <span class="sc">'e'</span> <span class="o">+</span> <span class="sc">'r'</span> <span class="o">+</span> <span class="sc">'i'</span> <span class="o">+</span> <span class="sc">'s'</span> <span class="o">+</span> <span class="sc">'n'</span> <span class="o">+</span> <span class="sc">'o'</span> <span class="o">+</span> <span class="sc">'t'</span> <span class="o">+</span> <span class="sc">'h'</span> <span class="o">+</span> <span class="sc">'e'</span> <span class="o">+</span> <span class="sc">'r'</span> <span class="o">+</span> <span class="sc">'e'</span><span class="o">;</span>
+    <span class="o">}</span>
+</code></pre>
+</div>
+
+<p>但是明显不是 flag，后来发现<code class="highlighter-rouge">res/raw/good boy</code>，是一个纯文本的，内容是#KEY{SV9sMHZlX2NURg}，好吧。</p>
+
+<p>第六题，wireshark 能看到 zip 的传输，foremost 解包后得到加密后 zip，然后不会了。</p>
+
+<p>第八题，idf 原题，<code class="highlighter-rouge">strings 3.jpg | grep KEY</code>就能看到。</p>
+
+<p>第九题，js fuck，贴到浏览器的控制台运行一下就好了。</p>
+
+<p>第十一题，一个 pcap 文件，使用 wireshark，发现有 zip 文件的传输，其实这种情况使用 binwalk 或者 foremost 解压就行，然后在 winrshark 最后一个请求里面能看到<img src="http://storage.virusdefender.net/blog/images/551/2.png" alt="QQ20151101-0@2x.png" /></p>
+
+<p>第十二题，一堆乱七八糟的符号，然后提取里面的字母数字符号就行，我是写的下面的程序分析和提取的，</p>
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="c"># coding=utf-8</span>
+
+<span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s">"key.txt"</span><span class="p">,</span> <span class="s">"r"</span><span class="p">)</span>
+<span class="n">content</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+<span class="n">r</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">content</span><span class="p">)</span>
+<span class="k">print</span> <span class="n">r</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+<span class="n">t</span> <span class="o">=</span> <span class="s">""</span>
+<span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">content</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">item</span> <span class="ow">in</span> <span class="s">"'EF032=GMQSUOWVYZcedfkjmlTNyxz5'"</span><span class="p">:</span>
+        <span class="n">t</span> <span class="o">+=</span> <span class="n">item</span>
+<span class="k">print</span> <span class="n">t</span>
+
+</code></pre>
+</div>
+
+<p>第十三题，<code class="highlighter-rouge">+ADwAcwBjAHIAaQBwAHQAPgBhAGwAZQByAHQAKAAiAEsARQBZAHsAYQA2ADYAYwA3ADEAZQBjADcANAA4AGQAYwAwADkAZQA4AGIANgBhAGMAMgBmAGYAYQAzADgANQA0ADMAYwA1AH0AIgApADwALwBzAGMAcgBpAHAAdAA+-</code>使用 utf-7解码，在这里可以解码 http://toolswebtop.com/text/process/decode/UTF-7。</p>
+
+<p>第十四题，16进制转 ASCII 得到<code class="highlighter-rouge">KYdf0a3ebd5c4dc160-E{fb63ee0298b8f4d8}</code>，看样子是以-为分隔交错的，自己处理下就好。</p>
+
+<p>第十六题，文本内容是<code class="highlighter-rouge">key{e10adgc3949ba5k9abbje56le0m57f2n0f8z83e}</code>，然后我们学校美女黑客口算的，是123456的 md5，中间加了几位没用的。</p>
+
+<p>第十八题，foremost 解包后能看到一个二维码，但是很坑的是网上的二维码在线扫描都扫不出来，现场又不让用手机。晚上回来后用微信扫了一下是一个 Bing的链接，url 中有个 key 的 base64 编码。</p>
+
+<p>第十九题，图片 exif 中有个长字符串，先 16进制的 ASCII 解码，然后 base64就好了。</p>
+
+<p>第二十题，这个有些坑了，这是国外的一个 ctf 的原题，https://ctf-team.vulnhub.com/hackim-2015-forensics-300/，但是坑就坑在这个 flag 并不是 key，得到 key 只需要用<code class="highlighter-rouge">strings brave | grep KEY</code>就好了。</p>
+
+<p>第二十二题，idf 原题，crc32，http://blog.csdn.net/u010379510/article/details/44596603</p>
+
+<p>第二十四题，apk 反编译的，然后在 MainActivity.class 反编译代码中直接能看到 key 字符串。</p>
+
+<p>第二十五题，apk 反编译的，看到 java 代码，</p>
+<div class="language-java highlighter-rouge"><pre class="highlight"><code><span class="kt">int</span><span class="o">[]</span> <span class="n">var3</span> <span class="o">=</span> <span class="k">new</span> <span class="kt">int</span><span class="o">[]{</span><span class="mi">75</span><span class="o">,</span> <span class="mi">69</span><span class="o">,</span> <span class="mi">89</span><span class="o">,</span> <span class="mi">123</span><span class="o">,</span> <span class="mi">97</span><span class="o">,</span> <span class="mi">119</span><span class="o">,</span> <span class="mi">52</span><span class="o">,</span> <span class="mi">110</span><span class="o">,</span> <span class="mi">110</span><span class="o">,</span> <span class="mi">52</span><span class="o">,</span> <span class="mi">95</span><span class="o">,</span> <span class="mi">107</span><span class="o">,</span> <span class="mi">52</span><span class="o">,</span> <span class="mi">114</span><span class="o">,</span> <span class="mi">95</span><span class="o">,</span> <span class="mi">109</span><span class="o">,</span> <span class="mi">120</span><span class="o">,</span> <span class="mi">95</span><span class="o">,</span> <span class="mi">100</span><span class="o">,</span> <span class="mi">51</span><span class="o">,</span> <span class="mi">120</span><span class="o">,</span> <span class="mi">125</span><span class="o">};</span>
+<span class="k">for</span><span class="o">(</span><span class="kt">int</span> <span class="n">var4</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">var4</span> <span class="o">&lt;</span> <span class="mi">22</span><span class="o">;</span> <span class="o">++</span><span class="n">var4</span><span class="o">)</span> <span class="o">{</span>
+    <span class="n">var2</span> <span class="o">=</span> <span class="n">var2</span><span class="o">.</span><span class="na">concat</span><span class="o">(</span><span class="n">String</span><span class="o">.</span><span class="na">valueOf</span><span class="o">((</span><span class="kt">char</span><span class="o">)</span><span class="n">var3</span><span class="o">[</span><span class="n">var4</span><span class="o">]));</span>
+<span class="o">}</span>
+</code></pre>
+</div>
+<p>ascii 编码转换为字符然后拼接就好了。</p>
+
+<p>第二十七题，原题，给你三个字符串，看键盘，这三个字符串圈起来了三个字母，提交就好。</p>
+
+<p>第二十八题，一个缩进有问题的 py，自己调整下就好。</p>
+
+<p>第三十题，pyc 反编译，idf 原题，http://ctf.idf.cn/index.php?g=game&amp;m=article&amp;a=index&amp;id=45，网上也有别人的 write up，找到改一下变量的值就出来了。</p>
+
+<p>忘了题号的，有一个是 html 的16进制编码，使用 burpsuite 自带的解码工具接一下就好了。还有一个是 idf 原题，邮件 uuencode 的。有一个找漏洞的，关键词<code class="highlighter-rouge">KRB5 TGS-REQ</code>，idf 原题，参考 http://www.freebuf.com/vuls/56081.html</p>
+
+<p>渗透题目就做了一个，用了acunetix扫了一下，有 shellshock 漏洞，远程代码执行，先 ls 下，看到一个 KEY 开头的很长的文件，然后 cat 就行。Metasploit也行，有利用脚本。http://drops.wooyun.org/papers/3268</p>
+
+<p>sql 注入的没来得及做，是在用户登录的 <code class="highlighter-rouge">x-fordwarded-for</code> 字段中，应该是一个基于时间的盲注。</p>
+
+
+
+        <section class="author-detail">
+            <section class="post-footer-item comment">
+                <a href="/comment.html?title=第四届山东省大学生网络安全技能大赛 write up&article_id=/index.php/archives/551/" target="_blank">评论</a> | <a href="#" onclick="document.getElementById('wx-pay').style.display = ''; return false;">微信打赏</a> | 转载必须注明原文链接
+            </section>
+            <img src="https://storage.virusdefender.net/blog/images/utils/wx_pay_new.JPG" style="max-width: 90%;max-height: 90%; display: none;" id="wx-pay">
+        </section>
+    </article>
+</div>
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?e5ec0a55646c7c7c90dc530c56c80171";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+<footer class="g-footer">
+    <section>virusdefender's blog (＾－＾)V © 2019</section>
+    <section>Powered by <a href="//jekyllrb.com">Jekyll</a> | <a href="https://github.com/kaeyleo/jekyll-theme-H2O">Theme H2O</a></section>
+</footer>
+
+
+    <script src="https://cdn.staticfile.org/jquery/3.2.1/jquery.min.js"></script>
+    <script src="/assets/js/prism.js"></script>
+    <script src="/assets/js/index.min.js"></script>
+</body>
+</html>

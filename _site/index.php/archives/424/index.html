@@ -1,0 +1,948 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="content-language" content="zh-cn">
+    <title>Python内部机制(1) - 垃圾回收 - virusdefender's blog (＾－＾)V</title>
+    <link rel="shortcut icon" href="/assets/img/favicon.ico">
+    <meta name="author"  content="virusdefender">
+    <meta name="description" content=" 学而不思则罔，思而不学则殆">
+    <meta name="keywords"  content="virusdefender,blog">
+    <!-- Open Graph -->
+    <meta property="og:title" content="Python内部机制(1) - 垃圾回收 - virusdefender's blog (＾－＾)V">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://strcpy.me/index.php/archives/424/">
+    <meta property="og:description" content=" 学而不思则罔，思而不学则殆">
+    <meta property="og:site_name" content="virusdefender's blog (＾－＾)V">
+    <link rel="stylesheet" href="//cdn.staticfile.org/normalize/6.0.0/normalize.min.css">
+    <link rel="stylesheet" href="//at.alicdn.com/t/font_roc50gemkxpw4s4i.css">
+    <link rel="stylesheet" href="/assets/css/github-markdown.css">
+    <link rel="stylesheet" href="/assets/css/prism.css">
+    <link rel="stylesheet" href="/assets/css/app.min.css">
+    <link rel="alternate" type="application/rss+xml" title="RSS 2.0" href="https://strcpy.me/feed/" />
+</head>
+
+<body>
+    <!--[if lt IE 10]>
+<div class="alert-danger" role="alert">你的浏览器实在太太太旧了，放学别走，升级完浏览器再说！<a target="_blank" class="alert-link" href="http://browsehappy.com">立即升级</a></div>
+<![endif]-->
+    <header class="g-header">
+    <div class="g-logo">
+        <a href="/">virusdefender's blog (＾－＾)V</a>
+    </div>
+    <i id="menu-toggle" class="iconfont icon-menu"></i>
+    <nav class="g-nav">
+        <ul>
+            
+            <li><a href="/">home</a></li>
+            
+            <li><a href="http://www.npc.gov.cn/npc/xinwen/2016-11/07/content_2001605.htm">law</a></li>
+            
+            <li><a href="/index.php/archives/about/">about</a></li>
+            
+        </ul>
+    </nav>
+</header>
+
+
+<header class="g-banner post-header post-pattern-circuitBoard bgcolor-default post-no-cover" data-theme="default">
+    <div class="post-wrapper">
+        <div class="post-tags">
+             
+            
+            <a href="/tags/#Python" class="post-tag">Python</a>
+            
+            
+        </div>
+        <h1>Python内部机制(1) - 垃圾回收</h1>
+        <div class="post-meta">
+            <time class="post-meta-item" datetime="2015-07-25 23:31"><i class="iconfont icon-date"></i>2015-07-25 23:31</time>
+        </div>
+    </div>
+</header>
+
+<div class="post-content">
+    
+    <article class="markdown-body">
+        <p>首先介绍下主流的垃圾回收机制，原文在 <a href="http://www.zhihu.com/question/20018826/answer/28892543">http://www.zhihu.com/question/20018826/answer/28892543</a></p>
+
+<ol>
+  <li>引用计数（reference counting）：</li>
+</ol>
+
+<p>基本思路是为每个对象加一个计数器，记录指向这个对象的引用数量。每次有一个新的引用指向这个对象，计数器加一；反之每次有一个指向这个对象引用被置空或者指向其他对象，计数器减一。当计数器变为 0 的时候，自动删除这个对象。</p>
+
+<p>引用计数的优点是 1）相对简单，不需要太多运行时（run-time）的支持，可以在原生不支持 GC 的语言里实现。2）对象会在成为垃圾的瞬间被释放，不会给正常程序的执行带来额外中断。它的死穴是循环引用，对象 A 包含一个引用指向对象 B ，同时对象 B 包含一个引用指向对象 A，计数器就抓瞎了。另外，引用计数对正常程序的执行性能有影响（每次引用赋值都要改计数器），特别是在多线程环境下（改计数器要加锁同步）。</p>
+
+<ol>
+  <li>标记-清扫（mark-sweep）。</li>
+</ol>
+
+<p>基本思路是先按需分配，等到没有空闲内存的时候从寄存器和程序栈上的引用出发，遍历以对象为节点、以引用为边构成的图，把所有可以访问到的对象打上标记，然后清扫一遍内存空间，把所有没标记的对象释放。</p>
+
+<p>标记-清扫没有无法处理循环引用的问题，不触发 GC 时也不影响正常程序的执行性能。但它的问题是当内存耗尽触发 GC 时，需要中断正常程序一段时间来清扫内存，在内存大对象多的时候这个中断可能很长。</p>
+
+<ol>
+  <li>节点复制（copying）。</li>
+</ol>
+
+<p>基本思路是把整个内存空间一分为二，不妨记为 A 和 B。所有对象的内存在 A 中分配，当 A 塞满的时候，同样从寄存器和程序栈上的引用出发，遍历以对象为节点、以引用为边构成的图，把所有可以访问到的对象复制到 B 去，然后对调 A 和 B 的角色。</p>
+
+<p>相对于标记-清扫，节点复制的主要缺点是总有一半空间空闲着无法利用，另一个比较隐晦的缺点是它使用内存的方式与现有的内存换页、Cache 换入换出机制有潜在的冲突。但它有个很大的优点： 所有的对象在内存中永远都是紧密排列的，所以分配内存的任务变得极为简单，只要移动一个指针即可。对于内存分配频繁的环境来说，性能优势相当大。另外，由于不需要清扫整个内存空间，所以如果内存中存活对象很少而垃圾对象很多的话（有些语言有这个倾向），触发 GC 造成的中断会小于标记-清扫。</p>
+
+<p>Python 主要是通过引用计数来进行垃圾回收，这里我写了一个简单的 c 程序来模拟一下</p>
+<pre><code class="language-clike">#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+
+#define PyDateType int
+#define INT 1
+#define FLOAT 2
+
+
+//ref_count 引用计数器
+//data_type 是数据类型，这是只是模拟，真正不是这样实现的
+#define PyObject_HEAD \
+    int ref_count;    \
+    PyDateType data_type;
+
+
+//int 类型的
+typedef struct {
+    PyObject_HEAD
+    int value;
+} PyIntObject;
+
+
+//float 类型的
+typedef struct {
+    PyObject_HEAD
+    float value;
+} PyFloatObject;
+
+
+int main() {
+    PyIntObject *py_int_10;
+    py_int_10 = (PyIntObject *) malloc(sizeof(PyIntObject));
+    py_int_10-&gt;data_type = INT;
+    py_int_10-&gt;ref_count = 0;
+    py_int_10-&gt;value = 10;
+
+    PyIntObject *py_int_20;
+    py_int_20 = (PyIntObject *) malloc(sizeof(PyIntObject));
+    py_int_20-&gt;data_type = INT;
+    py_int_20-&gt;ref_count = 0;
+    py_int_20-&gt;value = 20;
+
+    //a 指向10
+    PyIntObject *a, *b;
+    a = py_int_10;
+    //增加引用计数
+    py_int_10-&gt;ref_count++;
+
+    //b 指向20
+    b = py_int_20;
+    py_int_20-&gt;ref_count++;
+
+    //把 a 指向20
+    a = py_int_20;
+    //减少10的引用计数 增加20的引用计数
+    py_int_10-&gt;ref_count--;
+    //释放掉10的内存空间
+    if(py_int_10 -&gt; ref_count == 0){
+        free(py_int_10);
+    }
+    py_int_20-&gt;ref_count++;
+
+    printf("a: %d, b: %d\n", a-&gt;value, b-&gt;value);
+    printf("ref count: %d", py_int_20-&gt;ref_count);
+    return 0;
+}
+</code></pre>
+
+<!--more-->
+
+<p>引用计数有个明显的缺点就是没办法处理循环引用，比如</p>
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">l</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">l</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
+<span class="k">del</span> <span class="n">l</span>
+</code></pre>
+</div>
+<p>这个 l 永远没办法被回收，因为它的引用计数没办法归零了。为了解决循环引用的问题，CPython特别设计了一个模块gc，其主要作用就是检查出循环引用的垃圾对象，并清除他们。该模块的实现，实际上也是引入了其余两种主流的垃圾收集技术——标记清除和分代收集。</p>
+
+<p><code class="highlighter-rouge">gc</code>模块是 Python 对外暴露的垃圾回收机制，这个模块包含了控制垃圾回收操作的函数，还有检查垃圾回收状态的函数。</p>
+
+<h2 id="追踪引用">追踪引用</h2>
+<p><code class="highlighter-rouge">gc</code>模块里面有两个函数<code class="highlighter-rouge">get_referents(*objs)</code>和<code class="highlighter-rouge">get_referrers(*objs)</code>。第一个函数是return a list of objects directly referred to by any of the arguments，也就是获取引用 objs 的 objects，第二个函数是return the list of objects that directly refer to any of objs，也就是获取 objs 引用的 objects。</p>
+
+<p>代码示例</p>
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">gc</span>
+<span class="kn">import</span> <span class="nn">pprint</span>
+
+<span class="k">class</span> <span class="nc">Graph</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="nb">next</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="k">def</span> <span class="nf">set_next</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">next</span><span class="p">):</span>
+        <span class="k">print</span> <span class="s">'Linking nodes </span><span class="si">%</span><span class="s">s.next = </span><span class="si">%</span><span class="s">s'</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">next</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="nb">next</span> <span class="o">=</span> <span class="nb">next</span>
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s">'</span><span class="si">%</span><span class="s">s(</span><span class="si">%</span><span class="s">s)'</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+<span class="c"># Construct a graph cycle</span>
+<span class="n">one</span> <span class="o">=</span> <span class="n">Graph</span><span class="p">(</span><span class="s">'one'</span><span class="p">)</span>
+<span class="n">two</span> <span class="o">=</span> <span class="n">Graph</span><span class="p">(</span><span class="s">'two'</span><span class="p">)</span>
+<span class="n">three</span> <span class="o">=</span> <span class="n">Graph</span><span class="p">(</span><span class="s">'three'</span><span class="p">)</span>
+<span class="n">one</span><span class="o">.</span><span class="n">set_next</span><span class="p">(</span><span class="n">two</span><span class="p">)</span>
+<span class="n">two</span><span class="o">.</span><span class="n">set_next</span><span class="p">(</span><span class="n">three</span><span class="p">)</span>
+<span class="n">three</span><span class="o">.</span><span class="n">set_next</span><span class="p">(</span><span class="n">one</span><span class="p">)</span>
+
+<span class="k">print</span>
+<span class="k">print</span> <span class="s">'three refers to:'</span>
+<span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">gc</span><span class="o">.</span><span class="n">get_referents</span><span class="p">(</span><span class="n">three</span><span class="p">):</span>
+    <span class="n">pprint</span><span class="o">.</span><span class="n">pprint</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+</code></pre>
+</div>
+<p>输出是</p>
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="err">$</span> <span class="n">python</span> <span class="n">gc_get_referents</span><span class="o">.</span><span class="n">py</span>
+
+<span class="n">Linking</span> <span class="n">nodes</span> <span class="n">Graph</span><span class="p">(</span><span class="n">one</span><span class="p">)</span><span class="o">.</span><span class="nb">next</span> <span class="o">=</span> <span class="n">Graph</span><span class="p">(</span><span class="n">two</span><span class="p">)</span>
+<span class="n">Linking</span> <span class="n">nodes</span> <span class="n">Graph</span><span class="p">(</span><span class="n">two</span><span class="p">)</span><span class="o">.</span><span class="nb">next</span> <span class="o">=</span> <span class="n">Graph</span><span class="p">(</span><span class="n">three</span><span class="p">)</span>
+<span class="n">Linking</span> <span class="n">nodes</span> <span class="n">Graph</span><span class="p">(</span><span class="n">three</span><span class="p">)</span><span class="o">.</span><span class="nb">next</span> <span class="o">=</span> <span class="n">Graph</span><span class="p">(</span><span class="n">one</span><span class="p">)</span>
+
+<span class="n">three</span> <span class="n">refers</span> <span class="n">to</span><span class="p">:</span>
+<span class="p">{</span><span class="s">'name'</span><span class="p">:</span> <span class="s">'three'</span><span class="p">,</span> <span class="s">'next'</span><span class="p">:</span> <span class="n">Graph</span><span class="p">(</span><span class="n">one</span><span class="p">)}</span>
+<span class="o">&lt;</span><span class="k">class</span> <span class="err">'</span><span class="nc">__main__</span><span class="o">.</span><span class="n">Graph</span><span class="s">'&gt;</span><span class="err">
+</span></code></pre>
+</div>
+<p>这个例子中，<code class="highlighter-rouge">three</code>这个实例在<code class="highlighter-rouge">__dict__</code>属性中保存了对它的实例字典的引用。</p>
+
+<p>下面这个例子，使用<code class="highlighter-rouge">Queue</code>对所有的引用来进行广度优先搜索，用来发现循环依赖。队列中的每个元素都是一个元组，里面包含了引用链和下一个需要检查的元素。从<code class="highlighter-rouge">three</code>这个实例开始，然后遍历它引用的所有的东西。</p>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="c">#!/usr/bin/env python</span>
+<span class="c"># encoding: utf-8</span>
+<span class="c">#</span>
+<span class="c"># Copyright (c) 2010 Doug Hellmann.  All rights reserved.</span>
+<span class="c">#</span>
+<span class="s">"""Show the objects with references to a given object.
+"""</span>
+<span class="c"># end_pymotw_header</span>
+
+<span class="kn">import</span> <span class="nn">gc</span>
+<span class="kn">import</span> <span class="nn">pprint</span>
+<span class="kn">import</span> <span class="nn">Queue</span>
+
+
+<span class="k">class</span> <span class="nc">Graph</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="nb">next</span> <span class="o">=</span> <span class="bp">None</span>
+
+    <span class="k">def</span> <span class="nf">set_next</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">next</span><span class="p">):</span>
+        <span class="k">print</span> <span class="s">'Linking nodes </span><span class="si">%</span><span class="s">s.next = </span><span class="si">%</span><span class="s">s'</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">next</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="nb">next</span> <span class="o">=</span> <span class="nb">next</span>
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s">'</span><span class="si">%</span><span class="s">s(</span><span class="si">%</span><span class="s">s)'</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+<span class="c"># Construct a graph cycle</span>
+<span class="n">one</span> <span class="o">=</span> <span class="n">Graph</span><span class="p">(</span><span class="s">'one'</span><span class="p">)</span>
+<span class="n">two</span> <span class="o">=</span> <span class="n">Graph</span><span class="p">(</span><span class="s">'two'</span><span class="p">)</span>
+<span class="n">three</span> <span class="o">=</span> <span class="n">Graph</span><span class="p">(</span><span class="s">'three'</span><span class="p">)</span>
+<span class="n">one</span><span class="o">.</span><span class="n">set_next</span><span class="p">(</span><span class="n">two</span><span class="p">)</span>
+<span class="n">two</span><span class="o">.</span><span class="n">set_next</span><span class="p">(</span><span class="n">three</span><span class="p">)</span>
+<span class="n">three</span><span class="o">.</span><span class="n">set_next</span><span class="p">(</span><span class="n">one</span><span class="p">)</span>
+
+<span class="k">print</span>
+
+<span class="n">seen</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+<span class="n">to_process</span> <span class="o">=</span> <span class="n">Queue</span><span class="o">.</span><span class="n">Queue</span><span class="p">()</span>
+
+<span class="c"># Start with an empty object chain and Graph three.</span>
+<span class="n">to_process</span><span class="o">.</span><span class="n">put</span><span class="p">(([],</span> <span class="n">three</span><span class="p">))</span>
+
+<span class="c"># Look for cycles, building the object chain for each object found</span>
+<span class="c"># in the queue so the full cycle can be printed at the end.</span>
+<span class="k">while</span> <span class="ow">not</span> <span class="n">to_process</span><span class="o">.</span><span class="n">empty</span><span class="p">():</span>
+    <span class="n">chain</span><span class="p">,</span> <span class="nb">next</span> <span class="o">=</span> <span class="n">to_process</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+    <span class="k">print</span> <span class="s">"get:"</span><span class="p">,</span> <span class="n">chain</span><span class="p">,</span> <span class="nb">next</span>
+    <span class="n">chain</span> <span class="o">=</span> <span class="n">chain</span><span class="p">[:]</span>
+    <span class="n">chain</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">next</span><span class="p">)</span>
+    <span class="k">print</span> <span class="s">"chain"</span><span class="p">,</span> <span class="n">chain</span>
+    <span class="k">print</span> <span class="s">'Examining:'</span><span class="p">,</span> <span class="nb">repr</span><span class="p">(</span><span class="nb">next</span><span class="p">)</span>
+    <span class="k">print</span> <span class="s">"add id"</span><span class="p">,</span> <span class="nb">id</span><span class="p">(</span><span class="nb">next</span><span class="p">)</span>
+    <span class="n">seen</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="nb">id</span><span class="p">(</span><span class="nb">next</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">gc</span><span class="o">.</span><span class="n">get_referents</span><span class="p">(</span><span class="nb">next</span><span class="p">):</span>
+        <span class="c"># 跳过部分没用的引用</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="nb">basestring</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="nb">type</span><span class="p">)):</span>
+            <span class="k">print</span> <span class="s">"refer to:"</span><span class="p">,</span> <span class="n">r</span>
+            <span class="k">if</span> <span class="nb">id</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="ow">in</span> <span class="n">seen</span><span class="p">:</span>
+                <span class="k">print</span>
+                <span class="k">print</span> <span class="s">'Found a cycle to </span><span class="si">%</span><span class="s">s:'</span> <span class="o">%</span> <span class="n">r</span>
+                <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">link</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">chain</span><span class="p">):</span>
+                    <span class="k">print</span> <span class="s">'  </span><span class="si">%</span><span class="s">d: '</span> <span class="o">%</span> <span class="n">i</span><span class="p">,</span>
+                    <span class="n">pprint</span><span class="o">.</span><span class="n">pprint</span><span class="p">(</span><span class="n">link</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">print</span> <span class="s">"put:"</span><span class="p">,</span> <span class="n">chain</span><span class="p">,</span> <span class="n">r</span>
+                <span class="n">to_process</span><span class="o">.</span><span class="n">put</span><span class="p">((</span><span class="n">chain</span><span class="p">,</span> <span class="n">r</span><span class="p">))</span>
+    <span class="k">print</span> <span class="s">"---------------"</span>
+</code></pre>
+</div>
+
+<p>输出是</p>
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">Linking</span> <span class="n">nodes</span> <span class="n">Graph</span><span class="p">(</span><span class="n">one</span><span class="p">)</span><span class="o">.</span><span class="nb">next</span> <span class="o">=</span> <span class="n">Graph</span><span class="p">(</span><span class="n">two</span><span class="p">)</span>
+<span class="n">Linking</span> <span class="n">nodes</span> <span class="n">Graph</span><span class="p">(</span><span class="n">two</span><span class="p">)</span><span class="o">.</span><span class="nb">next</span> <span class="o">=</span> <span class="n">Graph</span><span class="p">(</span><span class="n">three</span><span class="p">)</span>
+<span class="n">Linking</span> <span class="n">nodes</span> <span class="n">Graph</span><span class="p">(</span><span class="n">three</span><span class="p">)</span><span class="o">.</span><span class="nb">next</span> <span class="o">=</span> <span class="n">Graph</span><span class="p">(</span><span class="n">one</span><span class="p">)</span>
+<span class="c"># 初始化的状态 下一个要检查的是 three</span>
+<span class="n">get</span><span class="p">:</span> <span class="p">[]</span> <span class="n">Graph</span><span class="p">(</span><span class="n">three</span><span class="p">)</span>
+<span class="n">chain</span> <span class="p">[</span><span class="n">Graph</span><span class="p">(</span><span class="n">three</span><span class="p">)]</span>
+<span class="n">Examining</span><span class="p">:</span> <span class="n">Graph</span><span class="p">(</span><span class="n">three</span><span class="p">)</span>
+<span class="c"># 标记three 的 id 已经检查</span>
+<span class="n">add</span> <span class="nb">id</span> <span class="mi">4392667024</span>
+<span class="c"># three 指向这个东西</span>
+<span class="n">refer</span> <span class="n">to</span><span class="p">:</span> <span class="p">{</span><span class="s">'name'</span><span class="p">:</span> <span class="s">'three'</span><span class="p">,</span> <span class="s">'next'</span><span class="p">:</span> <span class="n">Graph</span><span class="p">(</span><span class="n">one</span><span class="p">)}</span>
+<span class="c"># 下一个要检查的就是{'name': 'three', 'next': Graph(one)}</span>
+<span class="n">put</span><span class="p">:</span> <span class="p">[</span><span class="n">Graph</span><span class="p">(</span><span class="n">three</span><span class="p">)]</span> <span class="p">{</span><span class="s">'name'</span><span class="p">:</span> <span class="s">'three'</span><span class="p">,</span> <span class="s">'next'</span><span class="p">:</span> <span class="n">Graph</span><span class="p">(</span><span class="n">one</span><span class="p">)}</span>
+<span class="o">---------------</span>
+<span class="n">get</span><span class="p">:</span> <span class="p">[</span><span class="n">Graph</span><span class="p">(</span><span class="n">three</span><span class="p">)]</span> <span class="p">{</span><span class="s">'name'</span><span class="p">:</span> <span class="s">'three'</span><span class="p">,</span> <span class="s">'next'</span><span class="p">:</span> <span class="n">Graph</span><span class="p">(</span><span class="n">one</span><span class="p">)}</span>
+<span class="n">chain</span> <span class="p">[</span><span class="n">Graph</span><span class="p">(</span><span class="n">three</span><span class="p">),</span> <span class="p">{</span><span class="s">'name'</span><span class="p">:</span> <span class="s">'three'</span><span class="p">,</span> <span class="s">'next'</span><span class="p">:</span> <span class="n">Graph</span><span class="p">(</span><span class="n">one</span><span class="p">)}]</span>
+<span class="n">Examining</span><span class="p">:</span> <span class="p">{</span><span class="s">'name'</span><span class="p">:</span> <span class="s">'three'</span><span class="p">,</span> <span class="s">'next'</span><span class="p">:</span> <span class="n">Graph</span><span class="p">(</span><span class="n">one</span><span class="p">)}</span>
+<span class="n">add</span> <span class="nb">id</span> <span class="mi">140688010354752</span>
+<span class="c"># {'name': 'three', 'next': Graph(one)} 引用了 one</span>
+<span class="n">refer</span> <span class="n">to</span><span class="p">:</span> <span class="n">Graph</span><span class="p">(</span><span class="n">one</span><span class="p">)</span>
+<span class="n">put</span><span class="p">:</span> <span class="p">[</span><span class="n">Graph</span><span class="p">(</span><span class="n">three</span><span class="p">),</span> <span class="p">{</span><span class="s">'name'</span><span class="p">:</span> <span class="s">'three'</span><span class="p">,</span> <span class="s">'next'</span><span class="p">:</span> <span class="n">Graph</span><span class="p">(</span><span class="n">one</span><span class="p">)}]</span> <span class="n">Graph</span><span class="p">(</span><span class="n">one</span><span class="p">)</span>
+<span class="o">---------------</span>
+<span class="n">get</span><span class="p">:</span> <span class="p">[</span><span class="n">Graph</span><span class="p">(</span><span class="n">three</span><span class="p">),</span> <span class="p">{</span><span class="s">'name'</span><span class="p">:</span> <span class="s">'three'</span><span class="p">,</span> <span class="s">'next'</span><span class="p">:</span> <span class="n">Graph</span><span class="p">(</span><span class="n">one</span><span class="p">)}]</span> <span class="n">Graph</span><span class="p">(</span><span class="n">one</span><span class="p">)</span>
+<span class="n">chain</span> <span class="p">[</span><span class="n">Graph</span><span class="p">(</span><span class="n">three</span><span class="p">),</span> <span class="p">{</span><span class="s">'name'</span><span class="p">:</span> <span class="s">'three'</span><span class="p">,</span> <span class="s">'next'</span><span class="p">:</span> <span class="n">Graph</span><span class="p">(</span><span class="n">one</span><span class="p">)},</span> <span class="n">Graph</span><span class="p">(</span><span class="n">one</span><span class="p">)]</span>
+<span class="n">Examining</span><span class="p">:</span> <span class="n">Graph</span><span class="p">(</span><span class="n">one</span><span class="p">)</span>
+<span class="n">add</span> <span class="nb">id</span> <span class="mi">4392615504</span>
+<span class="n">refer</span> <span class="n">to</span><span class="p">:</span> <span class="p">{</span><span class="s">'name'</span><span class="p">:</span> <span class="s">'one'</span><span class="p">,</span> <span class="s">'next'</span><span class="p">:</span> <span class="n">Graph</span><span class="p">(</span><span class="n">two</span><span class="p">)}</span>
+<span class="c"># 现在循环链是 three -&gt; {'name': 'three', 'next': Graph(one)} -&gt; one</span>
+<span class="n">put</span><span class="p">:</span> <span class="p">[</span><span class="n">Graph</span><span class="p">(</span><span class="n">three</span><span class="p">),</span> <span class="p">{</span><span class="s">'name'</span><span class="p">:</span> <span class="s">'three'</span><span class="p">,</span> <span class="s">'next'</span><span class="p">:</span> <span class="n">Graph</span><span class="p">(</span><span class="n">one</span><span class="p">)},</span> <span class="n">Graph</span><span class="p">(</span><span class="n">one</span><span class="p">)]</span> <span class="p">{</span><span class="s">'name'</span><span class="p">:</span> <span class="s">'one'</span><span class="p">,</span> <span class="s">'next'</span><span class="p">:</span> <span class="n">Graph</span><span class="p">(</span><span class="n">two</span><span class="p">)}</span>
+<span class="o">---------------</span>
+<span class="n">get</span><span class="p">:</span> <span class="p">[</span><span class="n">Graph</span><span class="p">(</span><span class="n">three</span><span class="p">),</span> <span class="p">{</span><span class="s">'name'</span><span class="p">:</span> <span class="s">'three'</span><span class="p">,</span> <span class="s">'next'</span><span class="p">:</span> <span class="n">Graph</span><span class="p">(</span><span class="n">one</span><span class="p">)},</span> <span class="n">Graph</span><span class="p">(</span><span class="n">one</span><span class="p">)]</span> <span class="p">{</span><span class="s">'name'</span><span class="p">:</span> <span class="s">'one'</span><span class="p">,</span> <span class="s">'next'</span><span class="p">:</span> <span class="n">Graph</span><span class="p">(</span><span class="n">two</span><span class="p">)}</span>
+<span class="n">chain</span> <span class="p">[</span><span class="n">Graph</span><span class="p">(</span><span class="n">three</span><span class="p">),</span> <span class="p">{</span><span class="s">'name'</span><span class="p">:</span> <span class="s">'three'</span><span class="p">,</span> <span class="s">'next'</span><span class="p">:</span> <span class="n">Graph</span><span class="p">(</span><span class="n">one</span><span class="p">)},</span> <span class="n">Graph</span><span class="p">(</span><span class="n">one</span><span class="p">),</span> <span class="p">{</span><span class="s">'name'</span><span class="p">:</span> <span class="s">'one'</span><span class="p">,</span> <span class="s">'next'</span><span class="p">:</span> <span class="n">Graph</span><span class="p">(</span><span class="n">two</span><span class="p">)}]</span>
+<span class="n">Examining</span><span class="p">:</span> <span class="p">{</span><span class="s">'name'</span><span class="p">:</span> <span class="s">'one'</span><span class="p">,</span> <span class="s">'next'</span><span class="p">:</span> <span class="n">Graph</span><span class="p">(</span><span class="n">two</span><span class="p">)}</span>
+<span class="n">add</span> <span class="nb">id</span> <span class="mi">140688010307184</span>
+<span class="n">refer</span> <span class="n">to</span><span class="p">:</span> <span class="n">Graph</span><span class="p">(</span><span class="n">two</span><span class="p">)</span>
+<span class="c"># 循环链变为three -&gt; {'name': 'three', 'next': Graph(one)} -&gt; one -&gt; {'name': 'one', 'next': Graph(two)}</span>
+<span class="n">put</span><span class="p">:</span> <span class="p">[</span><span class="n">Graph</span><span class="p">(</span><span class="n">three</span><span class="p">),</span> <span class="p">{</span><span class="s">'name'</span><span class="p">:</span> <span class="s">'three'</span><span class="p">,</span> <span class="s">'next'</span><span class="p">:</span> <span class="n">Graph</span><span class="p">(</span><span class="n">one</span><span class="p">)},</span> <span class="n">Graph</span><span class="p">(</span><span class="n">one</span><span class="p">),</span> <span class="p">{</span><span class="s">'name'</span><span class="p">:</span> <span class="s">'one'</span><span class="p">,</span> <span class="s">'next'</span><span class="p">:</span> <span class="n">Graph</span><span class="p">(</span><span class="n">two</span><span class="p">)}]</span> <span class="n">Graph</span><span class="p">(</span><span class="n">two</span><span class="p">)</span>
+<span class="o">---------------</span>
+<span class="n">get</span><span class="p">:</span> <span class="p">[</span><span class="n">Graph</span><span class="p">(</span><span class="n">three</span><span class="p">),</span> <span class="p">{</span><span class="s">'name'</span><span class="p">:</span> <span class="s">'three'</span><span class="p">,</span> <span class="s">'next'</span><span class="p">:</span> <span class="n">Graph</span><span class="p">(</span><span class="n">one</span><span class="p">)},</span> <span class="n">Graph</span><span class="p">(</span><span class="n">one</span><span class="p">),</span> <span class="p">{</span><span class="s">'name'</span><span class="p">:</span> <span class="s">'one'</span><span class="p">,</span> <span class="s">'next'</span><span class="p">:</span> <span class="n">Graph</span><span class="p">(</span><span class="n">two</span><span class="p">)}]</span> <span class="n">Graph</span><span class="p">(</span><span class="n">two</span><span class="p">)</span>
+<span class="n">chain</span> <span class="p">[</span><span class="n">Graph</span><span class="p">(</span><span class="n">three</span><span class="p">),</span> <span class="p">{</span><span class="s">'name'</span><span class="p">:</span> <span class="s">'three'</span><span class="p">,</span> <span class="s">'next'</span><span class="p">:</span> <span class="n">Graph</span><span class="p">(</span><span class="n">one</span><span class="p">)},</span> <span class="n">Graph</span><span class="p">(</span><span class="n">one</span><span class="p">),</span> <span class="p">{</span><span class="s">'name'</span><span class="p">:</span> <span class="s">'one'</span><span class="p">,</span> <span class="s">'next'</span><span class="p">:</span> <span class="n">Graph</span><span class="p">(</span><span class="n">two</span><span class="p">)},</span> <span class="n">Graph</span><span class="p">(</span><span class="n">two</span><span class="p">)]</span>
+<span class="n">Examining</span><span class="p">:</span> <span class="n">Graph</span><span class="p">(</span><span class="n">two</span><span class="p">)</span>
+<span class="n">add</span> <span class="nb">id</span> <span class="mi">4392665936</span>
+<span class="n">refer</span> <span class="n">to</span><span class="p">:</span> <span class="p">{</span><span class="s">'name'</span><span class="p">:</span> <span class="s">'two'</span><span class="p">,</span> <span class="s">'next'</span><span class="p">:</span> <span class="n">Graph</span><span class="p">(</span><span class="n">three</span><span class="p">)}</span>
+<span class="c"># 继续增长</span>
+<span class="n">put</span><span class="p">:</span> <span class="p">[</span><span class="n">Graph</span><span class="p">(</span><span class="n">three</span><span class="p">),</span> <span class="p">{</span><span class="s">'name'</span><span class="p">:</span> <span class="s">'three'</span><span class="p">,</span> <span class="s">'next'</span><span class="p">:</span> <span class="n">Graph</span><span class="p">(</span><span class="n">one</span><span class="p">)},</span> <span class="n">Graph</span><span class="p">(</span><span class="n">one</span><span class="p">),</span> <span class="p">{</span><span class="s">'name'</span><span class="p">:</span> <span class="s">'one'</span><span class="p">,</span> <span class="s">'next'</span><span class="p">:</span> <span class="n">Graph</span><span class="p">(</span><span class="n">two</span><span class="p">)},</span> <span class="n">Graph</span><span class="p">(</span><span class="n">two</span><span class="p">)]</span> <span class="p">{</span><span class="s">'name'</span><span class="p">:</span> <span class="s">'two'</span><span class="p">,</span> <span class="s">'next'</span><span class="p">:</span> <span class="n">Graph</span><span class="p">(</span><span class="n">three</span><span class="p">)}</span>
+<span class="o">---------------</span>
+<span class="n">get</span><span class="p">:</span> <span class="p">[</span><span class="n">Graph</span><span class="p">(</span><span class="n">three</span><span class="p">),</span> <span class="p">{</span><span class="s">'name'</span><span class="p">:</span> <span class="s">'three'</span><span class="p">,</span> <span class="s">'next'</span><span class="p">:</span> <span class="n">Graph</span><span class="p">(</span><span class="n">one</span><span class="p">)},</span> <span class="n">Graph</span><span class="p">(</span><span class="n">one</span><span class="p">),</span> <span class="p">{</span><span class="s">'name'</span><span class="p">:</span> <span class="s">'one'</span><span class="p">,</span> <span class="s">'next'</span><span class="p">:</span> <span class="n">Graph</span><span class="p">(</span><span class="n">two</span><span class="p">)},</span> <span class="n">Graph</span><span class="p">(</span><span class="n">two</span><span class="p">)]</span> <span class="p">{</span><span class="s">'name'</span><span class="p">:</span> <span class="s">'two'</span><span class="p">,</span> <span class="s">'next'</span><span class="p">:</span> <span class="n">Graph</span><span class="p">(</span><span class="n">three</span><span class="p">)}</span>
+<span class="n">chain</span> <span class="p">[</span><span class="n">Graph</span><span class="p">(</span><span class="n">three</span><span class="p">),</span> <span class="p">{</span><span class="s">'name'</span><span class="p">:</span> <span class="s">'three'</span><span class="p">,</span> <span class="s">'next'</span><span class="p">:</span> <span class="n">Graph</span><span class="p">(</span><span class="n">one</span><span class="p">)},</span> <span class="n">Graph</span><span class="p">(</span><span class="n">one</span><span class="p">),</span> <span class="p">{</span><span class="s">'name'</span><span class="p">:</span> <span class="s">'one'</span><span class="p">,</span> <span class="s">'next'</span><span class="p">:</span> <span class="n">Graph</span><span class="p">(</span><span class="n">two</span><span class="p">)},</span> <span class="n">Graph</span><span class="p">(</span><span class="n">two</span><span class="p">),</span> <span class="p">{</span><span class="s">'name'</span><span class="p">:</span> <span class="s">'two'</span><span class="p">,</span> <span class="s">'next'</span><span class="p">:</span> <span class="n">Graph</span><span class="p">(</span><span class="n">three</span><span class="p">)}]</span>
+<span class="n">Examining</span><span class="p">:</span> <span class="p">{</span><span class="s">'name'</span><span class="p">:</span> <span class="s">'two'</span><span class="p">,</span> <span class="s">'next'</span><span class="p">:</span> <span class="n">Graph</span><span class="p">(</span><span class="n">three</span><span class="p">)}</span>
+<span class="n">add</span> <span class="nb">id</span> <span class="mi">140688010362416</span>
+<span class="n">refer</span> <span class="n">to</span><span class="p">:</span> <span class="n">Graph</span><span class="p">(</span><span class="n">three</span><span class="p">)</span>
+<span class="c"># 这个 id 已经出现过了，说明出现了循环引用</span>
+<span class="n">Found</span> <span class="n">a</span> <span class="n">cycle</span> <span class="n">to</span> <span class="n">Graph</span><span class="p">(</span><span class="n">three</span><span class="p">):</span>
+  <span class="mi">0</span><span class="p">:</span> <span class="n">Graph</span><span class="p">(</span><span class="n">three</span><span class="p">)</span>
+  <span class="mi">1</span><span class="p">:</span> <span class="p">{</span><span class="s">'name'</span><span class="p">:</span> <span class="s">'three'</span><span class="p">,</span> <span class="s">'next'</span><span class="p">:</span> <span class="n">Graph</span><span class="p">(</span><span class="n">one</span><span class="p">)}</span>
+  <span class="mi">2</span><span class="p">:</span> <span class="n">Graph</span><span class="p">(</span><span class="n">one</span><span class="p">)</span>
+  <span class="mi">3</span><span class="p">:</span> <span class="p">{</span><span class="s">'name'</span><span class="p">:</span> <span class="s">'one'</span><span class="p">,</span> <span class="s">'next'</span><span class="p">:</span> <span class="n">Graph</span><span class="p">(</span><span class="n">two</span><span class="p">)}</span>
+  <span class="mi">4</span><span class="p">:</span> <span class="n">Graph</span><span class="p">(</span><span class="n">two</span><span class="p">)</span>
+  <span class="mi">5</span><span class="p">:</span> <span class="p">{</span><span class="s">'name'</span><span class="p">:</span> <span class="s">'two'</span><span class="p">,</span> <span class="s">'next'</span><span class="p">:</span> <span class="n">Graph</span><span class="p">(</span><span class="n">three</span><span class="p">)}</span>
+<span class="o">---------------</span>
+</code></pre>
+</div>
+
+<h2 id="强制进行垃圾回收">强制进行垃圾回收</h2>
+<p>代码示例</p>
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">gc</span>
+<span class="kn">import</span> <span class="nn">pprint</span>
+
+<span class="k">class</span> <span class="nc">Graph</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="nb">next</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="k">def</span> <span class="nf">set_next</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">next</span><span class="p">):</span>
+        <span class="k">print</span> <span class="s">'Linking nodes </span><span class="si">%</span><span class="s">s.next = </span><span class="si">%</span><span class="s">s'</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">next</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="nb">next</span> <span class="o">=</span> <span class="nb">next</span>
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s">'</span><span class="si">%</span><span class="s">s(</span><span class="si">%</span><span class="s">s)'</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+<span class="c"># Construct a graph cycle</span>
+<span class="n">one</span> <span class="o">=</span> <span class="n">Graph</span><span class="p">(</span><span class="s">'one'</span><span class="p">)</span>
+<span class="n">two</span> <span class="o">=</span> <span class="n">Graph</span><span class="p">(</span><span class="s">'two'</span><span class="p">)</span>
+<span class="n">three</span> <span class="o">=</span> <span class="n">Graph</span><span class="p">(</span><span class="s">'three'</span><span class="p">)</span>
+<span class="n">one</span><span class="o">.</span><span class="n">set_next</span><span class="p">(</span><span class="n">two</span><span class="p">)</span>
+<span class="n">two</span><span class="o">.</span><span class="n">set_next</span><span class="p">(</span><span class="n">three</span><span class="p">)</span>
+<span class="n">three</span><span class="o">.</span><span class="n">set_next</span><span class="p">(</span><span class="n">one</span><span class="p">)</span>
+
+<span class="k">print</span>
+
+<span class="c"># Remove references to the graph nodes in this module's namespace</span>
+<span class="n">one</span> <span class="o">=</span> <span class="n">two</span> <span class="o">=</span> <span class="n">three</span> <span class="o">=</span> <span class="bp">None</span>
+
+<span class="c"># Show the effect of garbage collection</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">):</span>
+    <span class="k">print</span> <span class="s">'Collecting </span><span class="si">%</span><span class="s">d ...'</span> <span class="o">%</span> <span class="n">i</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="n">gc</span><span class="o">.</span><span class="n">collect</span><span class="p">()</span>
+    <span class="k">print</span> <span class="s">'Unreachable objects:'</span><span class="p">,</span> <span class="n">n</span>
+    <span class="k">print</span> <span class="s">'Remaining Garbage:'</span><span class="p">,</span> 
+    <span class="n">pprint</span><span class="o">.</span><span class="n">pprint</span><span class="p">(</span><span class="n">gc</span><span class="o">.</span><span class="n">garbage</span><span class="p">)</span>
+    <span class="k">print</span>
+</code></pre>
+</div>
+<p>输出</p>
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="err">$</span> <span class="n">python</span> <span class="n">gc_collect</span><span class="o">.</span><span class="n">py</span>
+
+<span class="n">Linking</span> <span class="n">nodes</span> <span class="n">Graph</span><span class="p">(</span><span class="n">one</span><span class="p">)</span><span class="o">.</span><span class="nb">next</span> <span class="o">=</span> <span class="n">Graph</span><span class="p">(</span><span class="n">two</span><span class="p">)</span>
+<span class="n">Linking</span> <span class="n">nodes</span> <span class="n">Graph</span><span class="p">(</span><span class="n">two</span><span class="p">)</span><span class="o">.</span><span class="nb">next</span> <span class="o">=</span> <span class="n">Graph</span><span class="p">(</span><span class="n">three</span><span class="p">)</span>
+<span class="n">Linking</span> <span class="n">nodes</span> <span class="n">Graph</span><span class="p">(</span><span class="n">three</span><span class="p">)</span><span class="o">.</span><span class="nb">next</span> <span class="o">=</span> <span class="n">Graph</span><span class="p">(</span><span class="n">one</span><span class="p">)</span>
+
+<span class="n">Collecting</span> <span class="mi">0</span> <span class="o">...</span>
+<span class="n">Unreachable</span> <span class="n">objects</span><span class="p">:</span> <span class="mi">6</span>
+<span class="n">Remaining</span> <span class="n">Garbage</span><span class="p">:[]</span>
+
+<span class="n">Collecting</span> <span class="mi">1</span> <span class="o">...</span>
+<span class="n">Unreachable</span> <span class="n">objects</span><span class="p">:</span> <span class="mi">0</span>
+<span class="n">Remaining</span> <span class="n">Garbage</span><span class="p">:[]</span>
+</code></pre>
+</div>
+<p>这个例子中，第一次进行垃圾回收的时候，循环引用就被打破了，除了自己，没有再引用 Graph 节点的了。<code class="highlighter-rouge">collect()</code>函数返回了 unreachable 的 objects 的数量(不知道怎么翻译比较好，反正就是没办法再获取到这三个实例了，因为之前对它三个的引用被赋值为 None 了)。这个例子中，这个值是6，因为有3个类实例和自己的实例属性字典。</p>
+
+<p>如果<code class="highlighter-rouge">Graph</code>有<code class="highlighter-rouge">__del()__</code>方法的话，垃圾回收就不能打破循环了。</p>
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">gc</span>
+<span class="kn">import</span> <span class="nn">pprint</span>
+
+<span class="k">class</span> <span class="nc">Graph</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="nb">next</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="k">def</span> <span class="nf">set_next</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">next</span><span class="p">):</span>
+        <span class="k">print</span> <span class="s">'</span><span class="si">%</span><span class="s">s.next = </span><span class="si">%</span><span class="s">s'</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">next</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="nb">next</span> <span class="o">=</span> <span class="nb">next</span>
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s">'</span><span class="si">%</span><span class="s">s(</span><span class="si">%</span><span class="s">s)'</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">print</span> <span class="s">'</span><span class="si">%</span><span class="s">s.__del__()'</span> <span class="o">%</span> <span class="bp">self</span>
+
+<span class="c"># Construct a graph cycle</span>
+<span class="n">one</span> <span class="o">=</span> <span class="n">Graph</span><span class="p">(</span><span class="s">'one'</span><span class="p">)</span>
+<span class="n">two</span> <span class="o">=</span> <span class="n">Graph</span><span class="p">(</span><span class="s">'two'</span><span class="p">)</span>
+<span class="n">three</span> <span class="o">=</span> <span class="n">Graph</span><span class="p">(</span><span class="s">'three'</span><span class="p">)</span>
+<span class="n">one</span><span class="o">.</span><span class="n">set_next</span><span class="p">(</span><span class="n">two</span><span class="p">)</span>
+<span class="n">two</span><span class="o">.</span><span class="n">set_next</span><span class="p">(</span><span class="n">three</span><span class="p">)</span>
+<span class="n">three</span><span class="o">.</span><span class="n">set_next</span><span class="p">(</span><span class="n">one</span><span class="p">)</span>
+
+<span class="c"># Remove references to the graph nodes in this module's namespace</span>
+<span class="n">one</span> <span class="o">=</span> <span class="n">two</span> <span class="o">=</span> <span class="n">three</span> <span class="o">=</span> <span class="bp">None</span>
+
+<span class="c"># Show the effect of garbage collection</span>
+<span class="k">print</span> <span class="s">'Collecting...'</span>
+<span class="n">n</span> <span class="o">=</span> <span class="n">gc</span><span class="o">.</span><span class="n">collect</span><span class="p">()</span>
+<span class="k">print</span> <span class="s">'Unreachable objects:'</span><span class="p">,</span> <span class="n">n</span>
+<span class="k">print</span> <span class="s">'Remaining Garbage:'</span><span class="p">,</span> 
+<span class="n">pprint</span><span class="o">.</span><span class="n">pprint</span><span class="p">(</span><span class="n">gc</span><span class="o">.</span><span class="n">garbage</span><span class="p">)</span>
+</code></pre>
+</div>
+<p>输出</p>
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="err">$</span> <span class="n">python</span> <span class="n">gc_collect_with_del</span><span class="o">.</span><span class="n">py</span>
+
+<span class="n">Graph</span><span class="p">(</span><span class="n">one</span><span class="p">)</span><span class="o">.</span><span class="nb">next</span> <span class="o">=</span> <span class="n">Graph</span><span class="p">(</span><span class="n">two</span><span class="p">)</span>
+<span class="n">Graph</span><span class="p">(</span><span class="n">two</span><span class="p">)</span><span class="o">.</span><span class="nb">next</span> <span class="o">=</span> <span class="n">Graph</span><span class="p">(</span><span class="n">three</span><span class="p">)</span>
+<span class="n">Graph</span><span class="p">(</span><span class="n">three</span><span class="p">)</span><span class="o">.</span><span class="nb">next</span> <span class="o">=</span> <span class="n">Graph</span><span class="p">(</span><span class="n">one</span><span class="p">)</span>
+<span class="n">Collecting</span><span class="o">...</span>
+<span class="n">Unreachable</span> <span class="n">objects</span><span class="p">:</span> <span class="mi">6</span>
+<span class="n">Remaining</span> <span class="n">Garbage</span><span class="p">:[</span><span class="n">Graph</span><span class="p">(</span><span class="n">one</span><span class="p">),</span> <span class="n">Graph</span><span class="p">(</span><span class="n">two</span><span class="p">),</span> <span class="n">Graph</span><span class="p">(</span><span class="n">three</span><span class="p">)]</span>
+</code></pre>
+</div>
+<p>因为在循环中，超过一个的 object 拥有 finalizer 方法，垃圾回收机制没办法确定回收的顺序，为了安全起见，就保持原样了。</p>
+
+<p>当打破循环的时候，Graph 实例就可以被回收了。</p>
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">gc</span>
+<span class="kn">import</span> <span class="nn">pprint</span>
+
+<span class="k">class</span> <span class="nc">Graph</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="nb">next</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="k">def</span> <span class="nf">set_next</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">next</span><span class="p">):</span>
+        <span class="k">print</span> <span class="s">'Linking nodes </span><span class="si">%</span><span class="s">s.next = </span><span class="si">%</span><span class="s">s'</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">next</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="nb">next</span> <span class="o">=</span> <span class="nb">next</span>
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s">'</span><span class="si">%</span><span class="s">s(</span><span class="si">%</span><span class="s">s)'</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">print</span> <span class="s">'</span><span class="si">%</span><span class="s">s.__del__()'</span> <span class="o">%</span> <span class="bp">self</span>
+
+<span class="c"># Construct a graph cycle</span>
+<span class="n">one</span> <span class="o">=</span> <span class="n">Graph</span><span class="p">(</span><span class="s">'one'</span><span class="p">)</span>
+<span class="n">two</span> <span class="o">=</span> <span class="n">Graph</span><span class="p">(</span><span class="s">'two'</span><span class="p">)</span>
+<span class="n">three</span> <span class="o">=</span> <span class="n">Graph</span><span class="p">(</span><span class="s">'three'</span><span class="p">)</span>
+<span class="n">one</span><span class="o">.</span><span class="n">set_next</span><span class="p">(</span><span class="n">two</span><span class="p">)</span>
+<span class="n">two</span><span class="o">.</span><span class="n">set_next</span><span class="p">(</span><span class="n">three</span><span class="p">)</span>
+<span class="n">three</span><span class="o">.</span><span class="n">set_next</span><span class="p">(</span><span class="n">one</span><span class="p">)</span>
+
+<span class="c"># Remove references to the graph nodes in this module's namespace</span>
+<span class="n">one</span> <span class="o">=</span> <span class="n">two</span> <span class="o">=</span> <span class="n">three</span> <span class="o">=</span> <span class="bp">None</span>
+
+<span class="c"># Collecting now keeps the objects as uncollectable</span>
+<span class="k">print</span>
+<span class="k">print</span> <span class="s">'Collecting...'</span>
+<span class="n">n</span> <span class="o">=</span> <span class="n">gc</span><span class="o">.</span><span class="n">collect</span><span class="p">()</span>
+<span class="k">print</span> <span class="s">'Unreachable objects:'</span><span class="p">,</span> <span class="n">n</span>
+<span class="k">print</span> <span class="s">'Remaining Garbage:'</span><span class="p">,</span> 
+<span class="n">pprint</span><span class="o">.</span><span class="n">pprint</span><span class="p">(</span><span class="n">gc</span><span class="o">.</span><span class="n">garbage</span><span class="p">)</span>
+    
+<span class="c"># Break the cycle</span>
+<span class="k">print</span>
+<span class="k">print</span> <span class="s">'Breaking the cycle'</span>
+<span class="n">gc</span><span class="o">.</span><span class="n">garbage</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_next</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span>
+<span class="k">print</span> <span class="s">'Removing references in gc.garbage'</span>
+<span class="k">del</span> <span class="n">gc</span><span class="o">.</span><span class="n">garbage</span><span class="p">[:]</span>
+
+<span class="c"># Now the objects are removed</span>
+<span class="k">print</span>
+<span class="k">print</span> <span class="s">'Collecting...'</span>
+<span class="n">n</span> <span class="o">=</span> <span class="n">gc</span><span class="o">.</span><span class="n">collect</span><span class="p">()</span>
+<span class="k">print</span> <span class="s">'Unreachable objects:'</span><span class="p">,</span> <span class="n">n</span>
+<span class="k">print</span> <span class="s">'Remaining Garbage:'</span><span class="p">,</span> 
+<span class="n">pprint</span><span class="o">.</span><span class="n">pprint</span><span class="p">(</span><span class="n">gc</span><span class="o">.</span><span class="n">garbage</span><span class="p">)</span>
+</code></pre>
+</div>
+<p>输出</p>
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="err">$</span> <span class="n">python</span> <span class="n">gc_collect_break_cycle</span><span class="o">.</span><span class="n">py</span>
+
+<span class="n">Linking</span> <span class="n">nodes</span> <span class="n">Graph</span><span class="p">(</span><span class="n">one</span><span class="p">)</span><span class="o">.</span><span class="nb">next</span> <span class="o">=</span> <span class="n">Graph</span><span class="p">(</span><span class="n">two</span><span class="p">)</span>
+<span class="n">Linking</span> <span class="n">nodes</span> <span class="n">Graph</span><span class="p">(</span><span class="n">two</span><span class="p">)</span><span class="o">.</span><span class="nb">next</span> <span class="o">=</span> <span class="n">Graph</span><span class="p">(</span><span class="n">three</span><span class="p">)</span>
+<span class="n">Linking</span> <span class="n">nodes</span> <span class="n">Graph</span><span class="p">(</span><span class="n">three</span><span class="p">)</span><span class="o">.</span><span class="nb">next</span> <span class="o">=</span> <span class="n">Graph</span><span class="p">(</span><span class="n">one</span><span class="p">)</span>
+
+<span class="n">Collecting</span><span class="o">...</span>
+<span class="n">Unreachable</span> <span class="n">objects</span><span class="p">:</span> <span class="mi">6</span>
+<span class="n">Remaining</span> <span class="n">Garbage</span><span class="p">:[</span><span class="n">Graph</span><span class="p">(</span><span class="n">one</span><span class="p">),</span> <span class="n">Graph</span><span class="p">(</span><span class="n">two</span><span class="p">),</span> <span class="n">Graph</span><span class="p">(</span><span class="n">three</span><span class="p">)]</span>
+
+<span class="n">Breaking</span> <span class="n">the</span> <span class="n">cycle</span>
+<span class="n">Linking</span> <span class="n">nodes</span> <span class="n">Graph</span><span class="p">(</span><span class="n">one</span><span class="p">)</span><span class="o">.</span><span class="nb">next</span> <span class="o">=</span> <span class="bp">None</span>
+<span class="n">Removing</span> <span class="n">references</span> <span class="ow">in</span> <span class="n">gc</span><span class="o">.</span><span class="n">garbage</span>
+<span class="n">Graph</span><span class="p">(</span><span class="n">two</span><span class="p">)</span><span class="o">.</span><span class="n">__del__</span><span class="p">()</span>
+<span class="n">Graph</span><span class="p">(</span><span class="n">three</span><span class="p">)</span><span class="o">.</span><span class="n">__del__</span><span class="p">()</span>
+<span class="n">Graph</span><span class="p">(</span><span class="n">one</span><span class="p">)</span><span class="o">.</span><span class="n">__del__</span><span class="p">()</span>
+
+<span class="n">Collecting</span><span class="o">...</span>
+<span class="n">Unreachable</span> <span class="n">objects</span><span class="p">:</span> <span class="mi">0</span>
+<span class="n">Remaining</span> <span class="n">Garbage</span><span class="p">:[]</span>
+</code></pre>
+</div>
+<p>因为<code class="highlighter-rouge">gc.garbage</code>会有一个对上次的垃圾回收的引用，这里打破循环后必须清除掉它，减少引用计数，然后回收掉。</p>
+
+<h2 id="寻找对不能被垃圾回收的-objects-的引用">寻找对不能被垃圾回收的 objects 的引用</h2>
+<p>这个例子创建了一个循环依赖，然后通过垃圾回收的 Graph 实例来寻找和移除对父节点的引用。</p>
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">gc</span>
+<span class="kn">import</span> <span class="nn">pprint</span>
+<span class="kn">import</span> <span class="nn">Queue</span>
+
+<span class="k">class</span> <span class="nc">Graph</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="nb">next</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="k">def</span> <span class="nf">set_next</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">next</span><span class="p">):</span>
+        <span class="k">print</span> <span class="s">'Linking nodes </span><span class="si">%</span><span class="s">s.next = </span><span class="si">%</span><span class="s">s'</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">next</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="nb">next</span> <span class="o">=</span> <span class="nb">next</span>
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s">'</span><span class="si">%</span><span class="s">s(</span><span class="si">%</span><span class="s">s)'</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">print</span> <span class="s">'</span><span class="si">%</span><span class="s">s.__del__()'</span> <span class="o">%</span> <span class="bp">self</span>
+
+<span class="c"># Construct two graph cycles</span>
+<span class="n">one</span> <span class="o">=</span> <span class="n">Graph</span><span class="p">(</span><span class="s">'one'</span><span class="p">)</span>
+<span class="n">two</span> <span class="o">=</span> <span class="n">Graph</span><span class="p">(</span><span class="s">'two'</span><span class="p">)</span>
+<span class="n">three</span> <span class="o">=</span> <span class="n">Graph</span><span class="p">(</span><span class="s">'three'</span><span class="p">)</span>
+<span class="n">one</span><span class="o">.</span><span class="n">set_next</span><span class="p">(</span><span class="n">two</span><span class="p">)</span>
+<span class="n">two</span><span class="o">.</span><span class="n">set_next</span><span class="p">(</span><span class="n">three</span><span class="p">)</span>
+<span class="n">three</span><span class="o">.</span><span class="n">set_next</span><span class="p">(</span><span class="n">one</span><span class="p">)</span>
+
+<span class="c"># Remove references to the graph nodes in this module's namespace</span>
+<span class="n">one</span> <span class="o">=</span> <span class="n">two</span> <span class="o">=</span> <span class="n">three</span> <span class="o">=</span> <span class="bp">None</span>
+
+<span class="c"># Collecting now keeps the objects as uncollectable</span>
+<span class="k">print</span>
+<span class="k">print</span> <span class="s">'Collecting...'</span>
+<span class="n">n</span> <span class="o">=</span> <span class="n">gc</span><span class="o">.</span><span class="n">collect</span><span class="p">()</span>
+<span class="k">print</span> <span class="s">'Unreachable objects:'</span><span class="p">,</span> <span class="n">n</span>
+<span class="k">print</span> <span class="s">'Remaining Garbage:'</span><span class="p">,</span> 
+<span class="n">pprint</span><span class="o">.</span><span class="n">pprint</span><span class="p">(</span><span class="n">gc</span><span class="o">.</span><span class="n">garbage</span><span class="p">)</span>
+
+<span class="n">REFERRERS_TO_IGNORE</span> <span class="o">=</span> <span class="p">[</span> <span class="nb">locals</span><span class="p">(),</span> <span class="nb">globals</span><span class="p">(),</span> <span class="n">gc</span><span class="o">.</span><span class="n">garbage</span> <span class="p">]</span>
+
+<span class="k">def</span> <span class="nf">find_referring_graphs</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
+    <span class="k">print</span> <span class="s">'Looking for references to </span><span class="si">%</span><span class="s">s'</span> <span class="o">%</span> <span class="nb">repr</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+    <span class="n">referrers</span> <span class="o">=</span> <span class="p">(</span><span class="n">r</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">gc</span><span class="o">.</span><span class="n">get_referrers</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+                 <span class="k">if</span> <span class="n">r</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">REFERRERS_TO_IGNORE</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">ref</span> <span class="ow">in</span> <span class="n">referrers</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ref</span><span class="p">,</span> <span class="n">Graph</span><span class="p">):</span>
+            <span class="c"># A graph node</span>
+            <span class="k">yield</span> <span class="n">ref</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ref</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="c"># An instance or other namespace dictionary</span>
+            <span class="k">for</span> <span class="n">parent</span> <span class="ow">in</span> <span class="n">find_referring_graphs</span><span class="p">(</span><span class="n">ref</span><span class="p">):</span>
+                <span class="k">yield</span> <span class="n">parent</span>
+
+<span class="c"># Look for objects that refer to the objects that remain in</span>
+<span class="c"># gc.garbage.</span>
+<span class="k">print</span>
+<span class="k">print</span> <span class="s">'Clearing referrers:'</span>
+<span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">gc</span><span class="o">.</span><span class="n">garbage</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">ref</span> <span class="ow">in</span> <span class="n">find_referring_graphs</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
+        <span class="n">ref</span><span class="o">.</span><span class="n">set_next</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span>
+        <span class="k">del</span> <span class="n">ref</span> <span class="c"># remove local reference so the node can be deleted</span>
+    <span class="k">del</span> <span class="n">obj</span> <span class="c"># remove local reference so the node can be deleted</span>
+
+<span class="c"># Clear references held by gc.garbage</span>
+<span class="k">print</span>
+<span class="k">print</span> <span class="s">'Clearing gc.garbage:'</span>
+<span class="k">del</span> <span class="n">gc</span><span class="o">.</span><span class="n">garbage</span><span class="p">[:]</span>
+        
+<span class="c"># Everything should have been freed this time</span>
+<span class="k">print</span>
+<span class="k">print</span> <span class="s">'Collecting...'</span>
+<span class="n">n</span> <span class="o">=</span> <span class="n">gc</span><span class="o">.</span><span class="n">collect</span><span class="p">()</span>
+<span class="k">print</span> <span class="s">'Unreachable objects:'</span><span class="p">,</span> <span class="n">n</span>
+<span class="k">print</span> <span class="s">'Remaining Garbage:'</span><span class="p">,</span> 
+<span class="n">pprint</span><span class="o">.</span><span class="n">pprint</span><span class="p">(</span><span class="n">gc</span><span class="o">.</span><span class="n">garbage</span><span class="p">)</span>
+</code></pre>
+</div>
+
+<h2 id="collection-thresholds-and-generations">Collection Thresholds and Generations</h2>
+<p>垃圾收集器维护了三个列表，每一个列表都成为”一代”。每一代的 objects 都会被检查的时候，它不是被垃圾回收就是进入了下一代，直到进入了被永久保存的的状态。</p>
+
+<p>垃圾收集的频率是可以调节的，这个和 objects 的分配和回收的数量有关。当分配的数目减去释放的数目大于这一代的 threshold 的时候，就会进行垃圾收集。这个 thresholds 可以使用<code class="highlighter-rouge">get_threshold()</code>函数看到。</p>
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">gc</span>
+
+<span class="k">print</span> <span class="n">gc</span><span class="o">.</span><span class="n">get_threshold</span><span class="p">()</span>
+</code></pre>
+</div>
+<p>返回每一代的 threshold 的值</p>
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="err">$</span> <span class="n">python</span> <span class="n">gc_get_threshold</span><span class="o">.</span><span class="n">py</span>
+
+<span class="p">(</span><span class="mi">700</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+</code></pre>
+</div>
+<p>thresholds 的值可以通过<code class="highlighter-rouge">set_threshold()</code>函数修改，这个例子在命令行中读取0代的 threshold 的值，然后然后分配 objects。</p>
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">gc</span>
+<span class="kn">import</span> <span class="nn">pprint</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">threshold</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+<span class="k">except</span> <span class="p">(</span><span class="nb">IndexError</span><span class="p">,</span> <span class="nb">ValueError</span><span class="p">,</span> <span class="nb">TypeError</span><span class="p">):</span>
+    <span class="k">print</span> <span class="s">'Missing or invalid threshold, using default'</span>
+    <span class="n">threshold</span> <span class="o">=</span> <span class="mi">5</span>
+
+<span class="k">class</span> <span class="nc">MyObj</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="k">print</span> <span class="s">'Created'</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span>
+
+<span class="n">gc</span><span class="o">.</span><span class="n">set_debug</span><span class="p">(</span><span class="n">gc</span><span class="o">.</span><span class="n">DEBUG_STATS</span><span class="p">)</span>
+
+<span class="n">gc</span><span class="o">.</span><span class="n">set_threshold</span><span class="p">(</span><span class="n">threshold</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="k">print</span> <span class="s">'Thresholds:'</span><span class="p">,</span> <span class="n">gc</span><span class="o">.</span><span class="n">get_threshold</span><span class="p">()</span>
+
+<span class="k">print</span> <span class="s">'Clear the collector by forcing a run'</span>
+<span class="n">gc</span><span class="o">.</span><span class="n">collect</span><span class="p">()</span>
+<span class="k">print</span>
+
+<span class="k">print</span> <span class="s">'Creating objects'</span>
+<span class="n">objs</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">):</span>
+    <span class="n">objs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">MyObj</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
+</code></pre>
+</div>
+
+<p>不同的 thresholds 的值导致垃圾收集的频率发生变化，打开 debug 之后可以看到。</p>
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="err">$</span> <span class="n">python</span> <span class="o">-</span><span class="n">u</span> <span class="n">gc_threshold</span><span class="o">.</span><span class="n">py</span> <span class="mi">5</span>
+
+<span class="n">Thresholds</span><span class="p">:</span> <span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">Clear</span> <span class="n">the</span> <span class="n">collector</span> <span class="n">by</span> <span class="n">forcing</span> <span class="n">a</span> <span class="n">run</span>
+<span class="n">gc</span><span class="p">:</span> <span class="n">collecting</span> <span class="n">generation</span> <span class="mf">2.</span><span class="o">..</span>
+<span class="n">gc</span><span class="p">:</span> <span class="n">objects</span> <span class="ow">in</span> <span class="n">each</span> <span class="n">generation</span><span class="p">:</span> <span class="mi">144</span> <span class="mi">3163</span> <span class="mi">0</span>
+<span class="n">gc</span><span class="p">:</span> <span class="n">done</span><span class="p">,</span> <span class="mf">0.0004</span><span class="n">s</span> <span class="n">elapsed</span><span class="o">.</span>
+
+<span class="n">Creating</span> <span class="n">objects</span>
+<span class="n">gc</span><span class="p">:</span> <span class="n">collecting</span> <span class="n">generation</span> <span class="mf">0.</span><span class="o">..</span>
+<span class="n">gc</span><span class="p">:</span> <span class="n">objects</span> <span class="ow">in</span> <span class="n">each</span> <span class="n">generation</span><span class="p">:</span> <span class="mi">7</span> <span class="mi">0</span> <span class="mi">3234</span>
+<span class="n">gc</span><span class="p">:</span> <span class="n">done</span><span class="p">,</span> <span class="mf">0.0000</span><span class="n">s</span> <span class="n">elapsed</span><span class="o">.</span>
+<span class="n">Created</span> <span class="mi">0</span>
+<span class="n">Created</span> <span class="mi">1</span>
+<span class="n">Created</span> <span class="mi">2</span>
+<span class="n">Created</span> <span class="mi">3</span>
+<span class="n">Created</span> <span class="mi">4</span>
+<span class="n">gc</span><span class="p">:</span> <span class="n">collecting</span> <span class="n">generation</span> <span class="mf">0.</span><span class="o">..</span>
+<span class="n">gc</span><span class="p">:</span> <span class="n">objects</span> <span class="ow">in</span> <span class="n">each</span> <span class="n">generation</span><span class="p">:</span> <span class="mi">6</span> <span class="mi">4</span> <span class="mi">3234</span>
+<span class="n">gc</span><span class="p">:</span> <span class="n">done</span><span class="p">,</span> <span class="mf">0.0000</span><span class="n">s</span> <span class="n">elapsed</span><span class="o">.</span>
+<span class="n">Created</span> <span class="mi">5</span>
+<span class="n">Created</span> <span class="mi">6</span>
+<span class="n">Created</span> <span class="mi">7</span>
+<span class="n">Created</span> <span class="mi">8</span>
+<span class="n">Created</span> <span class="mi">9</span>
+<span class="n">gc</span><span class="p">:</span> <span class="n">collecting</span> <span class="n">generation</span> <span class="mf">2.</span><span class="o">..</span>
+<span class="n">gc</span><span class="p">:</span> <span class="n">objects</span> <span class="ow">in</span> <span class="n">each</span> <span class="n">generation</span><span class="p">:</span> <span class="mi">5</span> <span class="mi">6</span> <span class="mi">3232</span>
+<span class="n">gc</span><span class="p">:</span> <span class="n">done</span><span class="p">,</span> <span class="mf">0.0004</span><span class="n">s</span> <span class="n">elapsed</span><span class="o">.</span>
+</code></pre>
+</div>
+<p>threshold 的值变小可以让垃圾收集更频繁</p>
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="err">$</span> <span class="n">python</span> <span class="o">-</span><span class="n">u</span> <span class="n">gc_threshold</span><span class="o">.</span><span class="n">py</span> <span class="mi">2</span>
+
+<span class="n">Thresholds</span><span class="p">:</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">Clear</span> <span class="n">the</span> <span class="n">collector</span> <span class="n">by</span> <span class="n">forcing</span> <span class="n">a</span> <span class="n">run</span>
+<span class="n">gc</span><span class="p">:</span> <span class="n">collecting</span> <span class="n">generation</span> <span class="mf">2.</span><span class="o">..</span>
+<span class="n">gc</span><span class="p">:</span> <span class="n">objects</span> <span class="ow">in</span> <span class="n">each</span> <span class="n">generation</span><span class="p">:</span> <span class="mi">144</span> <span class="mi">3163</span> <span class="mi">0</span>
+<span class="n">gc</span><span class="p">:</span> <span class="n">done</span><span class="p">,</span> <span class="mf">0.0004</span><span class="n">s</span> <span class="n">elapsed</span><span class="o">.</span>
+
+<span class="n">Creating</span> <span class="n">objects</span>
+<span class="n">gc</span><span class="p">:</span> <span class="n">collecting</span> <span class="n">generation</span> <span class="mf">0.</span><span class="o">..</span>
+<span class="n">gc</span><span class="p">:</span> <span class="n">objects</span> <span class="ow">in</span> <span class="n">each</span> <span class="n">generation</span><span class="p">:</span> <span class="mi">3</span> <span class="mi">0</span> <span class="mi">3234</span>
+<span class="n">gc</span><span class="p">:</span> <span class="n">done</span><span class="p">,</span> <span class="mf">0.0000</span><span class="n">s</span> <span class="n">elapsed</span><span class="o">.</span>
+<span class="n">gc</span><span class="p">:</span> <span class="n">collecting</span> <span class="n">generation</span> <span class="mf">0.</span><span class="o">..</span>
+<span class="n">gc</span><span class="p">:</span> <span class="n">objects</span> <span class="ow">in</span> <span class="n">each</span> <span class="n">generation</span><span class="p">:</span> <span class="mi">4</span> <span class="mi">3</span> <span class="mi">3234</span>
+<span class="n">gc</span><span class="p">:</span> <span class="n">done</span><span class="p">,</span> <span class="mf">0.0000</span><span class="n">s</span> <span class="n">elapsed</span><span class="o">.</span>
+<span class="n">Created</span> <span class="mi">0</span>
+<span class="n">Created</span> <span class="mi">1</span>
+<span class="n">gc</span><span class="p">:</span> <span class="n">collecting</span> <span class="n">generation</span> <span class="mf">1.</span><span class="o">..</span>
+<span class="n">gc</span><span class="p">:</span> <span class="n">objects</span> <span class="ow">in</span> <span class="n">each</span> <span class="n">generation</span><span class="p">:</span> <span class="mi">3</span> <span class="mi">4</span> <span class="mi">3234</span>
+<span class="n">gc</span><span class="p">:</span> <span class="n">done</span><span class="p">,</span> <span class="mf">0.0000</span><span class="n">s</span> <span class="n">elapsed</span><span class="o">.</span>
+<span class="n">Created</span> <span class="mi">2</span>
+<span class="n">Created</span> <span class="mi">3</span>
+<span class="n">Created</span> <span class="mi">4</span>
+<span class="n">gc</span><span class="p">:</span> <span class="n">collecting</span> <span class="n">generation</span> <span class="mf">0.</span><span class="o">..</span>
+<span class="n">gc</span><span class="p">:</span> <span class="n">objects</span> <span class="ow">in</span> <span class="n">each</span> <span class="n">generation</span><span class="p">:</span> <span class="mi">5</span> <span class="mi">0</span> <span class="mi">3239</span>
+<span class="n">gc</span><span class="p">:</span> <span class="n">done</span><span class="p">,</span> <span class="mf">0.0000</span><span class="n">s</span> <span class="n">elapsed</span><span class="o">.</span>
+<span class="n">Created</span> <span class="mi">5</span>
+<span class="n">Created</span> <span class="mi">6</span>
+<span class="n">Created</span> <span class="mi">7</span>
+<span class="n">gc</span><span class="p">:</span> <span class="n">collecting</span> <span class="n">generation</span> <span class="mf">0.</span><span class="o">..</span>
+<span class="n">gc</span><span class="p">:</span> <span class="n">objects</span> <span class="ow">in</span> <span class="n">each</span> <span class="n">generation</span><span class="p">:</span> <span class="mi">5</span> <span class="mi">3</span> <span class="mi">3239</span>
+<span class="n">gc</span><span class="p">:</span> <span class="n">done</span><span class="p">,</span> <span class="mf">0.0000</span><span class="n">s</span> <span class="n">elapsed</span><span class="o">.</span>
+<span class="n">Created</span> <span class="mi">8</span>
+<span class="n">Created</span> <span class="mi">9</span>
+<span class="n">gc</span><span class="p">:</span> <span class="n">collecting</span> <span class="n">generation</span> <span class="mf">2.</span><span class="o">..</span>
+<span class="n">gc</span><span class="p">:</span> <span class="n">objects</span> <span class="ow">in</span> <span class="n">each</span> <span class="n">generation</span><span class="p">:</span> <span class="mi">2</span> <span class="mi">6</span> <span class="mi">3235</span>
+<span class="n">gc</span><span class="p">:</span> <span class="n">done</span><span class="p">,</span> <span class="mf">0.0004</span><span class="n">s</span> <span class="n">elapsed</span><span class="o">.</span>
+</code></pre>
+</div>
+
+<h2 id="调试">调试</h2>
+<p>Python gc 的 <code class="highlighter-rouge">set_debug()</code>可以接受一些参数来配置垃圾收集器。调试信息被输出到 stderr。</p>
+
+<p><code class="highlighter-rouge">DEBUG_STATS</code>标志可以打开统计报告，显示每一代追踪的 objects 的数量，还有收集花费的时间。</p>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">gc</span>
+
+<span class="n">gc</span><span class="o">.</span><span class="n">set_debug</span><span class="p">(</span><span class="n">gc</span><span class="o">.</span><span class="n">DEBUG_STATS</span><span class="p">)</span>
+
+<span class="n">gc</span><span class="o">.</span><span class="n">collect</span><span class="p">()</span>
+</code></pre>
+</div>
+
+<p>这个例子输出了两次独立的垃圾收集过程，一次是手动调用的时候，一次就是 Python 解释器退出的时候。</p>
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="err">$</span> <span class="n">python</span> <span class="n">gc_debug_stats</span><span class="o">.</span><span class="n">py</span>
+
+<span class="n">gc</span><span class="p">:</span> <span class="n">collecting</span> <span class="n">generation</span> <span class="mf">2.</span><span class="o">..</span>
+<span class="n">gc</span><span class="p">:</span> <span class="n">objects</span> <span class="ow">in</span> <span class="n">each</span> <span class="n">generation</span><span class="p">:</span> <span class="mi">667</span> <span class="mi">2808</span> <span class="mi">0</span>
+<span class="n">gc</span><span class="p">:</span> <span class="n">done</span><span class="p">,</span> <span class="mf">0.0011</span><span class="n">s</span> <span class="n">elapsed</span><span class="o">.</span>
+<span class="n">gc</span><span class="p">:</span> <span class="n">collecting</span> <span class="n">generation</span> <span class="mf">2.</span><span class="o">..</span>
+<span class="n">gc</span><span class="p">:</span> <span class="n">objects</span> <span class="ow">in</span> <span class="n">each</span> <span class="n">generation</span><span class="p">:</span> <span class="mi">0</span> <span class="mi">0</span> <span class="mi">3164</span>
+<span class="n">gc</span><span class="p">:</span> <span class="n">done</span><span class="p">,</span> <span class="mf">0.0009</span><span class="n">s</span> <span class="n">elapsed</span><span class="o">.</span>
+</code></pre>
+</div>
+
+<p>打开<code class="highlighter-rouge">DEBUG_COLLECTABLE</code>和<code class="highlighter-rouge">DEBUG_UNCOLLECTABLE</code>可以让垃圾回收器在检查每一个 object 的时候显示它能否被收集，你还可以同时和<code class="highlighter-rouge">DEBUG_OBJECTS</code>一起使用，这样的话，每个 objects 被检查的时候都会输出一些信息。</p>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">gc</span>
+
+<span class="n">flags</span> <span class="o">=</span> <span class="p">(</span><span class="n">gc</span><span class="o">.</span><span class="n">DEBUG_COLLECTABLE</span> <span class="o">|</span>
+         <span class="n">gc</span><span class="o">.</span><span class="n">DEBUG_UNCOLLECTABLE</span> <span class="o">|</span>
+         <span class="n">gc</span><span class="o">.</span><span class="n">DEBUG_OBJECTS</span>
+         <span class="p">)</span>
+<span class="n">gc</span><span class="o">.</span><span class="n">set_debug</span><span class="p">(</span><span class="n">flags</span><span class="p">)</span>
+
+<span class="k">class</span> <span class="nc">Graph</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="nb">next</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">print</span> <span class="s">'Creating </span><span class="si">%</span><span class="s">s 0x</span><span class="si">%</span><span class="s">x (</span><span class="si">%</span><span class="s">s)'</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span> <span class="nb">id</span><span class="p">(</span><span class="bp">self</span><span class="p">),</span> <span class="n">name</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">set_next</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">next</span><span class="p">):</span>
+        <span class="k">print</span> <span class="s">'Linking nodes </span><span class="si">%</span><span class="s">s.next = </span><span class="si">%</span><span class="s">s'</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">next</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="nb">next</span> <span class="o">=</span> <span class="nb">next</span>
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s">'</span><span class="si">%</span><span class="s">s(</span><span class="si">%</span><span class="s">s)'</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+<span class="k">class</span> <span class="nc">CleanupGraph</span><span class="p">(</span><span class="n">Graph</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">print</span> <span class="s">'</span><span class="si">%</span><span class="s">s.__del__()'</span> <span class="o">%</span> <span class="bp">self</span>
+
+<span class="c"># Construct a graph cycle</span>
+<span class="n">one</span> <span class="o">=</span> <span class="n">Graph</span><span class="p">(</span><span class="s">'one'</span><span class="p">)</span>
+<span class="n">two</span> <span class="o">=</span> <span class="n">Graph</span><span class="p">(</span><span class="s">'two'</span><span class="p">)</span>
+<span class="n">one</span><span class="o">.</span><span class="n">set_next</span><span class="p">(</span><span class="n">two</span><span class="p">)</span>
+<span class="n">two</span><span class="o">.</span><span class="n">set_next</span><span class="p">(</span><span class="n">one</span><span class="p">)</span>
+
+<span class="c"># Construct another node that stands on its own</span>
+<span class="n">three</span> <span class="o">=</span> <span class="n">CleanupGraph</span><span class="p">(</span><span class="s">'three'</span><span class="p">)</span>
+
+<span class="c"># Construct a graph cycle with a finalizer</span>
+<span class="n">four</span> <span class="o">=</span> <span class="n">CleanupGraph</span><span class="p">(</span><span class="s">'four'</span><span class="p">)</span>
+<span class="n">five</span> <span class="o">=</span> <span class="n">CleanupGraph</span><span class="p">(</span><span class="s">'five'</span><span class="p">)</span>
+<span class="n">four</span><span class="o">.</span><span class="n">set_next</span><span class="p">(</span><span class="n">five</span><span class="p">)</span>
+<span class="n">five</span><span class="o">.</span><span class="n">set_next</span><span class="p">(</span><span class="n">four</span><span class="p">)</span>
+
+<span class="c"># Remove references to the graph nodes in this module's namespace</span>
+<span class="n">one</span> <span class="o">=</span> <span class="n">two</span> <span class="o">=</span> <span class="n">three</span> <span class="o">=</span> <span class="n">four</span> <span class="o">=</span> <span class="n">five</span> <span class="o">=</span> <span class="bp">None</span>
+
+<span class="k">print</span>
+
+<span class="c"># Force a sweep</span>
+<span class="k">print</span> <span class="s">'Collecting'</span>
+<span class="n">gc</span><span class="o">.</span><span class="n">collect</span><span class="p">()</span>
+<span class="k">print</span> <span class="s">'Done'</span>
+</code></pre>
+</div>
+
+<p>输出结果可以看出来，Graph 实例<code class="highlighter-rouge">one</code>和<code class="highlighter-rouge">two</code>出现了循环依赖，但是仍然可以被垃圾回收，因为它们没有自己的 findlizer 方法，而且它们只有来自可以被垃圾回收的 objects 的引用。虽然<code class="highlighter-rouge">CleanupGraph</code>有 finalizer 方法，但是<code class="highlighter-rouge">three</code>一旦引用计数变为0还是可以被重新识别的。相比之下，<code class="highlighter-rouge">four</code>和<code class="highlighter-rouge">five</code>就有循环以来，而且没办法被释放。</p>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="err">$</span> <span class="n">python</span> <span class="o">-</span><span class="n">u</span> <span class="n">gc_debug_collectable_objects</span><span class="o">.</span><span class="n">py</span>
+
+<span class="n">Creating</span> <span class="n">Graph</span> <span class="mh">0x10045f750</span> <span class="p">(</span><span class="n">one</span><span class="p">)</span>
+<span class="n">Creating</span> <span class="n">Graph</span> <span class="mh">0x10045f790</span> <span class="p">(</span><span class="n">two</span><span class="p">)</span>
+<span class="n">Linking</span> <span class="n">nodes</span> <span class="n">Graph</span><span class="p">(</span><span class="n">one</span><span class="p">)</span><span class="o">.</span><span class="nb">next</span> <span class="o">=</span> <span class="n">Graph</span><span class="p">(</span><span class="n">two</span><span class="p">)</span>
+<span class="n">Linking</span> <span class="n">nodes</span> <span class="n">Graph</span><span class="p">(</span><span class="n">two</span><span class="p">)</span><span class="o">.</span><span class="nb">next</span> <span class="o">=</span> <span class="n">Graph</span><span class="p">(</span><span class="n">one</span><span class="p">)</span>
+<span class="n">Creating</span> <span class="n">CleanupGraph</span> <span class="mh">0x10045f7d0</span> <span class="p">(</span><span class="n">three</span><span class="p">)</span>
+<span class="n">Creating</span> <span class="n">CleanupGraph</span> <span class="mh">0x10045f810</span> <span class="p">(</span><span class="n">four</span><span class="p">)</span>
+<span class="n">Creating</span> <span class="n">CleanupGraph</span> <span class="mh">0x10045f850</span> <span class="p">(</span><span class="n">five</span><span class="p">)</span>
+<span class="n">Linking</span> <span class="n">nodes</span> <span class="n">CleanupGraph</span><span class="p">(</span><span class="n">four</span><span class="p">)</span><span class="o">.</span><span class="nb">next</span> <span class="o">=</span> <span class="n">CleanupGraph</span><span class="p">(</span><span class="n">five</span><span class="p">)</span>
+<span class="n">Linking</span> <span class="n">nodes</span> <span class="n">CleanupGraph</span><span class="p">(</span><span class="n">five</span><span class="p">)</span><span class="o">.</span><span class="nb">next</span> <span class="o">=</span> <span class="n">CleanupGraph</span><span class="p">(</span><span class="n">four</span><span class="p">)</span>
+<span class="n">CleanupGraph</span><span class="p">(</span><span class="n">three</span><span class="p">)</span><span class="o">.</span><span class="n">__del__</span><span class="p">()</span>
+
+<span class="n">Collecting</span>
+<span class="n">gc</span><span class="p">:</span> <span class="n">collectable</span> <span class="o">&lt;</span><span class="n">Graph</span> <span class="mh">0x10045f750</span><span class="o">&gt;</span>
+<span class="n">gc</span><span class="p">:</span> <span class="n">collectable</span> <span class="o">&lt;</span><span class="n">Graph</span> <span class="mh">0x10045f790</span><span class="o">&gt;</span>
+<span class="n">gc</span><span class="p">:</span> <span class="n">collectable</span> <span class="o">&lt;</span><span class="nb">dict</span> <span class="mh">0x100360a30</span><span class="o">&gt;</span>
+<span class="n">gc</span><span class="p">:</span> <span class="n">collectable</span> <span class="o">&lt;</span><span class="nb">dict</span> <span class="mh">0x100361cc0</span><span class="o">&gt;</span>
+<span class="n">gc</span><span class="p">:</span> <span class="n">uncollectable</span> <span class="o">&lt;</span><span class="n">CleanupGraph</span> <span class="mh">0x10045f810</span><span class="o">&gt;</span>
+<span class="n">gc</span><span class="p">:</span> <span class="n">uncollectable</span> <span class="o">&lt;</span><span class="n">CleanupGraph</span> <span class="mh">0x10045f850</span><span class="o">&gt;</span>
+<span class="n">gc</span><span class="p">:</span> <span class="n">uncollectable</span> <span class="o">&lt;</span><span class="nb">dict</span> <span class="mh">0x100361de0</span><span class="o">&gt;</span>
+<span class="n">gc</span><span class="p">:</span> <span class="n">uncollectable</span> <span class="o">&lt;</span><span class="nb">dict</span> <span class="mh">0x100362140</span><span class="o">&gt;</span>
+<span class="n">Done</span>
+</code></pre>
+</div>
+
+<p><code class="highlighter-rouge">DEBUG_INSTANCES</code>调试标志可以用来追踪旧式类，不继承 object 的那种。</p>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">gc</span>
+
+<span class="n">flags</span> <span class="o">=</span> <span class="p">(</span><span class="n">gc</span><span class="o">.</span><span class="n">DEBUG_COLLECTABLE</span> <span class="o">|</span>
+         <span class="n">gc</span><span class="o">.</span><span class="n">DEBUG_UNCOLLECTABLE</span> <span class="o">|</span>
+         <span class="n">gc</span><span class="o">.</span><span class="n">DEBUG_INSTANCES</span>
+         <span class="p">)</span>
+<span class="n">gc</span><span class="o">.</span><span class="n">set_debug</span><span class="p">(</span><span class="n">flags</span><span class="p">)</span>
+
+<span class="k">class</span> <span class="nc">Graph</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="nb">next</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">print</span> <span class="s">'Creating </span><span class="si">%</span><span class="s">s 0x</span><span class="si">%</span><span class="s">x (</span><span class="si">%</span><span class="s">s)'</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span> <span class="nb">id</span><span class="p">(</span><span class="bp">self</span><span class="p">),</span> <span class="n">name</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">set_next</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">next</span><span class="p">):</span>
+        <span class="k">print</span> <span class="s">'Linking nodes </span><span class="si">%</span><span class="s">s.next = </span><span class="si">%</span><span class="s">s'</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">next</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="nb">next</span> <span class="o">=</span> <span class="nb">next</span>
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s">'</span><span class="si">%</span><span class="s">s(</span><span class="si">%</span><span class="s">s)'</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+<span class="k">class</span> <span class="nc">CleanupGraph</span><span class="p">(</span><span class="n">Graph</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">print</span> <span class="s">'</span><span class="si">%</span><span class="s">s.__del__()'</span> <span class="o">%</span> <span class="bp">self</span>
+
+<span class="c"># Construct a graph cycle</span>
+<span class="n">one</span> <span class="o">=</span> <span class="n">Graph</span><span class="p">(</span><span class="s">'one'</span><span class="p">)</span>
+<span class="n">two</span> <span class="o">=</span> <span class="n">Graph</span><span class="p">(</span><span class="s">'two'</span><span class="p">)</span>
+<span class="n">one</span><span class="o">.</span><span class="n">set_next</span><span class="p">(</span><span class="n">two</span><span class="p">)</span>
+<span class="n">two</span><span class="o">.</span><span class="n">set_next</span><span class="p">(</span><span class="n">one</span><span class="p">)</span>
+
+<span class="c"># Construct another node that stands on its own</span>
+<span class="n">three</span> <span class="o">=</span> <span class="n">CleanupGraph</span><span class="p">(</span><span class="s">'three'</span><span class="p">)</span>
+
+<span class="c"># Construct a graph cycle with a finalizer</span>
+<span class="n">four</span> <span class="o">=</span> <span class="n">CleanupGraph</span><span class="p">(</span><span class="s">'four'</span><span class="p">)</span>
+<span class="n">five</span> <span class="o">=</span> <span class="n">CleanupGraph</span><span class="p">(</span><span class="s">'five'</span><span class="p">)</span>
+<span class="n">four</span><span class="o">.</span><span class="n">set_next</span><span class="p">(</span><span class="n">five</span><span class="p">)</span>
+<span class="n">five</span><span class="o">.</span><span class="n">set_next</span><span class="p">(</span><span class="n">four</span><span class="p">)</span>
+
+<span class="c"># Remove references to the graph nodes in this module's namespace</span>
+<span class="n">one</span> <span class="o">=</span> <span class="n">two</span> <span class="o">=</span> <span class="n">three</span> <span class="o">=</span> <span class="n">four</span> <span class="o">=</span> <span class="n">five</span> <span class="o">=</span> <span class="bp">None</span>
+
+<span class="k">print</span>
+
+<span class="c"># Force a sweep</span>
+<span class="k">print</span> <span class="s">'Collecting'</span>
+<span class="n">gc</span><span class="o">.</span><span class="n">collect</span><span class="p">()</span>
+<span class="k">print</span> <span class="s">'Done'</span>
+</code></pre>
+</div>
+
+<p>这种情况下，<code class="highlighter-rouge">dict</code> object 包含的实例属性没有包含在输出中。</p>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="err">$</span> <span class="n">python</span> <span class="o">-</span><span class="n">u</span> <span class="n">gc_debug_collectable_instances</span><span class="o">.</span><span class="n">py</span>
+
+<span class="n">Creating</span> <span class="n">Graph</span> <span class="mh">0x1004687a0</span> <span class="p">(</span><span class="n">one</span><span class="p">)</span>
+<span class="n">Creating</span> <span class="n">Graph</span> <span class="mh">0x1004687e8</span> <span class="p">(</span><span class="n">two</span><span class="p">)</span>
+<span class="n">Linking</span> <span class="n">nodes</span> <span class="n">Graph</span><span class="p">(</span><span class="n">one</span><span class="p">)</span><span class="o">.</span><span class="nb">next</span> <span class="o">=</span> <span class="n">Graph</span><span class="p">(</span><span class="n">two</span><span class="p">)</span>
+<span class="n">Linking</span> <span class="n">nodes</span> <span class="n">Graph</span><span class="p">(</span><span class="n">two</span><span class="p">)</span><span class="o">.</span><span class="nb">next</span> <span class="o">=</span> <span class="n">Graph</span><span class="p">(</span><span class="n">one</span><span class="p">)</span>
+<span class="n">Creating</span> <span class="n">CleanupGraph</span> <span class="mh">0x100468878</span> <span class="p">(</span><span class="n">three</span><span class="p">)</span>
+<span class="n">Creating</span> <span class="n">CleanupGraph</span> <span class="mh">0x1004688c0</span> <span class="p">(</span><span class="n">four</span><span class="p">)</span>
+<span class="n">Creating</span> <span class="n">CleanupGraph</span> <span class="mh">0x100468908</span> <span class="p">(</span><span class="n">five</span><span class="p">)</span>
+<span class="n">Linking</span> <span class="n">nodes</span> <span class="n">CleanupGraph</span><span class="p">(</span><span class="n">four</span><span class="p">)</span><span class="o">.</span><span class="nb">next</span> <span class="o">=</span> <span class="n">CleanupGraph</span><span class="p">(</span><span class="n">five</span><span class="p">)</span>
+<span class="n">Linking</span> <span class="n">nodes</span> <span class="n">CleanupGraph</span><span class="p">(</span><span class="n">five</span><span class="p">)</span><span class="o">.</span><span class="nb">next</span> <span class="o">=</span> <span class="n">CleanupGraph</span><span class="p">(</span><span class="n">four</span><span class="p">)</span>
+<span class="n">CleanupGraph</span><span class="p">(</span><span class="n">three</span><span class="p">)</span><span class="o">.</span><span class="n">__del__</span><span class="p">()</span>
+
+<span class="n">Collecting</span>
+<span class="n">gc</span><span class="p">:</span> <span class="n">collectable</span> <span class="o">&lt;</span><span class="n">Graph</span> <span class="n">instance</span> <span class="n">at</span> <span class="mh">0x1004687a0</span><span class="o">&gt;</span>
+<span class="n">gc</span><span class="p">:</span> <span class="n">collectable</span> <span class="o">&lt;</span><span class="n">Graph</span> <span class="n">instance</span> <span class="n">at</span> <span class="mh">0x1004687e8</span><span class="o">&gt;</span>
+<span class="n">gc</span><span class="p">:</span> <span class="n">uncollectable</span> <span class="o">&lt;</span><span class="n">CleanupGraph</span> <span class="n">instance</span> <span class="n">at</span> <span class="mh">0x1004688c0</span><span class="o">&gt;</span>
+<span class="n">gc</span><span class="p">:</span> <span class="n">uncollectable</span> <span class="o">&lt;</span><span class="n">CleanupGraph</span> <span class="n">instance</span> <span class="n">at</span> <span class="mh">0x100468908</span><span class="o">&gt;</span>
+<span class="n">Done</span>
+</code></pre>
+</div>
+
+<p>主要参考 <a href="http://pymotw.com/2/gc/index.html">http://pymotw.com/2/gc/index.html</a></p>
+
+
+
+        <section class="author-detail">
+            <section class="post-footer-item comment">
+                <a href="/comment.html?title=Python内部机制(1) - 垃圾回收&article_id=/index.php/archives/424/" target="_blank">评论</a> | <a href="#" onclick="document.getElementById('wx-pay').style.display = ''; return false;">微信打赏</a> | 转载必须注明原文链接
+            </section>
+            <img src="https://storage.virusdefender.net/blog/images/utils/wx_pay_new.JPG" style="max-width: 90%;max-height: 90%; display: none;" id="wx-pay">
+        </section>
+    </article>
+</div>
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?e5ec0a55646c7c7c90dc530c56c80171";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+<footer class="g-footer">
+    <section>virusdefender's blog (＾－＾)V © 2019</section>
+    <section>Powered by <a href="//jekyllrb.com">Jekyll</a> | <a href="https://github.com/kaeyleo/jekyll-theme-H2O">Theme H2O</a></section>
+</footer>
+
+
+    <script src="https://cdn.staticfile.org/jquery/3.2.1/jquery.min.js"></script>
+    <script src="/assets/js/prism.js"></script>
+    <script src="/assets/js/index.min.js"></script>
+</body>
+</html>

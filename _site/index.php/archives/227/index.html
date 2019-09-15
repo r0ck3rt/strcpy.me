@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="content-language" content="zh-cn">
+    <title>Django的信号和观察者模式 - virusdefender's blog (＾－＾)V</title>
+    <link rel="shortcut icon" href="/assets/img/favicon.ico">
+    <meta name="author"  content="virusdefender">
+    <meta name="description" content=" 学而不思则罔，思而不学则殆">
+    <meta name="keywords"  content="virusdefender,blog">
+    <!-- Open Graph -->
+    <meta property="og:title" content="Django的信号和观察者模式 - virusdefender's blog (＾－＾)V">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://strcpy.me/index.php/archives/227/">
+    <meta property="og:description" content=" 学而不思则罔，思而不学则殆">
+    <meta property="og:site_name" content="virusdefender's blog (＾－＾)V">
+    <link rel="stylesheet" href="//cdn.staticfile.org/normalize/6.0.0/normalize.min.css">
+    <link rel="stylesheet" href="//at.alicdn.com/t/font_roc50gemkxpw4s4i.css">
+    <link rel="stylesheet" href="/assets/css/github-markdown.css">
+    <link rel="stylesheet" href="/assets/css/prism.css">
+    <link rel="stylesheet" href="/assets/css/app.min.css">
+    <link rel="alternate" type="application/rss+xml" title="RSS 2.0" href="https://strcpy.me/feed/" />
+</head>
+
+<body>
+    <!--[if lt IE 10]>
+<div class="alert-danger" role="alert">你的浏览器实在太太太旧了，放学别走，升级完浏览器再说！<a target="_blank" class="alert-link" href="http://browsehappy.com">立即升级</a></div>
+<![endif]-->
+    <header class="g-header">
+    <div class="g-logo">
+        <a href="/">virusdefender's blog (＾－＾)V</a>
+    </div>
+    <i id="menu-toggle" class="iconfont icon-menu"></i>
+    <nav class="g-nav">
+        <ul>
+            
+            <li><a href="/">home</a></li>
+            
+            <li><a href="http://www.npc.gov.cn/npc/xinwen/2016-11/07/content_2001605.htm">law</a></li>
+            
+            <li><a href="/index.php/archives/about/">about</a></li>
+            
+        </ul>
+    </nav>
+</header>
+
+
+<header class="g-banner post-header post-pattern-circuitBoard bgcolor-default post-no-cover" data-theme="default">
+    <div class="post-wrapper">
+        <div class="post-tags">
+             
+            
+            <a href="/tags/#Django" class="post-tag">Django</a>
+            
+            
+        </div>
+        <h1>Django的信号和观察者模式</h1>
+        <div class="post-meta">
+            <time class="post-meta-item" datetime="2015-03-31 23:23"><i class="iconfont icon-date"></i>2015-03-31 23:23</time>
+        </div>
+    </div>
+</header>
+
+<div class="post-content">
+    
+    <article class="markdown-body">
+        <p>今天想到给以前写的东西增加缓存支持，每次数据库发生变化之后主动的去修改缓存。当然最笨的方法就是在每次更新数据库的代码后面写一段更新缓存的代码，我们能不能在数据库被更新之后对外发一个信号呢，更新缓存的函数收到这个信号就知道数据库发生了变化。</p>
+
+<p>这个在django中其实已经有了实现，就是siginal，用法大致的这样的</p>
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="k">def</span> <span class="nf">my_callback</span><span class="p">(</span><span class="n">sender</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">"Request finished!"</span><span class="p">)</span>
+
+<span class="kn">from</span> <span class="nn">django.core.signals</span> <span class="kn">import</span> <span class="n">request_finished</span>
+
+<span class="n">request_finished</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">my_callback</span><span class="p">)</span>
+</code></pre>
+</div>
+
+<p>这个其实就是经典的观察者模式的实现。</p>
+
+<p>http://dongweiming.github.io/python-observer.html 有一段代码，我认为很好，直接贴过来了(其实后来发现原版在 https://github.com/faif/python-patterns/blob/master/observer.py )</p>
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="c"># 这个是观察者基类</span>
+<span class="k">class</span> <span class="nc">Subject</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_observers</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="c"># 添加依赖的对象</span>
+    <span class="k">def</span> <span class="nf">attach</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">observer</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">observer</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_observers</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_observers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">observer</span><span class="p">)</span>
+
+    <span class="c"># 取消添加</span>
+    <span class="k">def</span> <span class="nf">detach</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">observer</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_observers</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">observer</span><span class="p">)</span>
+        <span class="k">except</span> <span class="nb">ValueError</span><span class="p">:</span>
+            <span class="k">pass</span>
+
+    <span class="c"># 这里只是通知上面注册的依赖对象新的变化</span>
+    <span class="k">def</span> <span class="nf">notify</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">modifier</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">observer</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_observers</span><span class="p">:</span>
+            <span class="c"># 可以设置过滤条件，对不符合过滤条件的更新</span>
+            <span class="k">if</span> <span class="n">modifier</span> <span class="o">!=</span> <span class="n">observer</span><span class="p">:</span>
+                <span class="n">observer</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+
+<span class="c"># 观察者类</span>
+<span class="k">class</span> <span class="nc">Data</span><span class="p">(</span><span class="n">Subject</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">''</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">Data</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_data</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="c"># python2.6新增的写法,获取属性为property，设置属性为(假设属性名字为x)@x.setter,删除为@x.deleter</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span>
+
+    <span class="nd">@data.setter</span>
+    <span class="k">def</span> <span class="nf">data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_data</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">notify</span><span class="p">()</span>
+
+<span class="c"># 这里有2个被观察者，也就是依赖的对象，每次Data有改变，这2个view都会变动</span>
+<span class="k">class</span> <span class="nc">HexViewer</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subject</span><span class="p">):</span>
+        <span class="k">print</span> <span class="s">'HexViewer: Subject </span><span class="si">%</span><span class="s">s has data 0x</span><span class="si">%</span><span class="s">x'</span> <span class="o">%</span> <span class="p">(</span><span class="n">subject</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">subject</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+
+<span class="k">class</span> <span class="nc">DecimalViewer</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subject</span><span class="p">):</span>
+        <span class="k">print</span> <span class="s">'DecimalViewer: Subject </span><span class="si">%</span><span class="s">s has data </span><span class="si">%</span><span class="s">d'</span> <span class="o">%</span> <span class="p">(</span><span class="n">subject</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">subject</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">'__main__'</span><span class="p">:</span>
+
+    <span class="n">data1</span> <span class="o">=</span> <span class="n">Data</span><span class="p">(</span><span class="s">'Data 1'</span><span class="p">)</span>
+    <span class="n">data2</span> <span class="o">=</span> <span class="n">Data</span><span class="p">(</span><span class="s">'Data 2'</span><span class="p">)</span>
+    <span class="n">view1</span> <span class="o">=</span> <span class="n">DecimalViewer</span><span class="p">()</span>
+    <span class="n">view2</span> <span class="o">=</span> <span class="n">HexViewer</span><span class="p">()</span>
+    <span class="n">data1</span><span class="o">.</span><span class="n">attach</span><span class="p">(</span><span class="n">view1</span><span class="p">)</span>
+    <span class="n">data1</span><span class="o">.</span><span class="n">attach</span><span class="p">(</span><span class="n">view2</span><span class="p">)</span>
+    <span class="n">data2</span><span class="o">.</span><span class="n">attach</span><span class="p">(</span><span class="n">view2</span><span class="p">)</span>
+    <span class="n">data2</span><span class="o">.</span><span class="n">attach</span><span class="p">(</span><span class="n">view1</span><span class="p">)</span>
+
+    <span class="k">print</span> <span class="s">"Setting Data 1 = 10"</span>
+    <span class="n">data1</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="mi">10</span>
+    <span class="k">print</span> <span class="s">"Setting Data 2 = 15"</span>
+    <span class="n">data2</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="mi">15</span>
+    <span class="k">print</span> <span class="s">"Setting Data 1 = 3"</span>
+    <span class="n">data1</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="mi">3</span>
+    <span class="k">print</span> <span class="s">"Setting Data 2 = 5"</span>
+    <span class="n">data2</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="mi">5</span>
+    <span class="k">print</span> <span class="s">"Update data1's view2 Because view1 is be filtered"</span>
+    <span class="n">data1</span><span class="o">.</span><span class="n">notify</span><span class="p">(</span><span class="n">modifier</span><span class="o">=</span><span class="n">view1</span><span class="p">)</span>  
+    <span class="k">print</span> <span class="s">"Detach HexViewer from data1 and data2."</span>
+    <span class="n">data1</span><span class="o">.</span><span class="n">detach</span><span class="p">(</span><span class="n">view2</span><span class="p">)</span>
+    <span class="n">data2</span><span class="o">.</span><span class="n">detach</span><span class="p">(</span><span class="n">view2</span><span class="p">)</span>
+    <span class="k">print</span> <span class="s">"Setting Data 1 = 10"</span>
+    <span class="n">data1</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="mi">10</span>
+    <span class="k">print</span> <span class="s">"Setting Data 2 = 15"</span>
+    <span class="n">data2</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="mi">15</span>
+</code></pre>
+</div>
+
+<p>输出结果是</p>
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">Setting</span> <span class="n">Data</span> <span class="mi">1</span> <span class="o">=</span> <span class="mi">10</span>
+<span class="n">DecimalViewer</span><span class="p">:</span> <span class="n">Subject</span> <span class="n">Data</span> <span class="mi">1</span> <span class="n">has</span> <span class="n">data</span> <span class="mi">10</span>
+<span class="n">HexViewer</span><span class="p">:</span> <span class="n">Subject</span> <span class="n">Data</span> <span class="mi">1</span> <span class="n">has</span> <span class="n">data</span> <span class="mh">0xa</span>
+<span class="n">Setting</span> <span class="n">Data</span> <span class="mi">2</span> <span class="o">=</span> <span class="mi">15</span>
+<span class="n">HexViewer</span><span class="p">:</span> <span class="n">Subject</span> <span class="n">Data</span> <span class="mi">2</span> <span class="n">has</span> <span class="n">data</span> <span class="mh">0xf</span>
+<span class="n">DecimalViewer</span><span class="p">:</span> <span class="n">Subject</span> <span class="n">Data</span> <span class="mi">2</span> <span class="n">has</span> <span class="n">data</span> <span class="mi">15</span>
+<span class="n">Setting</span> <span class="n">Data</span> <span class="mi">1</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="n">DecimalViewer</span><span class="p">:</span> <span class="n">Subject</span> <span class="n">Data</span> <span class="mi">1</span> <span class="n">has</span> <span class="n">data</span> <span class="mi">3</span>
+<span class="n">HexViewer</span><span class="p">:</span> <span class="n">Subject</span> <span class="n">Data</span> <span class="mi">1</span> <span class="n">has</span> <span class="n">data</span> <span class="mh">0x3</span>
+<span class="n">Setting</span> <span class="n">Data</span> <span class="mi">2</span> <span class="o">=</span> <span class="mi">5</span>
+<span class="n">HexViewer</span><span class="p">:</span> <span class="n">Subject</span> <span class="n">Data</span> <span class="mi">2</span> <span class="n">has</span> <span class="n">data</span> <span class="mh">0x5</span>
+<span class="n">DecimalViewer</span><span class="p">:</span> <span class="n">Subject</span> <span class="n">Data</span> <span class="mi">2</span> <span class="n">has</span> <span class="n">data</span> <span class="mi">5</span>
+<span class="n">Update</span> <span class="n">data1</span><span class="s">'s view2 Because view1 is be filtered</span><span class="err">
+</span><span class="s">HexViewer: Subject Data 1 has data 0x3</span><span class="err">
+</span><span class="s">Detach HexViewer from data1 and data2.</span><span class="err">
+</span><span class="s">Setting Data 1 = 10</span><span class="err">
+</span><span class="s">DecimalViewer: Subject Data 1 has data 10</span><span class="err">
+</span><span class="s">Setting Data 2 = 15</span><span class="err">
+</span><span class="s">DecimalViewer: Subject Data 2 has data 15</span><span class="err">
+</span><span class="s">[Finished in 0.1s]</span><span class="err">
+</span></code></pre>
+</div>
+
+<p>如果要像django那样直接传递一个类而不是类实例，我们可以使用classmethod或者staticmethod，仿照http://www.the5fire.com/python-observer.html 我自己写了一个</p>
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="c">#event.py</span>
+<span class="k">class</span> <span class="nc">Event</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="n">_observers</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subject</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">subject</span> <span class="o">=</span> <span class="n">subject</span>
+ 
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">register</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">observer</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">observer</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">cls</span><span class="o">.</span><span class="n">_observers</span><span class="p">:</span>
+            <span class="n">cls</span><span class="o">.</span><span class="n">_observers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">observer</span><span class="p">)</span>
+ 
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">unregister</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">observer</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">observer</span> <span class="ow">in</span> <span class="n">cls</span><span class="o">.</span><span class="n">_observers</span><span class="p">:</span>
+            <span class="n">cls</span><span class="o">.</span><span class="n">_observers</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">observer</span><span class="p">)</span>
+ 
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">notify</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">subject</span><span class="p">):</span>
+        <span class="n">event</span> <span class="o">=</span> <span class="n">cls</span><span class="p">(</span><span class="n">subject</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">observer</span> <span class="ow">in</span> <span class="n">cls</span><span class="o">.</span><span class="n">_observers</span><span class="p">:</span>
+            <span class="n">observer</span><span class="p">(</span><span class="n">event</span><span class="p">)</span>
+
+<span class="c">#process.py</span>
+<span class="kn">from</span> <span class="nn">event</span> <span class="kn">import</span> <span class="n">Event</span>
+
+
+<span class="k">class</span> <span class="nc">Data</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="n">Event</span><span class="o">.</span><span class="n">notify</span><span class="p">(</span><span class="s">"set value"</span><span class="p">)</span>
+
+
+<span class="c">#main.py</span>
+<span class="kn">from</span> <span class="nn">event</span> <span class="kn">import</span> <span class="n">Event</span>
+<span class="kn">from</span> <span class="nn">process</span> <span class="kn">import</span> <span class="n">Data</span>
+
+
+<span class="k">def</span> <span class="nf">log</span><span class="p">(</span><span class="n">event</span><span class="p">):</span>
+    <span class="k">print</span> <span class="s">"log"</span><span class="p">,</span> <span class="n">event</span><span class="o">.</span><span class="n">subject</span>
+
+
+<span class="k">def</span> <span class="nf">log1</span><span class="p">(</span><span class="n">event</span><span class="p">):</span>
+    <span class="k">print</span> <span class="s">"log1"</span><span class="p">,</span> <span class="n">event</span><span class="o">.</span><span class="n">subject</span>
+
+
+<span class="n">Event</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">log</span><span class="p">)</span>
+<span class="n">Event</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">log1</span><span class="p">)</span>
+<span class="n">Data</span><span class="p">(</span><span class="mi">123</span><span class="p">)</span>
+
+<span class="n">Event</span><span class="o">.</span><span class="n">unregister</span><span class="p">(</span><span class="n">log1</span><span class="p">)</span>
+<span class="n">Data</span><span class="p">(</span><span class="mi">456</span><span class="p">)</span>
+
+</code></pre>
+</div>
+
+<p>输出是</p>
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">log</span> <span class="nb">set</span> <span class="n">value</span>
+<span class="n">log1</span> <span class="nb">set</span> <span class="n">value</span>
+<span class="n">log</span> <span class="nb">set</span> <span class="n">value</span>
+</code></pre>
+</div>
+
+<p>是不是更像django里面的用法了呢~</p>
+
+
+        <section class="author-detail">
+            <section class="post-footer-item comment">
+                <a href="/comment.html?title=Django的信号和观察者模式&article_id=/index.php/archives/227/" target="_blank">评论</a> | <a href="#" onclick="document.getElementById('wx-pay').style.display = ''; return false;">微信打赏</a> | 转载必须注明原文链接
+            </section>
+            <img src="https://storage.virusdefender.net/blog/images/utils/wx_pay_new.JPG" style="max-width: 90%;max-height: 90%; display: none;" id="wx-pay">
+        </section>
+    </article>
+</div>
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?e5ec0a55646c7c7c90dc530c56c80171";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+<footer class="g-footer">
+    <section>virusdefender's blog (＾－＾)V © 2019</section>
+    <section>Powered by <a href="//jekyllrb.com">Jekyll</a> | <a href="https://github.com/kaeyleo/jekyll-theme-H2O">Theme H2O</a></section>
+</footer>
+
+
+    <script src="https://cdn.staticfile.org/jquery/3.2.1/jquery.min.js"></script>
+    <script src="/assets/js/prism.js"></script>
+    <script src="/assets/js/index.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="content-language" content="zh-cn">
+    <title>XRAY 安全评估工具社区版 - virusdefender's blog (＾－＾)V</title>
+    <link rel="shortcut icon" href="/assets/img/favicon.ico">
+    <meta name="author"  content="virusdefender">
+    <meta name="description" content=" 学而不思则罔，思而不学则殆">
+    <meta name="keywords"  content="virusdefender,blog">
+    <!-- Open Graph -->
+    <meta property="og:title" content="XRAY 安全评估工具社区版 - virusdefender's blog (＾－＾)V">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://strcpy.me/index.php/archives/795/">
+    <meta property="og:description" content=" 学而不思则罔，思而不学则殆">
+    <meta property="og:site_name" content="virusdefender's blog (＾－＾)V">
+    <link rel="stylesheet" href="//cdn.staticfile.org/normalize/6.0.0/normalize.min.css">
+    <link rel="stylesheet" href="//at.alicdn.com/t/font_roc50gemkxpw4s4i.css">
+    <link rel="stylesheet" href="/assets/css/github-markdown.css">
+    <link rel="stylesheet" href="/assets/css/prism.css">
+    <link rel="stylesheet" href="/assets/css/app.min.css">
+    <link rel="alternate" type="application/rss+xml" title="RSS 2.0" href="https://strcpy.me/feed/" />
+</head>
+
+<body>
+    <!--[if lt IE 10]>
+<div class="alert-danger" role="alert">你的浏览器实在太太太旧了，放学别走，升级完浏览器再说！<a target="_blank" class="alert-link" href="http://browsehappy.com">立即升级</a></div>
+<![endif]-->
+    <header class="g-header">
+    <div class="g-logo">
+        <a href="/">virusdefender's blog (＾－＾)V</a>
+    </div>
+    <i id="menu-toggle" class="iconfont icon-menu"></i>
+    <nav class="g-nav">
+        <ul>
+            
+            <li><a href="/">home</a></li>
+            
+            <li><a href="http://www.npc.gov.cn/npc/xinwen/2016-11/07/content_2001605.htm">law</a></li>
+            
+            <li><a href="/index.php/archives/about/">about</a></li>
+            
+        </ul>
+    </nav>
+</header>
+
+
+<header class="g-banner post-header post-pattern-circuitBoard bgcolor-default post-no-cover" data-theme="default">
+    <div class="post-wrapper">
+        <div class="post-tags">
+             
+            
+            <a href="/tags/#安全" class="post-tag">安全</a>
+            
+            
+        </div>
+        <h1>XRAY 安全评估工具社区版</h1>
+        <div class="post-meta">
+            <time class="post-meta-item" datetime="2019-07-18 00:00"><i class="iconfont icon-date"></i>2019-07-18 00:00</time>
+        </div>
+    </div>
+</header>
+
+<div class="post-content">
+    
+    <article class="markdown-body">
+        <p>最近几个月都在忙这个 XRAY 安全评估工具，直到有好心人提醒我本站的 ssl 证书过期了才想起来好久没写文章了。</p>
+
+<p>在 2016 年的 7 月 7 号，长亭科技四周年的大好日子，我们发布了两款新产品，洞鉴 和 牧云。洞鉴 以资产管理、安全评估、漏洞管理为中心，来解决传统漏洞扫描产品不够贴近业务场景，很难做好安全闭环的问题；牧云 则是站在服务器的角度，为云平台提供更加强有力的安全支撑。这两款新产品的诞生填补了长亭在应用安全解决方案中的一大空缺。</p>
+
+<p>在洞鉴发布后的一年里，我们收到了许多使用者的反馈，收获了不少客户的认可。与此同时，也在迭代的过程中，发现与总结出了许多问题和不足之处。也很多次有朋友联系到我们，咨询如何以个人的身份体验一次洞鉴的功能，但由于业务模式的缘故，我只能遗憾地拒绝了他们。</p>
+
+<p>作为一家专心致志做技术、做产品的公司，我们抱着技术属于整个行业的态度，不愿意受到 ToB 商业模式的限制，非常愿意让更多的安全从业者使用我们的产品。在过去的几年中，我们开源了雷池的语义分析算法生成引擎，开源了牧云的核心技术，开源了许多我们内部的小工具，今天我们会以社区版工具的形式开放（非开源）洞鉴的核心能力，让更多的朋友和我们一起为更先进的漏洞扫描算法努力。</p>
+
+<p>下载地址 <a href="https://github.com/chaitin/xray">https://github.com/chaitin/xray</a></p>
+
+<p>文档 <a href="http://chaitin.github.io/xray/">http://chaitin.github.io/xray/</a></p>
+
+<p>目前支持的检测模块有</p>
+
+<ul>
+  <li>SQL 注入检测 (key: sqldet)</li>
+</ul>
+
+<p>支持报错注入、布尔注入和时间盲注等</p>
+
+<ul>
+  <li>命令/代码注入检测 (key: cmd_injection)</li>
+</ul>
+
+<p>支持 shell 命令注入、PHP 代码执行、模板注入等</p>
+
+<ul>
+  <li>目录枚举 (key: dirscan)</li>
+</ul>
+
+<p>检测备份文件、临时文件、debug 页面、配置文件等10余类敏感路径和文件</p>
+
+<ul>
+  <li>路径穿越检测 (key: path_traversal)</li>
+</ul>
+
+<p>支持常见平台和编码</p>
+
+<ul>
+  <li>XML 实体注入检测 (key: xxe)</li>
+</ul>
+
+<p>支持有回显和反连平台检测</p>
+
+<ul>
+  <li>poc 管理 (key: phantasm)</li>
+</ul>
+
+<p>默认内置部分常用的 poc，用户可以根据需要自行构建 poc 并运行。文档：https://chaitin.github.io/xray/#/guide/poc</p>
+
+<ul>
+  <li>文件上传检测 (key: upload)</li>
+</ul>
+
+<p>支持常见的后端语言</p>
+
+<ul>
+  <li>弱口令检测 (key: brute_force)</li>
+</ul>
+
+<p>社区版支持检测 HTTP 基础认证和简易表单弱口令，内置常见用户名和密码字典</p>
+
+<ul>
+  <li>jsonp 检测 (key: jsonp)</li>
+</ul>
+
+<p>检测包含敏感信息可以被跨域读取的 jsonp 接口</p>
+
+<ul>
+  <li>ssrf 检测 (key: ssrf)</li>
+</ul>
+
+<p>ssrf 检测模块，支持常见的绕过技术和反连平台检测</p>
+
+<ul>
+  <li>基线检查 (key: baseline)</li>
+</ul>
+
+<p>检测低 SSL 版本、缺失的或错误添加的 http 头等</p>
+
+<ul>
+  <li>任意跳转检测 (key: redirect)</li>
+</ul>
+
+<p>支持 HTML meta 跳转、30x 跳转等</p>
+
+<ul>
+  <li>CRLF 注入 (key: crlf_injection)</li>
+</ul>
+
+<p>检测 HTTP 头注入，支持 query、body 等位置的参数</p>
+
+<p>当然商业版是支持更多的模块和 POC 的，如果有任何使用上的问题，可以查看文档上的反馈方式，和我们交流。</p>
+
+
+        <section class="author-detail">
+            <section class="post-footer-item comment">
+                <a href="/comment.html?title=XRAY 安全评估工具社区版&article_id=/index.php/archives/795/" target="_blank">评论</a> | <a href="#" onclick="document.getElementById('wx-pay').style.display = ''; return false;">微信打赏</a> | 转载必须注明原文链接
+            </section>
+            <img src="https://storage.virusdefender.net/blog/images/utils/wx_pay_new.JPG" style="max-width: 90%;max-height: 90%; display: none;" id="wx-pay">
+        </section>
+    </article>
+</div>
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?e5ec0a55646c7c7c90dc530c56c80171";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+<footer class="g-footer">
+    <section>virusdefender's blog (＾－＾)V © 2019</section>
+    <section>Powered by <a href="//jekyllrb.com">Jekyll</a> | <a href="https://github.com/kaeyleo/jekyll-theme-H2O">Theme H2O</a></section>
+</footer>
+
+
+    <script src="https://cdn.staticfile.org/jquery/3.2.1/jquery.min.js"></script>
+    <script src="/assets/js/prism.js"></script>
+    <script src="/assets/js/index.min.js"></script>
+</body>
+</html>

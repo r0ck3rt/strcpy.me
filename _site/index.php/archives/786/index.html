@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="content-language" content="zh-cn">
+    <title>二进制安全之栈溢出（十） - virusdefender's blog (＾－＾)V</title>
+    <link rel="shortcut icon" href="/assets/img/favicon.ico">
+    <meta name="author"  content="virusdefender">
+    <meta name="description" content=" 学而不思则罔，思而不学则殆">
+    <meta name="keywords"  content="virusdefender,blog">
+    <!-- Open Graph -->
+    <meta property="og:title" content="二进制安全之栈溢出（十） - virusdefender's blog (＾－＾)V">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://strcpy.me/index.php/archives/786/">
+    <meta property="og:description" content=" 学而不思则罔，思而不学则殆">
+    <meta property="og:site_name" content="virusdefender's blog (＾－＾)V">
+    <link rel="stylesheet" href="//cdn.staticfile.org/normalize/6.0.0/normalize.min.css">
+    <link rel="stylesheet" href="//at.alicdn.com/t/font_roc50gemkxpw4s4i.css">
+    <link rel="stylesheet" href="/assets/css/github-markdown.css">
+    <link rel="stylesheet" href="/assets/css/prism.css">
+    <link rel="stylesheet" href="/assets/css/app.min.css">
+    <link rel="alternate" type="application/rss+xml" title="RSS 2.0" href="https://strcpy.me/feed/" />
+</head>
+
+<body>
+    <!--[if lt IE 10]>
+<div class="alert-danger" role="alert">你的浏览器实在太太太旧了，放学别走，升级完浏览器再说！<a target="_blank" class="alert-link" href="http://browsehappy.com">立即升级</a></div>
+<![endif]-->
+    <header class="g-header">
+    <div class="g-logo">
+        <a href="/">virusdefender's blog (＾－＾)V</a>
+    </div>
+    <i id="menu-toggle" class="iconfont icon-menu"></i>
+    <nav class="g-nav">
+        <ul>
+            
+            <li><a href="/">home</a></li>
+            
+            <li><a href="http://www.npc.gov.cn/npc/xinwen/2016-11/07/content_2001605.htm">law</a></li>
+            
+            <li><a href="/index.php/archives/about/">about</a></li>
+            
+        </ul>
+    </nav>
+</header>
+
+
+<header class="g-banner post-header post-pattern-circuitBoard bgcolor-default post-no-cover" data-theme="default">
+    <div class="post-wrapper">
+        <div class="post-tags">
+             
+            
+            <a href="/tags/#安全" class="post-tag">安全</a>
+            
+            <a href="/tags/#CTF" class="post-tag">CTF</a>
+            
+            
+        </div>
+        <h1>二进制安全之栈溢出（十）</h1>
+        <div class="post-meta">
+            <time class="post-meta-item" datetime="2018-01-13 12:46"><i class="iconfont icon-date"></i>2018-01-13 12:46</time>
+        </div>
+    </div>
+</header>
+
+<div class="post-content">
+    
+    <article class="markdown-body">
+        <p>本篇没有新内容，只有一个新名词 off-by-one，利用方法还是之前的。</p>
+
+<h2 id="off-by-one漏洞">off-by-one漏洞</h2>
+
+<p>off-by-one漏洞是计数时由于边界条件判断失误导致结果多了一或少了一的错误，比如</p>
+
+<ul>
+  <li>在循环中进行比较的时候，本该使用 <code class="highlighter-rouge">&lt;=</code>，但却使用了 <code class="highlighter-rouge">&lt;</code></li>
+  <li>没有考虑到一个序列是从 0 而不是 1 开始</li>
+  <li>忽略了字符串最后的结束标志 <code class="highlighter-rouge">\0</code></li>
+</ul>
+
+<p>在字符串 <code class="highlighter-rouge">\0</code> 场景下，off-by-one 可以覆盖字符串后面一个字节的数据，在部分场景下可能造成严重的问题。</p>
+
+<h3 id="漏洞分析">漏洞分析</h3>
+
+<pre><code class="language-clike">#include &lt;stdio.h&gt;
+#include &lt;string.h&gt;
+void foo(char* arg);
+void bar(char* arg);
+void foo(char* arg) {
+     bar(arg);
+}
+void bar(char* arg) {
+     char buf[256];
+     strcpy(buf, arg);
+}
+
+int main(int argc, char *argv[]) {
+     if(strlen(argv[1])&gt;256) { /* [3] */
+           printf("Attempted Buffer Overflow\n");
+           fflush(stdout);
+           return -1;
+      }
+      foo(argv[1]);
+      return 0;
+}
+</code></pre>
+
+<p>漏洞成因非常简单，main 函数中允许 256 长度的字符串，但是 buf 也是 256 字节的，这会导致 buf 后面一个字节的数据被覆盖。</p>
+
+<p>编译参数是 <code class="highlighter-rouge">gcc -fno-stack-protector -z execstack -g -o vuln main.c</code></p>
+
+<p>在 <code class="highlighter-rouge">strcpy</code> 那一行下断点，然后运行，输入 256 长度的 <code class="highlighter-rouge">A</code>。
+代码和栈内存是这样的</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>[-------------------------------------code-------------------------------------]
+   0x40067a &lt;bar+25&gt;:	lea    rax,[rbp-0x100]
+   0x400681 &lt;bar+32&gt;:	mov    rsi,rdx
+   0x400684 &lt;bar+35&gt;:	mov    rdi,rax
+=&gt; 0x400687 &lt;bar+38&gt;:	call   0x4004f0 &lt;strcpy@plt&gt;
+   0x40068c &lt;bar+43&gt;:	nop
+   0x40068d &lt;bar+44&gt;:	leave
+   0x40068e &lt;bar+45&gt;:	ret
+   0x40068f &lt;main&gt;:	push   rbp
+Guessed arguments:
+arg[0]: 0x7fffffffe030 --&gt; 0x0
+arg[1]: 0x7fffffffe52c ('A' &lt;repeats 200 times&gt;...)
+arg[2]: 0x7fffffffe52c ('A' &lt;repeats 200 times&gt;...)
+[------------------------------------stack-------------------------------------]
+0000| 0x7fffffffe020 --&gt; 0x0
+0008| 0x7fffffffe028 --&gt; 0x7fffffffe52c ('A' &lt;repeats 200 times&gt;...)
+0016| 0x7fffffffe030 --&gt; 0x0
+0024| 0x7fffffffe038 --&gt; 0x0
+0032| 0x7fffffffe040 --&gt; 0xff000000
+0040| 0x7fffffffe048 --&gt; 0xff000000ff000000
+0048| 0x7fffffffe050 --&gt; 0x0
+0056| 0x7fffffffe058 --&gt; 0x0
+[------------------------------------------------------------------------------]
+
+gdb-peda$ p &amp;buf
+$1 = (char (*)[256]) 0x7fffffffe030
+</code></pre>
+</div>
+
+<p>如果 buf 复制 256 字节数据，那它的内存地址就是 <code class="highlighter-rouge">0x7fffffffe030 - (0x7fffffffe130 - 1)</code> 了，<code class="highlighter-rouge">0x7fffffffe130</code> 地址上的数据将被覆盖，而上面寄存器也可以看出来，rbp 就是 <code class="highlighter-rouge">0x7fffffffe130</code> 地址。</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>[----------------------------------registers-----------------------------------]
+RAX: 0x7fffffffe030 --&gt; 0x0
+RBX: 0x0
+RCX: 0x8000100000000000
+RDX: 0x7fffffffe52c ('A' &lt;repeats 200 times&gt;...)
+RSI: 0x7fffffffe52c ('A' &lt;repeats 200 times&gt;...)
+RDI: 0x7fffffffe030 --&gt; 0x0
+RBP: 0x7fffffffe130 --&gt; 0x7fffffffe150 --&gt; 0x7fffffffe170 --&gt; 0x400700 (&lt;__libc_csu_init&gt;:	push   r15)
+RSP: 0x7fffffffe020 --&gt; 0x0
+RIP: 0x400687 (&lt;bar+38&gt;:	call   0x4004f0 &lt;strcpy@plt&gt;)
+R8 : 0x1000
+R9 : 0x7ffff7de7ab0 (&lt;_dl_fini&gt;:	push   rbp)
+R10: 0x309
+R11: 0x7ffff7a98720 (&lt;strlen&gt;:	pxor   xmm0,xmm0)
+R12: 0x400550 (&lt;_start&gt;:	xor    ebp,ebp)
+R13: 0x7fffffffe250 --&gt; 0x2
+R14: 0x0
+R15: 0x0
+EFLAGS: 0x202 (carry parity adjust zero sign trap INTERRUPT direction overflow)
+</code></pre>
+</div>
+
+<p>栈在 <code class="highlighter-rouge">0x7fffffffe130</code> 附近是</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>0224| 0x7fffffffe100 --&gt; 0x7fffffffe52c ('A' &lt;repeats 200 times&gt;...)
+0232| 0x7fffffffe108 --&gt; 0x0
+0240| 0x7fffffffe110 --&gt; 0x7fffffffe270 --&gt; 0x7fffffffe62d ("USER=virusdefender")
+0248| 0x7fffffffe118 --&gt; 0x7fffffffe258 --&gt; 0x7fffffffe4fe ("/home/virusdefender/Desktop/pwn/offbyone/vuln")
+0256| 0x7fffffffe120 --&gt; 0x7fffffffe52c ('A' &lt;repeats 200 times&gt;...)
+0264| 0x7fffffffe128 --&gt; 0x400770 (&lt;__libc_csu_fini&gt;:	repz ret)
+0272| 0x7fffffffe130 --&gt; 0x7fffffffe150 --&gt; 0x7fffffffe170 --&gt; 0x400700 (&lt;__libc_csu_init&gt;:	push   r15)
+0280| 0x7fffffffe138 --&gt; 0x40065e (&lt;foo+24&gt;:	nop)
+0288| 0x7fffffffe140 --&gt; 0x0
+0296| 0x7fffffffe148 --&gt; 0x7fffffffe52c ('A' &lt;repeats 200 times&gt;...)
+0304| 0x7fffffffe150 --&gt; 0x7fffffffe170 --&gt; 0x400700 (&lt;__libc_csu_init&gt;:	push   r15)
+0312| 0x7fffffffe158 --&gt; 0x4006ec (&lt;main+93&gt;:	mov    eax,0x0)
+</code></pre>
+</div>
+
+<p>覆盖前后的数据对比</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>gdb-peda$ x/8xb 0x7fffffffe130
+0x7fffffffe130:	0x50	0xe1	0xff	0xff	0xff	0x7f	0x00	0x00
+
+gdb-peda$ x/8xb 0x7fffffffe130
+0x7fffffffe130:	0x00	0xe1	0xff	0xff	0xff	0x7f	0x00	0x00
+</code></pre>
+</div>
+
+<p>也就是 <code class="highlighter-rouge">0x7fffffffe150</code> 会被覆盖为 <code class="highlighter-rouge">0x7fffffffe100</code>，这个地址正好是 buf 内可控的地址。</p>
+
+<h2 id="参考">参考</h2>
+
+<ul>
+  <li>https://bbs.pediy.com/thread-216954.htm</li>
+</ul>
+
+
+
+        <section class="author-detail">
+            <section class="post-footer-item comment">
+                <a href="/comment.html?title=二进制安全之栈溢出（十）&article_id=/index.php/archives/786/" target="_blank">评论</a> | <a href="#" onclick="document.getElementById('wx-pay').style.display = ''; return false;">微信打赏</a> | 转载必须注明原文链接
+            </section>
+            <img src="https://storage.virusdefender.net/blog/images/utils/wx_pay_new.JPG" style="max-width: 90%;max-height: 90%; display: none;" id="wx-pay">
+        </section>
+    </article>
+</div>
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?e5ec0a55646c7c7c90dc530c56c80171";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+<footer class="g-footer">
+    <section>virusdefender's blog (＾－＾)V © 2019</section>
+    <section>Powered by <a href="//jekyllrb.com">Jekyll</a> | <a href="https://github.com/kaeyleo/jekyll-theme-H2O">Theme H2O</a></section>
+</footer>
+
+
+    <script src="https://cdn.staticfile.org/jquery/3.2.1/jquery.min.js"></script>
+    <script src="/assets/js/prism.js"></script>
+    <script src="/assets/js/index.min.js"></script>
+</body>
+</html>

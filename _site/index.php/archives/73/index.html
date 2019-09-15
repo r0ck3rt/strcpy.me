@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="content-language" content="zh-cn">
+    <title>由腾讯登陆js加密方法猜想腾讯数据库密码加密方法 - virusdefender's blog (＾－＾)V</title>
+    <link rel="shortcut icon" href="/assets/img/favicon.ico">
+    <meta name="author"  content="virusdefender">
+    <meta name="description" content=" 学而不思则罔，思而不学则殆">
+    <meta name="keywords"  content="virusdefender,blog">
+    <!-- Open Graph -->
+    <meta property="og:title" content="由腾讯登陆js加密方法猜想腾讯数据库密码加密方法 - virusdefender's blog (＾－＾)V">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://strcpy.me/index.php/archives/73/">
+    <meta property="og:description" content=" 学而不思则罔，思而不学则殆">
+    <meta property="og:site_name" content="virusdefender's blog (＾－＾)V">
+    <link rel="stylesheet" href="//cdn.staticfile.org/normalize/6.0.0/normalize.min.css">
+    <link rel="stylesheet" href="//at.alicdn.com/t/font_roc50gemkxpw4s4i.css">
+    <link rel="stylesheet" href="/assets/css/github-markdown.css">
+    <link rel="stylesheet" href="/assets/css/prism.css">
+    <link rel="stylesheet" href="/assets/css/app.min.css">
+    <link rel="alternate" type="application/rss+xml" title="RSS 2.0" href="https://strcpy.me/feed/" />
+</head>
+
+<body>
+    <!--[if lt IE 10]>
+<div class="alert-danger" role="alert">你的浏览器实在太太太旧了，放学别走，升级完浏览器再说！<a target="_blank" class="alert-link" href="http://browsehappy.com">立即升级</a></div>
+<![endif]-->
+    <header class="g-header">
+    <div class="g-logo">
+        <a href="/">virusdefender's blog (＾－＾)V</a>
+    </div>
+    <i id="menu-toggle" class="iconfont icon-menu"></i>
+    <nav class="g-nav">
+        <ul>
+            
+            <li><a href="/">home</a></li>
+            
+            <li><a href="http://www.npc.gov.cn/npc/xinwen/2016-11/07/content_2001605.htm">law</a></li>
+            
+            <li><a href="/index.php/archives/about/">about</a></li>
+            
+        </ul>
+    </nav>
+</header>
+
+
+<header class="g-banner post-header post-pattern-circuitBoard bgcolor-default post-no-cover" data-theme="default">
+    <div class="post-wrapper">
+        <div class="post-tags">
+             
+            
+            <a href="/tags/#安全" class="post-tag">安全</a>
+            
+            
+        </div>
+        <h1>由腾讯登陆js加密方法猜想腾讯数据库密码加密方法</h1>
+        <div class="post-meta">
+            <time class="post-meta-item" datetime="2014-11-20 19:51"><i class="iconfont icon-date"></i>2014-11-20 19:51</time>
+        </div>
+    </div>
+</header>
+
+<div class="post-content">
+    
+    <article class="markdown-body">
+        <p>我测试的qq空间的登陆页面http://qzone.qq.com/，打开浏览器调试工具，然后qq号和密码随便写，提交请求的时候就能看到是一个http/get请求，是一个js发出去的。
+<img src="http://storage.virusdefender.net/blog/images/73/1.png" alt="b1.png" />
+将这个js下载下来，然后格式化一下代码。在http://paste.ubuntu.org.cn/1873103备份一个，蛋疼的github gitst貌似被墙了。
+里面有个这样的函数</p>
+<div class="language-javascript highlighter-rouge"><pre class="highlight"><code><span class="nx">getSubmitUrl</span><span class="err">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">b</span><span class="p">)</span> <span class="p">{</span>
+        <span class="kd">var</span> <span class="nx">a</span> <span class="o">=</span> <span class="nx">pt</span><span class="p">.</span><span class="nx">plogin</span><span class="p">.</span><span class="nx">loginUrl</span> <span class="o">+</span> <span class="nx">b</span> <span class="o">+</span> <span class="s2">"?"</span><span class="p">;</span>
+        <span class="kd">var</span> <span class="nx">f</span> <span class="o">=</span> <span class="p">{};</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nx">b</span> <span class="o">==</span> <span class="s2">"login"</span><span class="p">)</span> <span class="p">{</span>
+            <span class="nx">f</span><span class="p">.</span><span class="nx">u</span> <span class="o">=</span> <span class="nb">encodeURIComponent</span><span class="p">(</span><span class="nx">pt</span><span class="p">.</span><span class="nx">plogin</span><span class="p">.</span><span class="nx">at_accout</span><span class="p">);</span>
+            <span class="nx">f</span><span class="p">.</span><span class="nx">verifycode</span> <span class="o">=</span> <span class="nx">$</span><span class="p">(</span><span class="s2">"verifycode"</span><span class="p">).</span><span class="nx">value</span><span class="p">;</span>
+            <span class="k">if</span> <span class="p">(</span><span class="nx">pt</span><span class="p">.</span><span class="nx">plogin</span><span class="p">.</span><span class="nx">needShowNewVc</span><span class="p">)</span> <span class="p">{</span>
+                <span class="nx">f</span><span class="p">.</span><span class="nx">pt_vcode_v1</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+                <span class="nx">f</span><span class="p">.</span><span class="nx">pt_vcode_v1</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="p">}</span>
+            <span class="nx">f</span><span class="p">.</span><span class="nx">pt_verifysession_v1</span> <span class="o">=</span> <span class="nx">pt</span><span class="p">.</span><span class="nx">plogin</span><span class="p">.</span><span class="nx">pt_verifysession</span> <span class="o">||</span> <span class="nx">$</span><span class="p">.</span><span class="nx">cookie</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s2">"verifysession"</span><span class="p">);</span>
+            <span class="kd">var</span> <span class="nx">d</span> <span class="o">=</span> <span class="nx">$</span><span class="p">(</span><span class="s2">"p"</span><span class="p">).</span><span class="nx">value</span><span class="p">;</span>
+            <span class="k">if</span> <span class="p">(</span><span class="nx">pt</span><span class="p">.</span><span class="nx">plogin</span><span class="p">.</span><span class="nx">armSafeEdit</span><span class="p">.</span><span class="nx">isSafe</span><span class="p">)</span> <span class="p">{</span>
+                <span class="nx">d</span> <span class="o">=</span> <span class="nx">pt</span><span class="p">.</span><span class="nx">plogin</span><span class="p">.</span><span class="nx">armSafeEdit</span><span class="p">.</span><span class="nx">safepwd</span>
+            <span class="p">}</span>
+            <span class="k">if</span> <span class="p">(</span><span class="nx">pt</span><span class="p">.</span><span class="nx">plogin</span><span class="p">.</span><span class="nx">RSAKey</span><span class="p">)</span> <span class="p">{</span>
+                <span class="nx">f</span><span class="p">.</span><span class="nx">p</span> <span class="o">=</span> <span class="nx">$</span><span class="p">.</span><span class="nx">Encryption</span><span class="p">.</span><span class="nx">getRSAEncryption</span><span class="p">(</span><span class="nx">d</span><span class="p">,</span> <span class="nx">f</span><span class="p">.</span><span class="nx">verifycode</span><span class="p">,</span> <span class="nx">pt</span><span class="p">.</span><span class="nx">plogin</span><span class="p">.</span><span class="nx">armSafeEdit</span><span class="p">.</span><span class="nx">isSafe</span><span class="p">);</span>
+                <span class="nx">f</span><span class="p">.</span><span class="nx">pt_rsa</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+                <span class="nx">f</span><span class="p">.</span><span class="nx">p</span> <span class="o">=</span> <span class="nx">$</span><span class="p">.</span><span class="nx">Encryption</span><span class="p">.</span><span class="nx">getEncryption</span><span class="p">(</span><span class="nx">d</span><span class="p">,</span> <span class="nx">pt</span><span class="p">.</span><span class="nx">plogin</span><span class="p">.</span><span class="nx">saltUin</span><span class="p">,</span> <span class="nx">f</span><span class="p">.</span><span class="nx">verifycode</span><span class="p">,</span> <span class="nx">pt</span><span class="p">.</span><span class="nx">plogin</span><span class="p">.</span><span class="nx">armSafeEdit</span><span class="p">.</span><span class="nx">isSafe</span><span class="p">);</span>
+                <span class="nx">f</span><span class="p">.</span><span class="nx">pt_rsa</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+</code></pre>
+</div>
+<p>其中调用的加密函数是这样的</p>
+<div class="language-javascript highlighter-rouge"><pre class="highlight"><code><span class="nx">$</span><span class="p">.</span><span class="nx">Encryption</span> <span class="o">=</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">hexcase</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+    <span class="kd">var</span> <span class="nx">b64pad</span> <span class="o">=</span> <span class="s2">""</span><span class="p">;</span>
+    <span class="kd">var</span> <span class="nx">chrsz</span> <span class="o">=</span> <span class="mi">8</span><span class="p">;</span>
+    <span class="kd">var</span> <span class="nx">mode</span> <span class="o">=</span> <span class="mi">32</span><span class="p">;</span>
+    <span class="c1">//省略一些密码算法 主要是md5和base64算法</span>
+    <span class="kd">function</span> <span class="nx">getEncryption</span><span class="p">(</span><span class="nx">password</span><span class="p">,</span> <span class="nx">uin</span><span class="p">,</span> <span class="nx">vcode</span><span class="p">,</span> <span class="nx">isMd5</span><span class="p">)</span> <span class="p">{</span>
+        <span class="kd">var</span> <span class="nx">str1</span> <span class="o">=</span> <span class="nx">hexchar2bin</span><span class="p">(</span><span class="nx">isMd5</span> <span class="p">?</span> <span class="nx">password</span><span class="p">:</span> <span class="nx">md5</span><span class="p">(</span><span class="nx">password</span><span class="p">));</span>
+        <span class="kd">var</span> <span class="nx">str2</span> <span class="o">=</span> <span class="nx">md5</span><span class="p">(</span><span class="nx">str1</span> <span class="o">+</span> <span class="nx">uin</span><span class="p">);</span>
+        <span class="kd">var</span> <span class="nx">str3</span> <span class="o">=</span> <span class="nx">md5</span><span class="p">(</span><span class="nx">str2</span> <span class="o">+</span> <span class="nx">vcode</span><span class="p">.</span><span class="nx">toUpperCase</span><span class="p">());</span>
+        <span class="k">return</span> <span class="nx">str3</span>
+    <span class="p">}</span>
+    <span class="kd">function</span> <span class="nx">getRSAEncryption</span><span class="p">(</span><span class="nx">password</span><span class="p">,</span> <span class="nx">vcode</span><span class="p">,</span> <span class="nx">isMd5</span><span class="p">)</span> <span class="p">{</span>
+        <span class="kd">var</span> <span class="nx">str1</span> <span class="o">=</span> <span class="nx">isMd5</span> <span class="p">?</span> <span class="nx">password</span><span class="p">:</span> <span class="nx">md5</span><span class="p">(</span><span class="nx">password</span><span class="p">);</span>
+        <span class="kd">var</span> <span class="nx">str2</span> <span class="o">=</span> <span class="nx">str1</span> <span class="o">+</span> <span class="nx">vcode</span><span class="p">.</span><span class="nx">toUpperCase</span><span class="p">();</span>
+        <span class="kd">var</span> <span class="nx">str3</span> <span class="o">=</span> <span class="nx">$</span><span class="p">.</span><span class="nx">RSA</span><span class="p">.</span><span class="nx">rsa_encrypt</span><span class="p">(</span><span class="nx">str2</span><span class="p">);</span>
+        <span class="k">return</span> <span class="nx">str3</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="na">getEncryption</span><span class="p">:</span> <span class="nx">getEncryption</span><span class="p">,</span>
+        <span class="na">getRSAEncryption</span><span class="p">:</span> <span class="nx">getRSAEncryption</span>
+    <span class="p">}</span>
+<span class="p">}</span> <span class="p">();</span>
+</code></pre>
+</div>
+<p>上面的那个<code class="highlighter-rouge">getSubmitUrl</code>方法主要就是拼接登陆用的url，其中就要带上密码。可以发现密码并不是明文传输的，而且是有两种不同的算法，一个是RSA，一个是md5。</p>
+
+<p>这样大致的思路有了以后就可以直接去调试了，使用firebug在相关的语句上都下断点，果然进入了md5加密的函数。
+<img src="http://storage.virusdefender.net/blog/images/73/2.png" alt="b2.png" />
+<img src="http://storage.virusdefender.net/blog/images/73/3.png" alt="b3.png" />
+注意看右边，最终产生的str3的值。
+然后加在了url中
+<img src="http://storage.virusdefender.net/blog/images/73/4.png" alt="p4.png" /></p>
+
+<p>总结一下，我们这一次登陆的时候的密码加密方法是
+<code class="highlighter-rouge">md5(md5(md5(密码) + uin) + 随机token)</code></p>
+
+<p>但是重点还不是在这里，想一下，腾讯的服务器怎么验证密码是否正确呢？</p>
+
+<p>首先随机token和uin肯定是知道的，一个应该在session中，一个就是用户qq号，然后重点是<code class="highlighter-rouge">md5(md5(密码) + uin)</code>了。
+这个很容易就能想出来吧，只要服务器知道以下信息之一，就能检验密码是否正确。</p>
+
+<ul>
+  <li>明文密码</li>
+  <li>md5(密码)</li>
+  <li>md5(md5(密码)+uid)</li>
+</ul>
+
+<p>而那些进行了其他的非md5的加密或者使用md5多次加密或者使用md5+salt加密都会导致没办法进行当前方式的验证了。所以我的猜想就是腾讯的服务器存储密码的方法无非就是上面的三种方式或者三种方式的可逆加密。</p>
+
+
+
+        <section class="author-detail">
+            <section class="post-footer-item comment">
+                <a href="/comment.html?title=由腾讯登陆js加密方法猜想腾讯数据库密码加密方法&article_id=/index.php/archives/73/" target="_blank">评论</a> | <a href="#" onclick="document.getElementById('wx-pay').style.display = ''; return false;">微信打赏</a> | 转载必须注明原文链接
+            </section>
+            <img src="https://storage.virusdefender.net/blog/images/utils/wx_pay_new.JPG" style="max-width: 90%;max-height: 90%; display: none;" id="wx-pay">
+        </section>
+    </article>
+</div>
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?e5ec0a55646c7c7c90dc530c56c80171";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+<footer class="g-footer">
+    <section>virusdefender's blog (＾－＾)V © 2019</section>
+    <section>Powered by <a href="//jekyllrb.com">Jekyll</a> | <a href="https://github.com/kaeyleo/jekyll-theme-H2O">Theme H2O</a></section>
+</footer>
+
+
+    <script src="https://cdn.staticfile.org/jquery/3.2.1/jquery.min.js"></script>
+    <script src="/assets/js/prism.js"></script>
+    <script src="/assets/js/index.min.js"></script>
+</body>
+</html>

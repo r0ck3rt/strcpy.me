@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="content-language" content="zh-cn">
+    <title>流量控制算法 - virusdefender's blog (＾－＾)V</title>
+    <link rel="shortcut icon" href="/assets/img/favicon.ico">
+    <meta name="author"  content="virusdefender">
+    <meta name="description" content=" 学而不思则罔，思而不学则殆">
+    <meta name="keywords"  content="virusdefender,blog">
+    <!-- Open Graph -->
+    <meta property="og:title" content="流量控制算法 - virusdefender's blog (＾－＾)V">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://strcpy.me/index.php/archives/548/">
+    <meta property="og:description" content=" 学而不思则罔，思而不学则殆">
+    <meta property="og:site_name" content="virusdefender's blog (＾－＾)V">
+    <link rel="stylesheet" href="//cdn.staticfile.org/normalize/6.0.0/normalize.min.css">
+    <link rel="stylesheet" href="//at.alicdn.com/t/font_roc50gemkxpw4s4i.css">
+    <link rel="stylesheet" href="/assets/css/github-markdown.css">
+    <link rel="stylesheet" href="/assets/css/prism.css">
+    <link rel="stylesheet" href="/assets/css/app.min.css">
+    <link rel="alternate" type="application/rss+xml" title="RSS 2.0" href="https://strcpy.me/feed/" />
+</head>
+
+<body>
+    <!--[if lt IE 10]>
+<div class="alert-danger" role="alert">你的浏览器实在太太太旧了，放学别走，升级完浏览器再说！<a target="_blank" class="alert-link" href="http://browsehappy.com">立即升级</a></div>
+<![endif]-->
+    <header class="g-header">
+    <div class="g-logo">
+        <a href="/">virusdefender's blog (＾－＾)V</a>
+    </div>
+    <i id="menu-toggle" class="iconfont icon-menu"></i>
+    <nav class="g-nav">
+        <ul>
+            
+            <li><a href="/">home</a></li>
+            
+            <li><a href="http://www.npc.gov.cn/npc/xinwen/2016-11/07/content_2001605.htm">law</a></li>
+            
+            <li><a href="/index.php/archives/about/">about</a></li>
+            
+        </ul>
+    </nav>
+</header>
+
+
+<header class="g-banner post-header post-pattern-circuitBoard bgcolor-default post-no-cover" data-theme="default">
+    <div class="post-wrapper">
+        <div class="post-tags">
+             
+            
+            <a href="/tags/#其他" class="post-tag">其他</a>
+            
+            
+        </div>
+        <h1>流量控制算法</h1>
+        <div class="post-meta">
+            <time class="post-meta-item" datetime="2015-10-25 19:24"><i class="iconfont icon-date"></i>2015-10-25 19:24</time>
+        </div>
+    </div>
+</header>
+
+<div class="post-content">
+    
+    <article class="markdown-body">
+        <p>很多场景下都需要流量控制，从底层的数据包传输到购物秒杀。</p>
+
+<p>常见的流量控制算法有两种，一个是漏桶算法，桶本身具有一个恒定的速率往下流水，而上方一直有水进入桶中。当桶还未满时，上方的水可以加入。一旦水满，上方的水就溢出，可以认为请求被丢弃。</p>
+
+<p>这个算法不难理解，可以保证系统的稳定，因为水流出的速度一直是不变的，即使在有突发流量的情况下。但是如果到了网站秒杀的情境下，有突发流量，这个算法就不好用了。更常用的是令牌通算法。</p>
+
+<p>令牌桶还是可以认为是一个盛满了令牌的箱子，每处理一个请求就会拿走一个令牌，如果令牌没有了，请求就会失败。而根据速率限制，令牌还是一直在添加的，所以还是有一部分的请求是可以慢慢的拿到令牌的。而一开始箱子里面是有一些令牌的，一开始的突发流量都可以成功的拿到令牌。</p>
+
+<p>根据 https://github.com/celery/kombu/blob/master/kombu/utils/limits.py ， 我简单改写了一下，可以很直观的看出来流量控制结果。</p>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="c"># coding=utf-8</span>
+<span class="kn">import</span> <span class="nn">time</span>
+
+
+<span class="k">class</span> <span class="nc">TokenBucket</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fill_rate</span><span class="p">,</span> <span class="n">capacity</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">capacity</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">capacity</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_left_tokens</span> <span class="o">=</span> <span class="n">capacity</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fill_rate</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">fill_rate</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">timestamp</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">consume</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tokens</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+        <span class="s">"""Return :const:`True` if the number of tokens can be consumed
+        from the bucket.  If they can be consumed, a call will also consume the
+        requested number of tokens from the bucket. Calls will only consume
+        `tokens` (the number requested) or zero tokens -- it will never consume
+        a partial number of tokens."""</span>
+        <span class="k">if</span> <span class="n">tokens</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tokens</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_left_tokens</span> <span class="o">-=</span> <span class="n">tokens</span>
+            <span class="k">return</span> <span class="bp">True</span>
+        <span class="k">return</span> <span class="bp">False</span>
+
+    <span class="k">def</span> <span class="nf">expected_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tokens</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+        <span class="s">"""Return the time (in seconds) when a new token is expected
+        to be available. This will not consume any tokens from the bucket."""</span>
+        <span class="n">_tokens</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tokens</span>
+        <span class="n">tokens</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">tokens</span><span class="p">,</span> <span class="n">_tokens</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">tokens</span> <span class="o">-</span> <span class="n">_tokens</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">fill_rate</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">tokens</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_left_tokens</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">capacity</span><span class="p">:</span>
+            <span class="n">now</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+            <span class="n">delta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fill_rate</span> <span class="o">*</span> <span class="p">(</span><span class="n">now</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">timestamp</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_left_tokens</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">capacity</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_left_tokens</span> <span class="o">+</span> <span class="n">delta</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">timestamp</span> <span class="o">=</span> <span class="n">now</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_left_tokens</span>
+
+
+<span class="n">true</span> <span class="o">=</span> <span class="n">false</span> <span class="o">=</span> <span class="mi">0</span>
+
+<span class="c"># 每秒往桶里面添加5个令牌，桶的大小是50</span>
+<span class="n">bucket</span> <span class="o">=</span> <span class="n">TokenBucket</span><span class="p">(</span><span class="n">fill_rate</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">capacity</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">300</span><span class="p">):</span>
+    <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.1</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">bucket</span><span class="o">.</span><span class="n">consume</span><span class="p">():</span>
+        <span class="n">true</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">print</span> <span class="s">"Accepted"</span><span class="p">,</span> <span class="n">i</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">false</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">print</span> <span class="s">"Dropped, time left "</span><span class="p">,</span> <span class="n">bucket</span><span class="o">.</span><span class="n">expected_time</span><span class="p">()</span>
+<span class="k">print</span> <span class="n">true</span><span class="p">,</span> <span class="n">false</span>
+</code></pre>
+</div>
+
+<p>要注意的是，我上面的demo代码是存在存在并发竞态条件问题的，但是出于性能和简化写法的考虑，这个是可以接受的，毕竟流量限制一般也不需要太精确。</p>
+
+
+        <section class="author-detail">
+            <section class="post-footer-item comment">
+                <a href="/comment.html?title=流量控制算法&article_id=/index.php/archives/548/" target="_blank">评论</a> | <a href="#" onclick="document.getElementById('wx-pay').style.display = ''; return false;">微信打赏</a> | 转载必须注明原文链接
+            </section>
+            <img src="https://storage.virusdefender.net/blog/images/utils/wx_pay_new.JPG" style="max-width: 90%;max-height: 90%; display: none;" id="wx-pay">
+        </section>
+    </article>
+</div>
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?e5ec0a55646c7c7c90dc530c56c80171";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+<footer class="g-footer">
+    <section>virusdefender's blog (＾－＾)V © 2019</section>
+    <section>Powered by <a href="//jekyllrb.com">Jekyll</a> | <a href="https://github.com/kaeyleo/jekyll-theme-H2O">Theme H2O</a></section>
+</footer>
+
+
+    <script src="https://cdn.staticfile.org/jquery/3.2.1/jquery.min.js"></script>
+    <script src="/assets/js/prism.js"></script>
+    <script src="/assets/js/index.min.js"></script>
+</body>
+</html>

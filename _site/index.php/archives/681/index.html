@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="content-language" content="zh-cn">
+    <title>jQuery选择器导致的xss问题 - virusdefender's blog (＾－＾)V</title>
+    <link rel="shortcut icon" href="/assets/img/favicon.ico">
+    <meta name="author"  content="virusdefender">
+    <meta name="description" content=" 学而不思则罔，思而不学则殆">
+    <meta name="keywords"  content="virusdefender,blog">
+    <!-- Open Graph -->
+    <meta property="og:title" content="jQuery选择器导致的xss问题 - virusdefender's blog (＾－＾)V">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://strcpy.me/index.php/archives/681/">
+    <meta property="og:description" content=" 学而不思则罔，思而不学则殆">
+    <meta property="og:site_name" content="virusdefender's blog (＾－＾)V">
+    <link rel="stylesheet" href="//cdn.staticfile.org/normalize/6.0.0/normalize.min.css">
+    <link rel="stylesheet" href="//at.alicdn.com/t/font_roc50gemkxpw4s4i.css">
+    <link rel="stylesheet" href="/assets/css/github-markdown.css">
+    <link rel="stylesheet" href="/assets/css/prism.css">
+    <link rel="stylesheet" href="/assets/css/app.min.css">
+    <link rel="alternate" type="application/rss+xml" title="RSS 2.0" href="https://strcpy.me/feed/" />
+</head>
+
+<body>
+    <!--[if lt IE 10]>
+<div class="alert-danger" role="alert">你的浏览器实在太太太旧了，放学别走，升级完浏览器再说！<a target="_blank" class="alert-link" href="http://browsehappy.com">立即升级</a></div>
+<![endif]-->
+    <header class="g-header">
+    <div class="g-logo">
+        <a href="/">virusdefender's blog (＾－＾)V</a>
+    </div>
+    <i id="menu-toggle" class="iconfont icon-menu"></i>
+    <nav class="g-nav">
+        <ul>
+            
+            <li><a href="/">home</a></li>
+            
+            <li><a href="http://www.npc.gov.cn/npc/xinwen/2016-11/07/content_2001605.htm">law</a></li>
+            
+            <li><a href="/index.php/archives/about/">about</a></li>
+            
+        </ul>
+    </nav>
+</header>
+
+
+<header class="g-banner post-header post-pattern-circuitBoard bgcolor-default post-no-cover" data-theme="default">
+    <div class="post-wrapper">
+        <div class="post-tags">
+             
+            
+            <a href="/tags/#安全" class="post-tag">安全</a>
+            
+            
+        </div>
+        <h1>jQuery选择器导致的xss问题</h1>
+        <div class="post-meta">
+            <time class="post-meta-item" datetime="2016-03-08 13:56"><i class="iconfont icon-date"></i>2016-03-08 13:56</time>
+        </div>
+    </div>
+</header>
+
+<div class="post-content">
+    
+    <article class="markdown-body">
+        <p>小伙伴发了某站的一个链接，xss payload在url的hash后面，然后页面弹框了，但是查看页面源代码，就只有<code class="highlighter-rouge">jquery.js</code>和<code class="highlighter-rouge">jquery.fullpage.js</code>，猜测是<code class="highlighter-rouge">fullpage.js</code>的问题，因为记得自己用<code class="highlighter-rouge">fullpage.js</code>的时候，hash部分会是<code class="highlighter-rouge">#first</code>、<code class="highlighter-rouge">#second</code>，然后切换页面的时候会变，可能是fullpage.js处理不当导致的。使用Chrome的调试工具发现还并不是这样的。</p>
+
+<p><img src="http://storage.virusdefender.net/blog/images/681/1.png" alt="QQ20160308-0@2x.png" /></p>
+
+<p>js经过压缩，这里的d就是jQuery的<code class="highlighter-rouge">$</code>，也就是说<code class="highlighter-rouge">$("&lt;img src=# onerror=alert(1)")</code>就是可以弹框的，使用页面上的js发现确实是这样的。</p>
+
+<p><img src="http://storage.virusdefender.net/blog/images/681/2.png" alt="QQ20160308-1@2x.png" /></p>
+
+<p>觉得这个问题在哪见过，后来在<a href="http://linux.im/2015/05/07/jQuery-1113-DomXSS-Vulnerability.html">evi1m0的博客</a>找到了，确实是jQuery的问题，在<a href="https://github.com/alvarotrigo/fullPage.js/pull/1705/files">fullpage.js的GitHub里面</a>也有提到，jQuery的bug ticket是 https://bugs.jquery.com/ticket/9521 。</p>
+
+<p>开发者的建议就是</p>
+
+<blockquote>
+  <p>I agree that developers need to be aware of any case where they are
+passing untrusted input to methods that can create HTML, such as $()
+or $().html() or the DOM’s .innerHTML property for that matter. We
+cannot solve the problem inside jQuery because we cannot judge the
+trustworthiness of the string being passed.</p>
+</blockquote>
+
+<p><code class="highlighter-rouge">innerHTML</code>可能会产生xss，这个好理解，主要是很多人并不知道<code class="highlighter-rouge">$()</code>也可能创建HTML。</p>
+
+
+
+        <section class="author-detail">
+            <section class="post-footer-item comment">
+                <a href="/comment.html?title=jQuery选择器导致的xss问题&article_id=/index.php/archives/681/" target="_blank">评论</a> | <a href="#" onclick="document.getElementById('wx-pay').style.display = ''; return false;">微信打赏</a> | 转载必须注明原文链接
+            </section>
+            <img src="https://storage.virusdefender.net/blog/images/utils/wx_pay_new.JPG" style="max-width: 90%;max-height: 90%; display: none;" id="wx-pay">
+        </section>
+    </article>
+</div>
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?e5ec0a55646c7c7c90dc530c56c80171";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+<footer class="g-footer">
+    <section>virusdefender's blog (＾－＾)V © 2019</section>
+    <section>Powered by <a href="//jekyllrb.com">Jekyll</a> | <a href="https://github.com/kaeyleo/jekyll-theme-H2O">Theme H2O</a></section>
+</footer>
+
+
+    <script src="https://cdn.staticfile.org/jquery/3.2.1/jquery.min.js"></script>
+    <script src="/assets/js/prism.js"></script>
+    <script src="/assets/js/index.min.js"></script>
+</body>
+</html>

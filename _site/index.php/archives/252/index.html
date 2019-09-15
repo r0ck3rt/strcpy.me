@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="content-language" content="zh-cn">
+    <title> 富文本安全 - virusdefender's blog (＾－＾)V</title>
+    <link rel="shortcut icon" href="/assets/img/favicon.ico">
+    <meta name="author"  content="virusdefender">
+    <meta name="description" content=" 学而不思则罔，思而不学则殆">
+    <meta name="keywords"  content="virusdefender,blog">
+    <!-- Open Graph -->
+    <meta property="og:title" content=" 富文本安全 - virusdefender's blog (＾－＾)V">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://strcpy.me/index.php/archives/252/">
+    <meta property="og:description" content=" 学而不思则罔，思而不学则殆">
+    <meta property="og:site_name" content="virusdefender's blog (＾－＾)V">
+    <link rel="stylesheet" href="//cdn.staticfile.org/normalize/6.0.0/normalize.min.css">
+    <link rel="stylesheet" href="//at.alicdn.com/t/font_roc50gemkxpw4s4i.css">
+    <link rel="stylesheet" href="/assets/css/github-markdown.css">
+    <link rel="stylesheet" href="/assets/css/prism.css">
+    <link rel="stylesheet" href="/assets/css/app.min.css">
+    <link rel="alternate" type="application/rss+xml" title="RSS 2.0" href="https://strcpy.me/feed/" />
+</head>
+
+<body>
+    <!--[if lt IE 10]>
+<div class="alert-danger" role="alert">你的浏览器实在太太太旧了，放学别走，升级完浏览器再说！<a target="_blank" class="alert-link" href="http://browsehappy.com">立即升级</a></div>
+<![endif]-->
+    <header class="g-header">
+    <div class="g-logo">
+        <a href="/">virusdefender's blog (＾－＾)V</a>
+    </div>
+    <i id="menu-toggle" class="iconfont icon-menu"></i>
+    <nav class="g-nav">
+        <ul>
+            
+            <li><a href="/">home</a></li>
+            
+            <li><a href="http://www.npc.gov.cn/npc/xinwen/2016-11/07/content_2001605.htm">law</a></li>
+            
+            <li><a href="/index.php/archives/about/">about</a></li>
+            
+        </ul>
+    </nav>
+</header>
+
+
+<header class="g-banner post-header post-pattern-circuitBoard bgcolor-default post-no-cover" data-theme="default">
+    <div class="post-wrapper">
+        <div class="post-tags">
+             
+            
+            <a href="/tags/#安全" class="post-tag">安全</a>
+            
+            
+        </div>
+        <h1> 富文本安全</h1>
+        <div class="post-meta">
+            <time class="post-meta-item" datetime="2015-04-30 00:19"><i class="iconfont icon-date"></i>2015-04-30 00:19</time>
+        </div>
+    </div>
+</header>
+
+<div class="post-content">
+    
+    <article class="markdown-body">
+        <p>昨天阿里安全实习生面试问到了这个，感觉回答的不是很好，最后挂了，今天总结一下。</p>
+
+<p>富文本安全主要分为文件上传防御和xss过滤。</p>
+
+<p>文件上传主要是用来防御上传webshell。只要文件上传到不会被解析的目录里面去就没有太大问题了，但是记住是所有的文件，不要看到是图片等静态文件就可以随便存放了，因为一般后端检测文件类型都是通过拓展名或者文件头进行的，很容易绕过的。</p>
+
+<p>同时上传的文件最好使用和主域名隔离的域名，比如部分网站设置了csp头，只运行本域名下js，但是文件上传的时候可以直接上传到本域名下任意js，导致csp失效。</p>
+
+<p>xss过滤是最重要的，也是最难搞的。面试的时候那人问我怎么过滤，我就说过滤危险的标签和属性，但是他却说我有很多的办法啊能绕过的，我今天才反应过来，应该是我没有说清楚，我不是直接通过字符串匹配过滤的啊，而是先解析dom，然后过滤的啊~~</p>
+
+<p>具体过滤的时候一般使用白名单</p>
+
+<ul>
+  <li>解析html，得到所有的html标签和属性。对于不在白名单中的标签，直接删除或者转义。属性值里面的特殊字符要进行转义，防止跃出。比如<code class="highlighter-rouge">&lt;img width="100"&gt;</code>如果我修改<code class="highlighter-rouge">100</code>为<code class="highlighter-rouge">100" onerror=alert(1)"</code>就变成了<code class="highlighter-rouge">&lt;img width="100" onerror=alert(1)""&gt;</code>了。</li>
+  <li>对于部分引入外链的属性，如src,href等判断链接是否合法，过滤<code class="highlighter-rouge">&lt;a href=javascript:alert(1)&gt;</code>的情况，而且最好是只能使用指定域名下的外链。</li>
+  <li>嵌入falsh的embed标签设置<code class="highlighter-rouge">allowscriptaccess=never</code>，<code class="highlighter-rouge">allownetworking=none</code></li>
+</ul>
+
+<blockquote>
+  <p>allowScriptAccess用来控制flash与html的通讯，可选的值为：</p>
+
+  <p>always //对与html的通讯也就是执行javascript不做任何限制</p>
+</blockquote>
+
+<blockquote>
+  <p>sameDomain //只允许来自于本域的flash与html通讯，这是默认值</p>
+</blockquote>
+
+<blockquote>
+  <p>never //绝对禁止flash与页面的通讯</p>
+
+  <p>allowNetworking //用来控制flash与外部的网络通讯，可选的值为：</p>
+
+  <p>all //允许使用所有的网络通讯，也是默认值</p>
+</blockquote>
+
+<blockquote>
+  <p>internal //flash不能与浏览器通讯如navigateToURL，但是可以调用其他的API</p>
+</blockquote>
+
+<blockquote>
+  <p>none //禁止任何的网络通讯</p>
+</blockquote>
+
+<p>这里有一个<a href="http://www.leavesongs.com/PYTHON/python-xss-filter.html">python的富文本过滤器</a>，基本思路和上面的一样，但是实现的还是有些太简单粗暴，比如富文本时候很多地方都会用到style属性，如果允许这个属性，那就可能通过expression等进行xss，还需要更加细致的去过滤。</p>
+
+<p>参考 http://security.tencent.com/index.php/blog/msg/53</p>
+
+<p>http://barretlee.com/blog/2014/05/xss-snippts.html</p>
+
+
+
+        <section class="author-detail">
+            <section class="post-footer-item comment">
+                <a href="/comment.html?title= 富文本安全&article_id=/index.php/archives/252/" target="_blank">评论</a> | <a href="#" onclick="document.getElementById('wx-pay').style.display = ''; return false;">微信打赏</a> | 转载必须注明原文链接
+            </section>
+            <img src="https://storage.virusdefender.net/blog/images/utils/wx_pay_new.JPG" style="max-width: 90%;max-height: 90%; display: none;" id="wx-pay">
+        </section>
+    </article>
+</div>
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?e5ec0a55646c7c7c90dc530c56c80171";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+<footer class="g-footer">
+    <section>virusdefender's blog (＾－＾)V © 2019</section>
+    <section>Powered by <a href="//jekyllrb.com">Jekyll</a> | <a href="https://github.com/kaeyleo/jekyll-theme-H2O">Theme H2O</a></section>
+</footer>
+
+
+    <script src="https://cdn.staticfile.org/jquery/3.2.1/jquery.min.js"></script>
+    <script src="/assets/js/prism.js"></script>
+    <script src="/assets/js/index.min.js"></script>
+</body>
+</html>

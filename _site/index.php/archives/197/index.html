@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="content-language" content="zh-cn">
+    <title>青大空教室查询app发布 - virusdefender's blog (＾－＾)V</title>
+    <link rel="shortcut icon" href="/assets/img/favicon.ico">
+    <meta name="author"  content="virusdefender">
+    <meta name="description" content=" 学而不思则罔，思而不学则殆">
+    <meta name="keywords"  content="virusdefender,blog">
+    <!-- Open Graph -->
+    <meta property="og:title" content="青大空教室查询app发布 - virusdefender's blog (＾－＾)V">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://strcpy.me/index.php/archives/197/">
+    <meta property="og:description" content=" 学而不思则罔，思而不学则殆">
+    <meta property="og:site_name" content="virusdefender's blog (＾－＾)V">
+    <link rel="stylesheet" href="//cdn.staticfile.org/normalize/6.0.0/normalize.min.css">
+    <link rel="stylesheet" href="//at.alicdn.com/t/font_roc50gemkxpw4s4i.css">
+    <link rel="stylesheet" href="/assets/css/github-markdown.css">
+    <link rel="stylesheet" href="/assets/css/prism.css">
+    <link rel="stylesheet" href="/assets/css/app.min.css">
+    <link rel="alternate" type="application/rss+xml" title="RSS 2.0" href="https://strcpy.me/feed/" />
+</head>
+
+<body>
+    <!--[if lt IE 10]>
+<div class="alert-danger" role="alert">你的浏览器实在太太太旧了，放学别走，升级完浏览器再说！<a target="_blank" class="alert-link" href="http://browsehappy.com">立即升级</a></div>
+<![endif]-->
+    <header class="g-header">
+    <div class="g-logo">
+        <a href="/">virusdefender's blog (＾－＾)V</a>
+    </div>
+    <i id="menu-toggle" class="iconfont icon-menu"></i>
+    <nav class="g-nav">
+        <ul>
+            
+            <li><a href="/">home</a></li>
+            
+            <li><a href="http://www.npc.gov.cn/npc/xinwen/2016-11/07/content_2001605.htm">law</a></li>
+            
+            <li><a href="/index.php/archives/about/">about</a></li>
+            
+        </ul>
+    </nav>
+</header>
+
+
+<header class="g-banner post-header post-pattern-circuitBoard bgcolor-default post-no-cover" data-theme="default">
+    <div class="post-wrapper">
+        <div class="post-tags">
+             
+            
+            <a href="/tags/#其他" class="post-tag">其他</a>
+            
+            
+        </div>
+        <h1>青大空教室查询app发布</h1>
+        <div class="post-meta">
+            <time class="post-meta-item" datetime="2015-03-20 08:56"><i class="iconfont icon-date"></i>2015-03-20 08:56</time>
+        </div>
+    </div>
+</header>
+
+<div class="post-content">
+    
+    <article class="markdown-body">
+        <p>昨天上午下课后想找个空教室，转来转去就是找不到。想起来课程格子上面有个空教室查询，但是打开后提示工作人员正在提取数据啥的，反正就是不能用。貌似别人用超级课程表也是这样的，真是奇了怪了。。</p>
+
+<p>其实以前我写过类似的东西，可以使用微信和网页，但是代码全丢了。然后自己重新写了一个，现在是app + api版本的了。</p>
+
+<p>app使用html + css + js开发，为什么，因为我不会写原生的app，而且这么一个小应用不值得用原生的，构建工具是   http://dcloud.io/ ,界面使用mui框架，也是dcloud家的。不得不说，html5开发小app效率确实高。</p>
+
+<p>最重要的是获取数据，使用了Python爬虫和线程池实现，线程池在以前的文章里面说过，自己去翻一下。爬的时候开了20个线程，一个教学楼的信息大约1分钟就全下来了，我还担心把教务的数据库爬死了。最后自己整理了一堆json文件。</p>
+
+<p>关于空教室的信息的存储，以前使用的是关系型数据库，但是这些数据明显的是没有关系，这次就使用了nosql。开始也想放在sae的memcache，但是sae说memcache存在数据丢失的可能性，后来就放在了kvdb里面，数据格式大致是</p>
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="p">{</span><span class="s">"key"</span><span class="p">:</span> <span class="s">"13041.2706.11.5.2"</span><span class="p">,</span> <span class="s">"value"</span><span class="p">:</span> <span class="s">"[["</span><span class="err">东校区</span><span class="mi">1</span><span class="o">-</span><span class="mi">101</span><span class="s">", 1], ["</span><span class="err">东校区</span><span class="mi">1</span><span class="o">-</span><span class="mi">102</span><span class="s">", 1], ["</span><span class="err">东校区</span><span class="mi">1</span><span class="o">-</span><span class="mi">103</span><span class="s">", 1], ["</span><span class="err">东校区</span><span class="mi">1</span><span class="o">-</span><span class="mi">104</span><span class="s">", 1], ["</span><span class="err">东校区</span><span class="mi">1</span><span class="o">-</span><span class="mi">107</span><span class="s">", 1], ["</span><span class="err">东校区</span><span class="mi">1</span><span class="o">-</span><span class="mi">108</span><span class="s">", 1], ["</span><span class="err">东校区</span><span class="mi">1</span><span class="o">-</span><span class="mi">109</span><span class="s">", 1], ["</span><span class="err">东校区</span><span class="mi">1</span><span class="o">-</span><span class="mi">111</span><span class="s">", 1], ["</span><span class="err">东校区</span><span class="mi">1</span><span class="o">-</span><span class="mi">201</span><span class="s">", 1], ["</span><span class="err">东校区</span><span class="mi">1</span><span class="o">-</span><span class="mi">202</span><span class="s">", 1], ["</span><span class="err">东校区</span><span class="mi">1</span><span class="o">-</span><span class="mi">203</span><span class="s">", 1], ["</span><span class="err">东校区</span><span class="mi">1</span><span class="o">-</span><span class="mi">204</span><span class="s">", 0], ["</span><span class="err">东校区</span><span class="mi">1</span><span class="o">-</span><span class="mi">207</span><span class="s">", 1], ["</span><span class="err">东校区</span><span class="mi">1</span><span class="o">-</span><span class="mi">208</span><span class="s">", 1], ["</span><span class="err">东校区</span><span class="mi">1</span><span class="o">-</span><span class="mi">209</span><span class="s">", 1], ["</span><span class="err">东校区</span><span class="mi">1</span><span class="o">-</span><span class="mi">210</span><span class="s">", 1], ["</span><span class="err">东校区</span><span class="mi">1</span><span class="o">-</span><span class="mi">301</span><span class="s">", 1], ["</span><span class="err">东校区</span><span class="mi">1</span><span class="o">-</span><span class="mi">302</span><span class="s">", 1], ["</span><span class="err">东校区</span><span class="mi">1</span><span class="o">-</span><span class="mi">303</span><span class="s">", 1], ["</span><span class="err">东校区</span><span class="mi">1</span><span class="o">-</span><span class="mi">304</span><span class="s">", 1], ["</span><span class="err">东校区</span><span class="mi">1</span><span class="o">-</span><span class="mi">307</span><span class="s">", 1], ["</span><span class="err">东校区</span><span class="mi">1</span><span class="o">-</span><span class="mi">308</span><span class="s">", 1], ["</span><span class="err">东校区</span><span class="mi">1</span><span class="o">-</span><span class="mi">309</span><span class="s">", 1], ["</span><span class="err">东校区</span><span class="mi">1</span><span class="o">-</span><span class="mi">310</span><span class="s">", 1], ["</span><span class="err">东校区</span><span class="mi">1</span><span class="o">-</span><span class="mi">311</span><span class="s">", 1], ["</span><span class="err">东校区</span><span class="mi">1</span><span class="o">-</span><span class="mi">401</span><span class="s">", 1], ["</span><span class="err">东校区</span><span class="mi">1</span><span class="o">-</span><span class="mi">402</span><span class="s">", 1], ["</span><span class="err">东校区</span><span class="mi">1</span><span class="o">-</span><span class="mi">403</span><span class="s">", 1], ["</span><span class="err">东校区</span><span class="mi">1</span><span class="o">-</span><span class="mi">404</span><span class="s">", 0], ["</span><span class="err">东校区</span><span class="mi">1</span><span class="o">-</span><span class="mi">407</span><span class="s">", 1], ["</span><span class="err">东校区</span><span class="mi">1</span><span class="o">-</span><span class="mi">408</span><span class="s">", 1], ["</span><span class="err">东校区</span><span class="mi">1</span><span class="o">-</span><span class="mi">409</span><span class="s">", 1], ["</span><span class="err">东校区</span><span class="mi">1</span><span class="o">-</span><span class="mi">410</span><span class="s">", 1]]"</span><span class="p">}</span>
+</code></pre>
+</div>
+
+<p>截图
+<img src="http://storage.virusdefender.net/blog/images/197/1.png!p" alt="QQ20150320-1@2x.png" /></p>
+
+<p><img src="http://storage.virusdefender.net/blog/images/197/2.png!p" alt="QQ20150320-2@2x.png" /></p>
+
+<p>代码已经开源 <a href="https://github.com/virusdefender/qdu_empty_classroom">https://github.com/virusdefender/qdu_empty_classroom</a></p>
+
+<p>安卓版本的下载地址：<a href="https://dn-virusdefender-blog.qbox.me/appH512DAB3E_0320090845.apk">https://dn-virusdefender-blog.qbox.me/appH512DAB3E_0320090845.apk</a></p>
+
+<p>ios的我没有开发者证书，只能越狱后使用，就先不写地址了，感兴趣的自己去构建吧。</p>
+
+<p>有意见和建议的可以在下面回复一下~</p>
+
+
+
+        <section class="author-detail">
+            <section class="post-footer-item comment">
+                <a href="/comment.html?title=青大空教室查询app发布&article_id=/index.php/archives/197/" target="_blank">评论</a> | <a href="#" onclick="document.getElementById('wx-pay').style.display = ''; return false;">微信打赏</a> | 转载必须注明原文链接
+            </section>
+            <img src="https://storage.virusdefender.net/blog/images/utils/wx_pay_new.JPG" style="max-width: 90%;max-height: 90%; display: none;" id="wx-pay">
+        </section>
+    </article>
+</div>
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?e5ec0a55646c7c7c90dc530c56c80171";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+<footer class="g-footer">
+    <section>virusdefender's blog (＾－＾)V © 2019</section>
+    <section>Powered by <a href="//jekyllrb.com">Jekyll</a> | <a href="https://github.com/kaeyleo/jekyll-theme-H2O">Theme H2O</a></section>
+</footer>
+
+
+    <script src="https://cdn.staticfile.org/jquery/3.2.1/jquery.min.js"></script>
+    <script src="/assets/js/prism.js"></script>
+    <script src="/assets/js/index.min.js"></script>
+</body>
+</html>

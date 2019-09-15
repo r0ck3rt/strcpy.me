@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="content-language" content="zh-cn">
+    <title>开源了一个 Django PostgreSQL 时间分区表插件 - virusdefender's blog (＾－＾)V</title>
+    <link rel="shortcut icon" href="/assets/img/favicon.ico">
+    <meta name="author"  content="virusdefender">
+    <meta name="description" content=" 学而不思则罔，思而不学则殆">
+    <meta name="keywords"  content="virusdefender,blog">
+    <!-- Open Graph -->
+    <meta property="og:title" content="开源了一个 Django PostgreSQL 时间分区表插件 - virusdefender's blog (＾－＾)V">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://strcpy.me/index.php/archives/794/">
+    <meta property="og:description" content=" 学而不思则罔，思而不学则殆">
+    <meta property="og:site_name" content="virusdefender's blog (＾－＾)V">
+    <link rel="stylesheet" href="//cdn.staticfile.org/normalize/6.0.0/normalize.min.css">
+    <link rel="stylesheet" href="//at.alicdn.com/t/font_roc50gemkxpw4s4i.css">
+    <link rel="stylesheet" href="/assets/css/github-markdown.css">
+    <link rel="stylesheet" href="/assets/css/prism.css">
+    <link rel="stylesheet" href="/assets/css/app.min.css">
+    <link rel="alternate" type="application/rss+xml" title="RSS 2.0" href="https://strcpy.me/feed/" />
+</head>
+
+<body>
+    <!--[if lt IE 10]>
+<div class="alert-danger" role="alert">你的浏览器实在太太太旧了，放学别走，升级完浏览器再说！<a target="_blank" class="alert-link" href="http://browsehappy.com">立即升级</a></div>
+<![endif]-->
+    <header class="g-header">
+    <div class="g-logo">
+        <a href="/">virusdefender's blog (＾－＾)V</a>
+    </div>
+    <i id="menu-toggle" class="iconfont icon-menu"></i>
+    <nav class="g-nav">
+        <ul>
+            
+            <li><a href="/">home</a></li>
+            
+            <li><a href="http://www.npc.gov.cn/npc/xinwen/2016-11/07/content_2001605.htm">law</a></li>
+            
+            <li><a href="/index.php/archives/about/">about</a></li>
+            
+        </ul>
+    </nav>
+</header>
+
+
+<header class="g-banner post-header post-pattern-circuitBoard bgcolor-default post-no-cover" data-theme="default">
+    <div class="post-wrapper">
+        <div class="post-tags">
+             
+            
+            <a href="/tags/#后端" class="post-tag">后端</a>
+            
+            
+        </div>
+        <h1>开源了一个 Django PostgreSQL 时间分区表插件</h1>
+        <div class="post-meta">
+            <time class="post-meta-item" datetime="2019-02-09 00:00"><i class="iconfont icon-date"></i>2019-02-09 00:00</time>
+        </div>
+    </div>
+</header>
+
+<div class="post-content">
+    
+    <article class="markdown-body">
+        <h2 id="什么是分区表有什么优点">什么是分区表，有什么优点</h2>
+
+<p>分区表就是将逻辑上的一个大表分成一些物理上的小表，是数据库系统为大型表的数据组织和管理提供的一种实用的功能特性。</p>
+
+<p>表分区有很多好处，比如：</p>
+
+<ul>
+  <li>子表可以按照时间等特征去划分，如果一个查询带有时间范围，那么某些子表可以直接跳过。这样就减少了索引和数据文件的 IO 量，而且这些数据更可能被缓存在内存中了。</li>
+  <li>一个子表可以被归档，也就是数据库会忽略它的存在，实现老数据不再查询的特性。</li>
+  <li>如果磁盘空间不足，可以快速删除不想要的数据。被归档的表的删除和 vacuum 会比较容易，因为需要锁，一直写数据的情况下不容易操作。</li>
+  <li>如果加一块磁盘扩容，之后创建的新的子表可以单独调整 tablespace 放在新的磁盘上，先不移动已有的数据。</li>
+</ul>
+
+<h2 id="我们为什么要开发这个插件">我们为什么要开发这个插件</h2>
+
+<p>这里需要先插播一个广告</p>
+
+<blockquote>
+  <p>雷池（SafeLine）是全球首个基于智能语义分析算法的 WAF产品。雷池从计算机语言的角度进行攻击检测，区别于传统的基于特征库和黑白名单机制的拦截原理，极大地降低了误报率和漏报率，提升了 WAF 拦截的准确度。面对云端变化，雷池（SafeLine）云端解决方案无论应对私有云、公有云、混合云都有灵活应变的部署防护模式，帮助用户灵活配置网络环境。</p>
+</blockquote>
+
+<p>雷池需要不间断地将包括海量攻击检测、行为审计等各类日志入库持久化，给数据库带来了极大的压力。</p>
+
+<p>当然表分区不是存储和处理大数据的最优办法，引入分布式数据库和分布式文件系统才能更好的分离查询和存储压力。但是在某些特定的场景下下面（比如你的产品是卖给客户一台硬件机器）是无法引入分布式系统的。</p>
+
+<p>雷池的后端管理平台基于 Django 框架，而数据库主要使用 PostgreSQL。雷池 S20 系列使用的数据库主版本号为 11，该主版本更新的一大特性便是对表分区进行了若干增强，详情参见 https://www.postgresql.org/about/news/1894/ 。</p>
+
+<p>由于 Django ORM 当前不支持声明分区表，所以在此之前也有如 architect (https://github.com/maxtepkeev/architect) 这样的 插件，但是它是基于表继承来实现的，并不支持 PostgreSQL 10 之后的原生分区表功能，而原生分区表功能在性能和易用性上都远远好于表继承。</p>
+
+<p>所以我们开源了基于时间进行原生分区和管理的 Django 插件 django-pg-timepart (https://github.com/chaitin/django-pg-timepart)，它支持最新的 PostgreSQL 11，使 Django 能够在业务层对像文章、评论和日志这样的时序数据按一定时间间隔（如年、月、周等）来建立分区。</p>
+
+<h2 id="如何使用">如何使用</h2>
+
+<p>在 Django 中，数据的核心是 model，所以只要给 model 加上我们的 decorator 就可以在 migrate 的时候声明为分区表了。</p>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="nd">@TimeRangePartitioningSupport</span><span class="p">(</span><span class="s">"timestamp"</span><span class="p">,</span> <span class="n">default_interval</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">AttackLog</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+    <span class="n">timestamp</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">DateTimeField</span><span class="p">()</span>
+<span class="n">rule_id</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">TextField</span><span class="p">()</span>
+<span class="err">……</span>
+</code></pre>
+</div>
+
+<p>但是这个时候只有主表没有子表，需要再去扫描所有的 model 然后创建或者归档子表。</p>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">model</span><span class="o">.</span><span class="n">partitioning</span><span class="o">.</span><span class="n">create_partition</span><span class="p">()</span>
+<span class="n">model</span><span class="o">.</span><span class="n">partitioning</span><span class="o">.</span><span class="n">detach_partition</span><span class="p">()</span>
+</code></pre>
+</div>
+
+<p>雷池的分区自动创建和归档是通过后端的定时器来触发上面的 API 实现的。</p>
+
+<p>当然我们的归档周期等配置也是可以调整的，而且归档历史和子表信息也可以查询，它们都在 PartitionConfig 和 PartitionLog 中。</p>
+
+<h2 id="最后">最后</h2>
+
+<p>django-pg-timepart 虽然是一个从我们实际业务中分离出来的，代码不过千行，功能单一的小插件，但是我们认为，当开源一个项目的同时，我们其实也在开源我们对于某些问题的一些想法，并愿意在开源社区中就我们使用 Django 构建 Web 应用时的所遇到的问题参与讨论，这才是我们的初衷。因此，我们欢迎大家为这一萌芽项目提供更多的建议、指出不足或对功能进行扩展使其更加通用化，Thanks！</p>
+
+
+
+        <section class="author-detail">
+            <section class="post-footer-item comment">
+                <a href="/comment.html?title=开源了一个 Django PostgreSQL 时间分区表插件&article_id=/index.php/archives/794/" target="_blank">评论</a> | <a href="#" onclick="document.getElementById('wx-pay').style.display = ''; return false;">微信打赏</a> | 转载必须注明原文链接
+            </section>
+            <img src="https://storage.virusdefender.net/blog/images/utils/wx_pay_new.JPG" style="max-width: 90%;max-height: 90%; display: none;" id="wx-pay">
+        </section>
+    </article>
+</div>
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?e5ec0a55646c7c7c90dc530c56c80171";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+<footer class="g-footer">
+    <section>virusdefender's blog (＾－＾)V © 2019</section>
+    <section>Powered by <a href="//jekyllrb.com">Jekyll</a> | <a href="https://github.com/kaeyleo/jekyll-theme-H2O">Theme H2O</a></section>
+</footer>
+
+
+    <script src="https://cdn.staticfile.org/jquery/3.2.1/jquery.min.js"></script>
+    <script src="/assets/js/prism.js"></script>
+    <script src="/assets/js/index.min.js"></script>
+</body>
+</html>

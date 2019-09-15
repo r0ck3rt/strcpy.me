@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="content-language" content="zh-cn">
+    <title>概率论几个有意思的模型 - virusdefender's blog (＾－＾)V</title>
+    <link rel="shortcut icon" href="/assets/img/favicon.ico">
+    <meta name="author"  content="virusdefender">
+    <meta name="description" content=" 学而不思则罔，思而不学则殆">
+    <meta name="keywords"  content="virusdefender,blog">
+    <!-- Open Graph -->
+    <meta property="og:title" content="概率论几个有意思的模型 - virusdefender's blog (＾－＾)V">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://strcpy.me/index.php/archives/217/">
+    <meta property="og:description" content=" 学而不思则罔，思而不学则殆">
+    <meta property="og:site_name" content="virusdefender's blog (＾－＾)V">
+    <link rel="stylesheet" href="//cdn.staticfile.org/normalize/6.0.0/normalize.min.css">
+    <link rel="stylesheet" href="//at.alicdn.com/t/font_roc50gemkxpw4s4i.css">
+    <link rel="stylesheet" href="/assets/css/github-markdown.css">
+    <link rel="stylesheet" href="/assets/css/prism.css">
+    <link rel="stylesheet" href="/assets/css/app.min.css">
+    <link rel="alternate" type="application/rss+xml" title="RSS 2.0" href="https://strcpy.me/feed/" />
+</head>
+
+<body>
+    <!--[if lt IE 10]>
+<div class="alert-danger" role="alert">你的浏览器实在太太太旧了，放学别走，升级完浏览器再说！<a target="_blank" class="alert-link" href="http://browsehappy.com">立即升级</a></div>
+<![endif]-->
+    <header class="g-header">
+    <div class="g-logo">
+        <a href="/">virusdefender's blog (＾－＾)V</a>
+    </div>
+    <i id="menu-toggle" class="iconfont icon-menu"></i>
+    <nav class="g-nav">
+        <ul>
+            
+            <li><a href="/">home</a></li>
+            
+            <li><a href="http://www.npc.gov.cn/npc/xinwen/2016-11/07/content_2001605.htm">law</a></li>
+            
+            <li><a href="/index.php/archives/about/">about</a></li>
+            
+        </ul>
+    </nav>
+</header>
+
+
+<header class="g-banner post-header post-pattern-circuitBoard bgcolor-default post-no-cover" data-theme="default">
+    <div class="post-wrapper">
+        <div class="post-tags">
+             
+            
+            <a href="/tags/#其他" class="post-tag">其他</a>
+            
+            
+        </div>
+        <h1>概率论几个有意思的模型</h1>
+        <div class="post-meta">
+            <time class="post-meta-item" datetime="2015-03-28 10:22"><i class="iconfont icon-date"></i>2015-03-28 10:22</time>
+        </div>
+    </div>
+</header>
+
+<div class="post-content">
+    
+    <article class="markdown-body">
+        <blockquote>
+  <p>问题：袋子中有a个黑球，b个白球，现在一只只的摸出来，求第k次摸出黑球的概率。（a ≤ k ≤ a + b)</p>
+</blockquote>
+
+<p>本题有两个解法，首先考虑是有次序的，也就是排列方法，另一个就是组合解法。</p>
+
+<p>排列方法的样本空间就是对a+b个球进行了全排列，也就是$(a+b)!$，然后填充第k个位置，选一个黑球，有a个选择，然后就是对(a+b-1)的位置放球，有(a+b-1)!种方法。所以得到</p>
+
+<p>
+$$P = \frac{a × (a + b - 1)!}{(a + b)!} = \frac{a}{a + b}$$
+</p>
+
+<p>第二种解法就是认为全部的球就两部分，黑的和白的，认为同种颜色的球之间没有区别。先把黑球放好的话，有$C_{a + b}^{a}$种方法。这个事情做完了，剩下的都是白球了。有利场合就是$C_{a + b - 1}^{a - 1}$种。所以</p>
+<p>
+$$P=\frac{C_{a + b - 1}^{a - 1}}{C_{a + b}^{a}}=\frac{a}{a + b}$$
+</p>
+
+<p>这样的话，最后的结果很重要，结果和k是没有关系的，最终的概率都是一样的，这个也是抽签的模型。这个证明显示抽签的前后顺序是不影响结果的。</p>
+
+<hr />
+
+<blockquote>
+  <p>现在有n个球，每个球都有相同的概率$\frac{1}{n}$落到N个格子里面(N大于等于n)的每一个格子中，求</p>
+
+  <ol>
+    <li>某指定的n个格子中各有一个球的概率P(A)</li>
+    <li>任何n个格子中各有一个球的概率P(B)</li>
+  </ol>
+</blockquote>
+
+<p>要注意的是一个格子中可以放多个球。</p>
+
+<p>第一问是先在N个格子中选出n个进行有重复的排列，样本空间就是$N^{n}$，比如第一个有N种方法，第二次还是N个，以后还是。
+因为已经指定了n个格子，相当于n个球进行了全排列，有利场合就是$n!$。</p>
+
+<p>第二问因为n个格子是任意的，首先要挑出n个格子，然后对n个球进行全排列。有利场合就是$C_{N}^{n} × n!$。结果是</p>
+<p>
+$$P(B) = \frac{C_{N}^{n} × n!}{N^{n}}=\frac{N!}{N^{n}(N - n)!}$$
+</p>
+
+<p>实际应用一下，有n个人(n &lt; 365)，每个人的生日都不一样的概率就可以套用第二问，每个格子都有一个人，而且只有一个人。n个人中至少两个人生日相同的概率就可以使用1 - P(B)</p>
+
+<hr />
+<p><strong>蒙提霍尔问题</strong></p>
+
+<p>问题详情参考
+http://wiki.mbalib.com/wiki/%E4%B8%89%E9%97%A8%E9%97%AE%E9%A2%98</p>
+
+<p>使用Python模拟就好了</p>
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="c"># coding=utf-8</span>
+<span class="kn">import</span> <span class="nn">random</span>
+
+
+<span class="c"># 不改变选择</span>
+<span class="k">def</span> <span class="nf">do_not_change</span><span class="p">():</span>
+    <span class="n">prize</span> <span class="o">=</span> <span class="p">[</span><span class="s">"goat"</span><span class="p">,</span> <span class="s">"goat"</span><span class="p">,</span> <span class="s">"car"</span><span class="p">]</span>
+    <span class="n">random</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="n">prize</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">prize</span><span class="p">[</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">)]</span> <span class="o">==</span> <span class="s">"car"</span>
+
+
+<span class="c"># 不确定改不改变</span>
+<span class="k">def</span> <span class="nf">random_selection</span><span class="p">():</span>
+    <span class="c"># 不确定改不改变的话，也就是在除去主持人打开的门之后再随机选择一个</span>
+    <span class="n">prize</span> <span class="o">=</span> <span class="p">[</span><span class="s">"goat"</span><span class="p">,</span> <span class="s">"car"</span><span class="p">]</span>
+    <span class="n">random</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="n">prize</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">prize</span><span class="p">[</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)]</span> <span class="o">==</span> <span class="s">"car"</span>
+
+
+<span class="c"># 改变选择</span>
+<span class="k">def</span> <span class="nf">change</span><span class="p">():</span>
+    <span class="n">prize</span> <span class="o">=</span> <span class="p">[</span><span class="s">"goat"</span><span class="p">,</span> <span class="s">"goat"</span><span class="p">,</span> <span class="s">"car"</span><span class="p">]</span>
+    <span class="n">random</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="n">prize</span><span class="p">)</span>
+    <span class="n">choice</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">prize</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">choice</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]:</span>
+        <span class="c"># 主持人选择山羊</span>
+        <span class="k">if</span> <span class="n">prize</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="s">"goat"</span><span class="p">:</span>
+            <span class="n">prize</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+            <span class="k">break</span>
+    <span class="c"># 选择最后一个</span>
+    <span class="k">return</span> <span class="n">prize</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s">"car"</span>
+
+<span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">100000</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">do_not_change</span><span class="p">():</span>
+        <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+
+<span class="k">print</span> <span class="s">u"不改变选择"</span><span class="p">,</span> <span class="n">count</span> <span class="o">/</span> <span class="mf">100000.0</span>
+
+<span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">100000</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">random_selection</span><span class="p">():</span>
+        <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+<span class="k">print</span> <span class="s">u"不确定改不改变选择"</span><span class="p">,</span> <span class="n">count</span> <span class="o">/</span> <span class="mf">100000.0</span>
+
+<span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">100000</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">change</span><span class="p">():</span>
+        <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+<span class="k">print</span> <span class="s">u"改变选择"</span><span class="p">,</span> <span class="n">count</span> <span class="o">/</span> <span class="mf">100000.0</span>
+
+<span class="s">"""
+最终结果
+不改变选择 0.33098
+不确定改不改变选择 0.50006
+改变选择 0.6637
+"""</span>
+</code></pre>
+</div>
+
+
+        <section class="author-detail">
+            <section class="post-footer-item comment">
+                <a href="/comment.html?title=概率论几个有意思的模型&article_id=/index.php/archives/217/" target="_blank">评论</a> | <a href="#" onclick="document.getElementById('wx-pay').style.display = ''; return false;">微信打赏</a> | 转载必须注明原文链接
+            </section>
+            <img src="https://storage.virusdefender.net/blog/images/utils/wx_pay_new.JPG" style="max-width: 90%;max-height: 90%; display: none;" id="wx-pay">
+        </section>
+    </article>
+</div>
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?e5ec0a55646c7c7c90dc530c56c80171";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+<footer class="g-footer">
+    <section>virusdefender's blog (＾－＾)V © 2019</section>
+    <section>Powered by <a href="//jekyllrb.com">Jekyll</a> | <a href="https://github.com/kaeyleo/jekyll-theme-H2O">Theme H2O</a></section>
+</footer>
+
+
+    <script src="https://cdn.staticfile.org/jquery/3.2.1/jquery.min.js"></script>
+    <script src="/assets/js/prism.js"></script>
+    <script src="/assets/js/index.min.js"></script>
+</body>
+</html>

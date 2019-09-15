@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="content-language" content="zh-cn">
+    <title>Typecho 反垃圾评论原理和 Python 模拟 - virusdefender's blog (＾－＾)V</title>
+    <link rel="shortcut icon" href="/assets/img/favicon.ico">
+    <meta name="author"  content="virusdefender">
+    <meta name="description" content=" 学而不思则罔，思而不学则殆">
+    <meta name="keywords"  content="virusdefender,blog">
+    <!-- Open Graph -->
+    <meta property="og:title" content="Typecho 反垃圾评论原理和 Python 模拟 - virusdefender's blog (＾－＾)V">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://strcpy.me/index.php/archives/438/">
+    <meta property="og:description" content=" 学而不思则罔，思而不学则殆">
+    <meta property="og:site_name" content="virusdefender's blog (＾－＾)V">
+    <link rel="stylesheet" href="//cdn.staticfile.org/normalize/6.0.0/normalize.min.css">
+    <link rel="stylesheet" href="//at.alicdn.com/t/font_roc50gemkxpw4s4i.css">
+    <link rel="stylesheet" href="/assets/css/github-markdown.css">
+    <link rel="stylesheet" href="/assets/css/prism.css">
+    <link rel="stylesheet" href="/assets/css/app.min.css">
+    <link rel="alternate" type="application/rss+xml" title="RSS 2.0" href="https://strcpy.me/feed/" />
+</head>
+
+<body>
+    <!--[if lt IE 10]>
+<div class="alert-danger" role="alert">你的浏览器实在太太太旧了，放学别走，升级完浏览器再说！<a target="_blank" class="alert-link" href="http://browsehappy.com">立即升级</a></div>
+<![endif]-->
+    <header class="g-header">
+    <div class="g-logo">
+        <a href="/">virusdefender's blog (＾－＾)V</a>
+    </div>
+    <i id="menu-toggle" class="iconfont icon-menu"></i>
+    <nav class="g-nav">
+        <ul>
+            
+            <li><a href="/">home</a></li>
+            
+            <li><a href="http://www.npc.gov.cn/npc/xinwen/2016-11/07/content_2001605.htm">law</a></li>
+            
+            <li><a href="/index.php/archives/about/">about</a></li>
+            
+        </ul>
+    </nav>
+</header>
+
+
+<header class="g-banner post-header post-pattern-circuitBoard bgcolor-default post-no-cover" data-theme="default">
+    <div class="post-wrapper">
+        <div class="post-tags">
+             
+            
+            <a href="/tags/#安全" class="post-tag">安全</a>
+            
+            
+        </div>
+        <h1>Typecho 反垃圾评论原理和 Python 模拟</h1>
+        <div class="post-meta">
+            <time class="post-meta-item" datetime="2015-07-28 08:57"><i class="iconfont icon-date"></i>2015-07-28 08:57</time>
+        </div>
+    </div>
+</header>
+
+<div class="post-content">
+    
+    <article class="markdown-body">
+        <p>最近在看 Typecho 的时候，在页面中发现了这样一段奇怪的代码</p>
+<div class="language-js highlighter-rouge"><pre class="highlight"><code><span class="kd">var</span> <span class="nx">_FKbCJ</span> <span class="o">=</span> <span class="c1">//'l'</span>
+<span class="s1">'l'</span><span class="o">+</span><span class="c1">//'h'</span>
+<span class="s1">'df'</span><span class="o">+</span><span class="s1">'f'</span><span class="c1">//'pga'</span>
+<span class="o">+</span><span class="s1">'6a4'</span><span class="c1">//'ZR'</span>
+<span class="o">+</span><span class="s1">'ff0'</span><span class="c1">//'fwM'</span>
+<span class="o">+</span><span class="s1">'b21'</span><span class="c1">//'exn'</span>
+<span class="o">+</span><span class="s1">'fe'</span><span class="c1">//'vl'</span>
+<span class="o">+</span><span class="c1">//'K'</span>
+<span class="s1">'1'</span><span class="o">+</span><span class="s1">''</span><span class="c1">///*'7d1'*/'7d1'</span>
+<span class="o">+</span><span class="s1">'4a'</span><span class="c1">//'XI'</span>
+<span class="o">+</span><span class="c1">//'erP'</span>
+<span class="s1">'dbe'</span><span class="o">+</span><span class="c1">//'9'</span>
+<span class="s1">'f'</span><span class="o">+</span><span class="s1">'ab'</span><span class="c1">//'3U'</span>
+<span class="o">+</span><span class="s1">'6'</span><span class="c1">//'e'</span>
+<span class="o">+</span><span class="s1">''</span><span class="c1">///*'hjW'*/'hjW'</span>
+<span class="o">+</span><span class="c1">//'Jb'</span>
+<span class="s1">'f'</span><span class="o">+</span><span class="c1">//'0UM'</span>
+<span class="s1">'5'</span><span class="o">+</span><span class="c1">//'MNp'</span>
+<span class="s1">'MNp'</span><span class="o">+</span><span class="s1">''</span><span class="c1">///*'Zd'*/'Zd'</span>
+<span class="o">+</span><span class="c1">//'gt'</span>
+<span class="s1">'gt'</span><span class="o">+</span><span class="s1">'uOV'</span><span class="c1">//'uOV'</span>
+<span class="o">+</span><span class="c1">//'1uK'</span>
+<span class="s1">'76'</span><span class="o">+</span><span class="s1">'8f9'</span><span class="c1">//'K'</span>
+<span class="o">+</span><span class="s1">''</span><span class="c1">///*'o'*/'o'</span>
+<span class="o">+</span><span class="c1">//'5'</span>
+<span class="s1">'5'</span><span class="o">+</span><span class="cm">/* 'db1'//'db1' */</span><span class="s1">''</span><span class="o">+</span><span class="s1">'e'</span><span class="c1">//'CN'</span>
+<span class="p">,</span> <span class="nx">_cYDj</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">],[</span><span class="mi">26</span><span class="p">,</span><span class="mi">29</span><span class="p">],[</span><span class="mi">26</span><span class="p">,</span><span class="mi">28</span><span class="p">],[</span><span class="mi">26</span><span class="p">,</span><span class="mi">29</span><span class="p">],[</span><span class="mi">31</span><span class="p">,</span><span class="mi">32</span><span class="p">]];</span>
+    
+    <span class="k">for</span> <span class="p">(</span><span class="kd">var</span> <span class="nx">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="nx">i</span> <span class="o">&lt;</span> <span class="nx">_cYDj</span><span class="p">.</span><span class="nx">length</span><span class="p">;</span> <span class="nx">i</span> <span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nx">_FKbCJ</span> <span class="o">=</span> <span class="nx">_FKbCJ</span><span class="p">.</span><span class="nx">substring</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nx">_cYDj</span><span class="p">[</span><span class="nx">i</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span> <span class="o">+</span> <span class="nx">_FKbCJ</span><span class="p">.</span><span class="nx">substring</span><span class="p">(</span><span class="nx">_cYDj</span><span class="p">[</span><span class="nx">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]);</span>
+    <span class="p">}</span>
+
+    <span class="k">return</span> <span class="nx">_FKbCJ</span><span class="p">;</span>
+</code></pre>
+</div>
+<p>猜测和反垃圾评论有关，因为机器人直接评论的话，一般都是直接 post 评论数据，如果在评论之前需要先运行一段 js，然后带上这段 js 生成的值再 post 的话，就能挡住一大批低级的机器人了。现在很多地方用到了这个，比如一些云 WAF，在可疑请求的时候也是返回一段 js 要运行的，更高级点的可以检测浏览器环境，鼠标手势等等。相对于验证码，对真实用户更友好一些。</p>
+
+<p>看 Typecho 的<a href="https://github.com/typecho/typecho/blob/3d4b7babb4451857815bcbc2b1f92d37ac4a40da/var/Typecho/Common.php#L963">源码</a>也确实是这样的。</p>
+
+<p>我用 Python 写了一个，主要是通过各种注释和换行来混淆 js，虽然不运行 js，直接进行字符串分析肯定也能得到结果，但是相比直接 post 数据，难度大大增大了，而且我们可以随时更换混淆规则，我们的目的也就达到了。</p>
+
+<!--more-->
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="c"># coding=utf-8</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">random</span>
+<span class="kn">import</span> <span class="nn">hashlib</span>
+<span class="kn">import</span> <span class="nn">json</span>
+ 
+ 
+<span class="k">def</span> <span class="nf">split_str</span><span class="p">(</span><span class="n">string</span><span class="p">):</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">length</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">string</span><span class="p">)</span>
+    <span class="n">start</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">start</span> <span class="o">+</span> <span class="n">r</span> <span class="o">&lt;</span> <span class="n">length</span><span class="p">:</span>
+            <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">string</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">start</span> <span class="o">+</span> <span class="n">r</span><span class="p">])</span>
+            <span class="n">start</span> <span class="o">+=</span> <span class="n">r</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">string</span><span class="p">[</span><span class="n">start</span><span class="p">:])</span>
+            <span class="k">break</span>
+    <span class="k">return</span> <span class="n">result</span>
+ 
+ 
+<span class="k">def</span> <span class="nf">rand_str</span><span class="p">(</span><span class="n">length</span><span class="o">=</span><span class="mi">32</span><span class="p">):</span>
+    <span class="n">string</span> <span class="o">=</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">md5</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">())</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">random</span><span class="o">.</span><span class="n">randrange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">9999999900</span><span class="p">)))</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">string</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">length</span><span class="p">]</span>
+ 
+ 
+<span class="k">def</span> <span class="nf">confuse_string</span><span class="p">():</span>
+    <span class="n">s</span> <span class="o">=</span> <span class="n">rand_str</span><span class="p">()</span>
+    <span class="n">str_list</span> <span class="o">=</span> <span class="n">split_str</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+    <span class="n">str_len</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+    <span class="n">js_var1</span> <span class="o">=</span> <span class="s">"v"</span> <span class="o">+</span> <span class="n">rand_str</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+    <span class="n">js_string</span> <span class="o">=</span> <span class="s">"function check(){var "</span> <span class="o">+</span> <span class="n">js_var1</span> <span class="o">+</span> <span class="s">" = "</span>
+    <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">str_list</span><span class="p">:</span>
+        <span class="n">js_string</span> <span class="o">+=</span> <span class="p">(</span><span class="s">"'"</span> <span class="o">+</span> <span class="n">item</span> <span class="o">+</span> <span class="s">"'+"</span> <span class="o">+</span> <span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="s">' '</span><span class="p">)</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">r</span><span class="p">:</span>
+            <span class="n">js_string</span> <span class="o">+=</span> <span class="p">(</span><span class="s">"//"</span> <span class="o">+</span> <span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="s">"/*"</span> <span class="o">+</span> <span class="n">rand_str</span><span class="p">(</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span> <span class="o">+</span> <span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="s">"*/"</span> <span class="o">+</span> <span class="s">"</span><span class="se">\n</span><span class="s">"</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">js_string</span> <span class="o">+=</span> <span class="p">(</span><span class="s">"/*"</span> <span class="o">+</span> <span class="s">"/"</span> <span class="o">*</span> <span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="n">rand_str</span><span class="p">(</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span> <span class="o">+</span> <span class="s">"*/"</span><span class="p">)</span>
+    <span class="n">js_var2</span> <span class="o">=</span> <span class="s">"l"</span> <span class="o">+</span> <span class="n">rand_str</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+    <span class="n">js_string</span> <span class="o">+=</span> <span class="p">(</span><span class="s">"'';var "</span> <span class="o">+</span> <span class="n">js_var2</span> <span class="o">+</span> <span class="s">" = "</span><span class="p">)</span>
+    <span class="n">l</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="s">""</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">25</span><span class="p">)):</span>
+        <span class="n">l</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">str_len</span><span class="p">))</span>
+    <span class="n">js_string</span> <span class="o">+=</span> <span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">l</span><span class="p">)</span> <span class="o">+</span> <span class="s">";"</span> <span class="o">+</span> <span class="s">"</span><span class="se">\n</span><span class="s">"</span><span class="p">)</span>
+    <span class="n">js_var3</span> <span class="o">=</span> <span class="p">(</span><span class="s">"r"</span> <span class="o">+</span> <span class="n">rand_str</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span>
+    <span class="n">js_string</span> <span class="o">+=</span> <span class="p">(</span><span class="s">"for(var i = 0;i &lt; "</span> <span class="o">+</span> <span class="n">js_var2</span> <span class="o">+</span> <span class="s">".length;i++){var "</span> <span class="o">+</span> <span class="n">js_var3</span> <span class="o">+</span> <span class="s">"= "</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">l</span><span class="p">)):</span>
+        <span class="k">if</span> <span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="n">result</span> <span class="o">+=</span> <span class="n">s</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">l</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span>
+            <span class="n">js_string</span> <span class="o">+=</span> <span class="p">(</span><span class="n">js_var1</span> <span class="o">+</span> <span class="s">"."</span> <span class="o">+</span> <span class="s">"/*"</span> <span class="o">+</span> <span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="s">"/"</span> <span class="o">+</span>
+                       <span class="n">rand_str</span><span class="p">(</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span><span class="o">+</span> <span class="s">"*/"</span> <span class="o">+</span> <span class="s">"substr(0, "</span> <span class="o">+</span>
+                       <span class="nb">str</span><span class="p">(</span><span class="n">l</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="o">+</span> <span class="s">") +"</span> <span class="o">+</span> <span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="s">" "</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">r</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="o">-</span><span class="mi">100</span><span class="p">,</span> <span class="mi">30</span><span class="p">)</span>
+            <span class="n">result</span> <span class="o">+=</span> <span class="nb">str</span><span class="p">(</span><span class="n">l</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="n">r</span><span class="p">)</span>
+            <span class="n">js_string</span> <span class="o">+=</span> <span class="p">(</span><span class="s">"'"</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">l</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="n">r</span><span class="p">)</span> <span class="o">+</span> <span class="s">"' +"</span> <span class="o">+</span> <span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span> <span class="o">*</span> <span class="s">" "</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="n">js_string</span> <span class="o">+=</span> <span class="s">"</span><span class="se">\n</span><span class="s">"</span>
+    <span class="n">js_string</span> <span class="o">+=</span> <span class="p">(</span><span class="s">"'';}return "</span> <span class="o">+</span> <span class="n">js_var3</span> <span class="o">+</span> <span class="s">";}"</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">js_string</span><span class="p">,</span> <span class="n">result</span>
+ 
+ 
+<span class="n">s</span> <span class="o">=</span> <span class="n">confuse_string</span><span class="p">()</span>
+<span class="k">print</span> <span class="n">s</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">s</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+</code></pre>
+</div>
+<p>生成这样的一段 js</p>
+<div class="language-js highlighter-rouge"><pre class="highlight"><code><span class="kd">function</span> <span class="nx">check</span><span class="p">(){</span><span class="kd">var</span> <span class="nx">v1fa</span> <span class="o">=</span> <span class="s1">'44f'</span><span class="o">+</span>  <span class="c1">///*7661*/</span>
+<span class="s1">'2d6'</span><span class="o">+</span> <span class="c1">///*4f2</span>
+<span class="s1">'02'</span><span class="o">+</span>  <span class="c1">//07</span>
+<span class="s1">'90f'</span><span class="o">+</span> <span class="cm">/*/00*/</span><span class="s1">'f4'</span><span class="o">+</span> <span class="c1">///*7</span>
+<span class="s1">'22'</span><span class="o">+</span><span class="cm">/*8c8b*/</span><span class="s1">'c2e'</span><span class="o">+</span> <span class="c1">///*c*/</span>
+<span class="s1">'b'</span><span class="o">+</span>  <span class="c1">//77f4</span>
+<span class="s1">'d'</span><span class="o">+</span>  <span class="c1">///*2*/</span>
+<span class="s1">'b'</span><span class="o">+</span><span class="cm">/*/4360*/</span><span class="s1">'d'</span><span class="o">+</span>  <span class="c1">///*72*/</span>
+<span class="s1">'7'</span><span class="o">+</span>  <span class="c1">//d0*/</span>
+<span class="s1">''</span><span class="o">+</span><span class="c1">///*b*/</span>
+<span class="s1">'be'</span><span class="o">+</span>  <span class="c1">//dd*/</span>
+<span class="s1">'7b'</span><span class="o">+</span>  <span class="cm">/*deea*/</span><span class="s1">'82'</span><span class="o">+</span>  <span class="c1">///*c3eaf*/</span>
+<span class="s1">'9b'</span><span class="o">+</span><span class="c1">//7*/</span>
+<span class="s1">''</span><span class="o">+</span><span class="c1">//142e*/</span>
+<span class="s1">'d'</span><span class="o">+</span>  <span class="c1">///*ba*/</span>
+<span class="s1">''</span><span class="p">;</span><span class="kd">var</span> <span class="nx">lfdd</span> <span class="o">=</span> <span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">11</span><span class="p">,</span> <span class="mi">24</span><span class="p">,</span> <span class="mi">28</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">21</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">28</span><span class="p">,</span> <span class="mi">22</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">18</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">11</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">19</span><span class="p">];</span>
+<span class="k">for</span><span class="p">(</span><span class="kd">var</span> <span class="nx">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span><span class="nx">i</span> <span class="o">&lt;</span> <span class="nx">lfdd</span><span class="p">.</span><span class="nx">length</span><span class="p">;</span><span class="nx">i</span><span class="o">++</span><span class="p">){</span><span class="kd">var</span> <span class="nx">r45a</span><span class="o">=</span> <span class="s1">'0'</span> <span class="o">+</span><span class="s1">'-39'</span> <span class="o">+</span>
+<span class="nx">v1fa</span><span class="p">.</span><span class="cm">/*fc6*/</span><span class="nx">substr</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">11</span><span class="p">)</span> <span class="o">+</span> <span class="s1">'-36'</span> <span class="o">+</span>  <span class="s1">'24'</span> <span class="o">+</span>  
+<span class="s1">'-23'</span> <span class="o">+</span>   <span class="s1">'-34'</span> <span class="o">+</span> 
+<span class="nx">v1fa</span><span class="p">.</span><span class="cm">/*//eada*/</span><span class="nx">substr</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">21</span><span class="p">)</span> <span class="o">+</span><span class="s1">'37'</span> <span class="o">+</span>  <span class="s1">'29'</span> <span class="o">+</span>
+<span class="s1">'-60'</span> <span class="o">+</span> 
+<span class="nx">v1fa</span><span class="p">.</span><span class="cm">/*/d71b*/</span><span class="nx">substr</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">22</span><span class="p">)</span> <span class="o">+</span> 
+<span class="nx">v1fa</span><span class="p">.</span><span class="cm">/*//dd759*/</span><span class="nx">substr</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">32</span><span class="p">)</span> <span class="o">+</span>  <span class="nx">v1fa</span><span class="p">.</span><span class="cm">/*/67ec*/</span><span class="nx">substr</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">18</span><span class="p">)</span> <span class="o">+</span>  <span class="s1">'-30'</span> <span class="o">+</span>   
+<span class="nx">v1fa</span><span class="p">.</span><span class="cm">/*a98e*/</span><span class="nx">substr</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span> <span class="o">+</span>  <span class="s1">'-77'</span> <span class="o">+</span>   
+<span class="nx">v1fa</span><span class="p">.</span><span class="cm">/*5de*/</span><span class="nx">substr</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span> <span class="o">+</span>  
+<span class="nx">v1fa</span><span class="p">.</span><span class="cm">/*//bf2d*/</span><span class="nx">substr</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">19</span><span class="p">)</span> <span class="o">+</span>
+<span class="s1">''</span><span class="p">;}</span><span class="k">return</span> <span class="nx">r45a</span><span class="p">;}</span>
+</code></pre>
+</div>
+
+<p>js 的运行结果是<code class="highlighter-rouge">0-3944f2d60290f-3624-23-3444f2d60290ff422c2ebdb3729-6044f2d60290ff422c2ebdbd44f2d60290ff422c2ebdbd7be7b829bd44f2d60290ff422c2e-3044f2d6-7744f244f2d60290ff422c2eb</code>，而这个结果在生成 js 的时候就确定了，只要拿到评论数据和 session 中的值比较一下就好了~</p>
+
+
+
+        <section class="author-detail">
+            <section class="post-footer-item comment">
+                <a href="/comment.html?title=Typecho 反垃圾评论原理和 Python 模拟&article_id=/index.php/archives/438/" target="_blank">评论</a> | <a href="#" onclick="document.getElementById('wx-pay').style.display = ''; return false;">微信打赏</a> | 转载必须注明原文链接
+            </section>
+            <img src="https://storage.virusdefender.net/blog/images/utils/wx_pay_new.JPG" style="max-width: 90%;max-height: 90%; display: none;" id="wx-pay">
+        </section>
+    </article>
+</div>
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?e5ec0a55646c7c7c90dc530c56c80171";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+<footer class="g-footer">
+    <section>virusdefender's blog (＾－＾)V © 2019</section>
+    <section>Powered by <a href="//jekyllrb.com">Jekyll</a> | <a href="https://github.com/kaeyleo/jekyll-theme-H2O">Theme H2O</a></section>
+</footer>
+
+
+    <script src="https://cdn.staticfile.org/jquery/3.2.1/jquery.min.js"></script>
+    <script src="/assets/js/prism.js"></script>
+    <script src="/assets/js/index.min.js"></script>
+</body>
+</html>

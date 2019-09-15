@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="content-language" content="zh-cn">
+    <title>今天遇到的Python多线程、多进程中的几个坑 - virusdefender's blog (＾－＾)V</title>
+    <link rel="shortcut icon" href="/assets/img/favicon.ico">
+    <meta name="author"  content="virusdefender">
+    <meta name="description" content=" 学而不思则罔，思而不学则殆">
+    <meta name="keywords"  content="virusdefender,blog">
+    <!-- Open Graph -->
+    <meta property="og:title" content="今天遇到的Python多线程、多进程中的几个坑 - virusdefender's blog (＾－＾)V">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://strcpy.me/index.php/archives/318/">
+    <meta property="og:description" content=" 学而不思则罔，思而不学则殆">
+    <meta property="og:site_name" content="virusdefender's blog (＾－＾)V">
+    <link rel="stylesheet" href="//cdn.staticfile.org/normalize/6.0.0/normalize.min.css">
+    <link rel="stylesheet" href="//at.alicdn.com/t/font_roc50gemkxpw4s4i.css">
+    <link rel="stylesheet" href="/assets/css/github-markdown.css">
+    <link rel="stylesheet" href="/assets/css/prism.css">
+    <link rel="stylesheet" href="/assets/css/app.min.css">
+    <link rel="alternate" type="application/rss+xml" title="RSS 2.0" href="https://strcpy.me/feed/" />
+</head>
+
+<body>
+    <!--[if lt IE 10]>
+<div class="alert-danger" role="alert">你的浏览器实在太太太旧了，放学别走，升级完浏览器再说！<a target="_blank" class="alert-link" href="http://browsehappy.com">立即升级</a></div>
+<![endif]-->
+    <header class="g-header">
+    <div class="g-logo">
+        <a href="/">virusdefender's blog (＾－＾)V</a>
+    </div>
+    <i id="menu-toggle" class="iconfont icon-menu"></i>
+    <nav class="g-nav">
+        <ul>
+            
+            <li><a href="/">home</a></li>
+            
+            <li><a href="http://www.npc.gov.cn/npc/xinwen/2016-11/07/content_2001605.htm">law</a></li>
+            
+            <li><a href="/index.php/archives/about/">about</a></li>
+            
+        </ul>
+    </nav>
+</header>
+
+
+<header class="g-banner post-header post-pattern-circuitBoard bgcolor-default post-no-cover" data-theme="default">
+    <div class="post-wrapper">
+        <div class="post-tags">
+             
+            
+            <a href="/tags/#Python" class="post-tag">Python</a>
+            
+            
+        </div>
+        <h1>今天遇到的Python多线程、多进程中的几个坑</h1>
+        <div class="post-meta">
+            <time class="post-meta-item" datetime="2015-07-03 17:51"><i class="iconfont icon-date"></i>2015-07-03 17:51</time>
+        </div>
+    </div>
+</header>
+
+<div class="post-content">
+    
+    <article class="markdown-body">
+        <p>今天在写oj的判题端的时候犯了一个低级错误，就是为了加快判题速度，我就采用了多线程多组用例同时运行的方法，但是后来不经意的发现，明明跑的很快的程序到了我这实际运行时间就变成了好几倍，而cpu时间并没有太大的变化。</p>
+
+<p>我开始怀疑是runner的问题，因为以前使用ptrace的runner的时候，ptrace会在进程用户态和内核态之间反复的检查，导致程序运行缓慢。但是我手动的使用命令行启动runner运行的时候，发现并没有问题，cpu时间和实际运行时间几乎一样的。我就开始怀疑是我的Python代码的问题，后来恍然大悟，为了能让cpu时间更长一些，方便测试，我写了一个时间复杂度很高的c程序，这是在运行一个cpu密集型的应用啊，而由于GIL的存在，Python多线程并不适合干这个，这个场景应该使用多进程。更详细的解释参考 <a href="http://www.oschina.net/translate/pythons-hardest-problem">http://www.oschina.net/translate/pythons-hardest-problem</a></p>
+
+<p>下面是我的测试数据，</p>
+<div class="language-javascript highlighter-rouge"><pre class="highlight"><code><span class="c1">//多线程</span>
+<span class="c1">//两组用例同时运行</span>
+<span class="p">{</span><span class="s1">'cpu_time'</span><span class="err">:</span> <span class="mf">3543.0</span><span class="p">,</span> <span class="s1">'real_time'</span><span class="err">:</span> <span class="mf">13384.0</span><span class="p">,</span> <span class="s1">'test_case_id'</span><span class="err">:</span> <span class="mi">2</span><span class="p">}</span>
+<span class="p">{</span><span class="s1">'cpu_time'</span><span class="err">:</span> <span class="mf">3592.0</span><span class="p">,</span> <span class="s1">'real_time'</span><span class="err">:</span> <span class="mf">13688.0</span><span class="p">,</span> <span class="s1">'test_case_id'</span><span class="err">:</span> <span class="mi">1</span><span class="p">}</span>
+
+<span class="c1">//只有一组测试用例</span>
+<span class="p">{</span><span class="s1">'cpu_time'</span><span class="err">:</span> <span class="mf">3612.0</span><span class="p">,</span> <span class="s1">'real_time'</span><span class="err">:</span> <span class="mf">6856.0</span><span class="p">,</span> <span class="s1">'test_case_id'</span><span class="err">:</span> <span class="mi">1</span><span class="p">}</span>
+</code></pre>
+</div>
+
+<p>很明显的结果，下面是采用了多进程之后的测试数据</p>
+
+<div class="language-javascript highlighter-rouge"><pre class="highlight"><code><span class="c1">//多进程</span>
+<span class="c1">//两组用例同时运行</span>
+<span class="p">{</span><span class="s1">'cpu_time'</span><span class="err">:</span> <span class="mf">4110.0</span><span class="p">,</span> <span class="s1">'real_time'</span><span class="err">:</span> <span class="mf">4250.0</span><span class="p">,</span> <span class="s1">'test_case_id'</span><span class="err">:</span> <span class="mi">2</span><span class="p">}</span>
+<span class="p">{</span><span class="s1">'cpu_time'</span><span class="err">:</span> <span class="mf">4121.0</span><span class="p">,</span> <span class="s1">'real_time'</span><span class="err">:</span> <span class="mf">4298.0</span><span class="p">,</span> <span class="s1">'test_case_id'</span><span class="err">:</span> <span class="mi">1</span><span class="p">}</span>
+
+<span class="c1">//一组用例</span>
+<span class="p">{</span><span class="s1">'cpu_time'</span><span class="err">:</span> <span class="mf">3861.0</span><span class="p">,</span> <span class="s1">'real_time'</span><span class="err">:</span> <span class="mf">4040.0</span><span class="p">,</span> <span class="s1">'test_case_id'</span><span class="err">:</span> <span class="mi">1</span><span class="p">}</span>
+</code></pre>
+</div>
+<p>好了，其实我不是专门想说这个的了，因为这是一个愚蠢的问题。我要记录一下今天遇到的三个多进程中的问题:</p>
+
+<h2 id="第一个问题">第一个问题</h2>
+<p><code class="highlighter-rouge">PicklingError: Can't pickle &lt;type 'instancemethod'&gt;: attribute lookup __builtin__.instancemethod failed</code></p>
+
+<p>poc如下</p>
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">multiprocessing</span> <span class="kn">import</span> <span class="n">Pool</span>
+
+
+<span class="k">class</span> <span class="nc">Runner</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">func</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">):</span>
+        <span class="k">print</span> <span class="n">i</span>
+        <span class="k">return</span> <span class="n">i</span>
+
+
+<span class="n">runner</span> <span class="o">=</span> <span class="n">Runner</span><span class="p">()</span>
+<span class="n">pool</span> <span class="o">=</span> <span class="n">Pool</span><span class="p">(</span><span class="n">processes</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">):</span>
+    <span class="n">pool</span><span class="o">.</span><span class="n">apply_async</span><span class="p">(</span><span class="n">runner</span><span class="o">.</span><span class="n">func</span><span class="p">,</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="p">))</span>
+<span class="n">pool</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+<span class="n">pool</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
+</code></pre>
+</div>
+<p>这个问题只出现在Python2上，Python3没有问题。这是因为多进程之间要使用pickle来序列化并传递一些数据，但是实例方法并不能被pickle，参见<a href="https://docs.python.org/2/library/pickle.html#what-can-be-pickled-and-unpickled">Python文档，可以被pickle的类型列表</a>，还有在Python3中实例方法可以被pickle了，见<a href="http://bugs.python.org/issue9276">Python bug list</a></p>
+
+<p>最简单的解决办法就是写一个可以被pickle的函数代理一下</p>
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">multiprocessing</span> <span class="kn">import</span> <span class="n">Pool</span>
+
+
+<span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="n">cls_instance</span><span class="p">,</span> <span class="n">i</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">cls_instance</span><span class="o">.</span><span class="n">func</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">Runner</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">func</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">):</span>
+        <span class="k">print</span> <span class="n">i</span>
+        <span class="k">return</span> <span class="n">i</span>
+
+
+<span class="n">runner</span> <span class="o">=</span> <span class="n">Runner</span><span class="p">()</span>
+<span class="n">pool</span> <span class="o">=</span> <span class="n">Pool</span><span class="p">(</span><span class="n">processes</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">):</span>
+    <span class="n">pool</span><span class="o">.</span><span class="n">apply_async</span><span class="p">(</span><span class="n">run</span><span class="p">,</span> <span class="p">(</span><span class="n">runner</span><span class="p">,</span> <span class="n">i</span><span class="p">))</span>
+<span class="n">pool</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+<span class="n">pool</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
+</code></pre>
+</div>
+
+<p><a href="http://stackoverflow.com/a/7309686/2737403">还有一个方法</a>已经被指出可能存在缺陷了，就是这个人第一个例子，但是我不知道为什么一个类可以被析构多次呢？是不是这个类实例化一次以后就被复制到了各个进程上，然后再单独进行的析构呢。这个人第二个例子是反驳的<code class="highlighter-rouge">__call__</code>方法的，我没法运行，总是提示<code class="highlighter-rouge"> Can't pickle &lt;type 'instancemethod'&gt;: attribute lookup __builtin__.instancemethod failed</code>，估计是一样的原因。</p>
+
+<h2 id="第二个问题">第二个问题</h2>
+<p>pool作为实例变量的时候出错 <code class="highlighter-rouge">pool objects cannot be passed between processes or pickled</code></p>
+
+<p>把上面的例子稍微的改造了一下，</p>
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">multiprocessing</span> <span class="kn">import</span> <span class="n">Pool</span>
+
+
+<span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="n">cls_instance</span><span class="p">,</span> <span class="n">i</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">cls_instance</span><span class="o">.</span><span class="n">func</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">Runner</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">pool</span> <span class="o">=</span> <span class="n">Pool</span><span class="p">(</span><span class="n">processes</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">):</span>
+            <span class="n">pool</span><span class="o">.</span><span class="n">apply_async</span><span class="p">(</span><span class="n">run</span><span class="p">,</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">))</span>
+        <span class="n">pool</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="n">pool</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">func</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">):</span>
+        <span class="k">print</span> <span class="n">i</span>
+        <span class="k">return</span> <span class="n">i</span>
+
+
+<span class="n">runner</span> <span class="o">=</span> <span class="n">Runner</span><span class="p">()</span>
+</code></pre>
+</div>
+<p>把pool放在实例内部了，使用外部函数代理，运行正常。但是如果把里面的pool都换成<code class="highlighter-rouge">self.pool</code>的话，就会出现上面的错误。原因是在pickle传递给pool的对象的时候，这个对象就包含pool这个实例变量，它不能被pickle，造成错误。而不使用self的话，那就是<code class="highlighter-rouge">__init__</code>方法的一个局部变量，不受影响。解决方法就是自己实现<code class="highlighter-rouge">__getstate__</code>方法，它是决定什么需要pickle的函数，我们删除掉pool，不让它pickle就好了。<code class="highlighter-rouge">__setstate__</code>作用是相反的，是用来增加实例变量的。</p>
+
+<p>看例子</p>
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">multiprocessing</span> <span class="kn">import</span> <span class="n">Pool</span>
+
+
+<span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="n">cls_instance</span><span class="p">,</span> <span class="n">i</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">cls_instance</span><span class="o">.</span><span class="n">func</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">Runner</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pool</span> <span class="o">=</span> <span class="n">Pool</span><span class="p">(</span><span class="n">processes</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span> <span class="o">=</span> <span class="mi">10</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pool</span><span class="o">.</span><span class="n">apply_async</span><span class="p">(</span><span class="n">run</span><span class="p">,</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pool</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pool</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">func</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">):</span>
+        <span class="k">print</span> <span class="n">i</span>
+        <span class="k">return</span> <span class="n">i</span>
+
+    <span class="k">def</span> <span class="nf">__getstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">self_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">print</span> <span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span>
+        <span class="k">del</span> <span class="n">self_dict</span><span class="p">[</span><span class="s">'pool'</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">self_dict</span>
+
+    <span class="k">def</span> <span class="nf">__setstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+        <span class="k">print</span> <span class="n">state</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+
+
+<span class="n">runner</span> <span class="o">=</span> <span class="n">Runner</span><span class="p">()</span>
+</code></pre>
+</div>
+<p>输出是</p>
+<div class="language-javascript highlighter-rouge"><pre class="highlight"><code><span class="p">{</span><span class="s1">'var'</span><span class="err">:</span> <span class="mi">10</span><span class="p">,</span> <span class="s1">'pool'</span><span class="err">:</span> <span class="o">&lt;</span><span class="nx">multiprocessing</span><span class="p">.</span><span class="nx">pool</span><span class="p">.</span><span class="nx">Pool</span> <span class="nx">object</span> <span class="nx">at</span> <span class="mh">0x102e99790</span><span class="o">&gt;</span><span class="p">}</span>
+<span class="p">{</span><span class="s1">'var'</span><span class="err">:</span> <span class="mi">10</span><span class="p">,</span> <span class="s1">'pool'</span><span class="err">:</span> <span class="o">&lt;</span><span class="nx">multiprocessing</span><span class="p">.</span><span class="nx">pool</span><span class="p">.</span><span class="nx">Pool</span> <span class="nx">object</span> <span class="nx">at</span> <span class="mh">0x102e99790</span><span class="o">&gt;</span><span class="p">}</span>
+<span class="p">{</span><span class="s1">'var'</span><span class="err">:</span> <span class="mi">10</span><span class="p">}</span>
+<span class="mi">0</span>
+<span class="p">{</span><span class="s1">'var'</span><span class="err">:</span> <span class="mi">10</span><span class="p">}</span>
+<span class="mi">1</span>
+</code></pre>
+</div>
+<p>也就是实例在unpickle的时候丢了pool这个变量，但是我们也不需要了，所以可以这样解决问题。</p>
+
+<h2 id="第三个问题">第三个问题</h2>
+<p>子进程引发的异常怎么消失了？</p>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">multiprocessing</span> <span class="kn">import</span> <span class="n">Pool</span>
+
+
+<span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="n">cls_instance</span><span class="p">,</span> <span class="n">i</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">cls_instance</span><span class="o">.</span><span class="n">func</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">Runner</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pool</span> <span class="o">=</span> <span class="n">Pool</span><span class="p">(</span><span class="n">processes</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span> <span class="o">=</span> <span class="mi">10</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pool</span><span class="o">.</span><span class="n">apply_async</span><span class="p">(</span><span class="n">run</span><span class="p">,</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pool</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pool</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">func</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="nb">ValueError</span><span class="p">(</span><span class="s">"xxx"</span><span class="p">)</span>
+        <span class="k">print</span> <span class="n">i</span>
+        <span class="k">return</span> <span class="n">i</span>
+
+    <span class="k">def</span> <span class="nf">__getstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">self_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">del</span> <span class="n">self_dict</span><span class="p">[</span><span class="s">'pool'</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">self_dict</span>
+
+    <span class="k">def</span> <span class="nf">__setstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+
+
+<span class="n">runner</span> <span class="o">=</span> <span class="n">Runner</span><span class="p">()</span>
+</code></pre>
+</div>
+<p>只能打印出一个0来，当i为1的时候有一个异常啊，怎么没显示出来。在<a href="https://docs.python.org/2/library/multiprocessing.html#multiprocessing.pool.AsyncResult.get">文档</a>中这么说的</p>
+
+<blockquote>
+  <p>get([timeout]) Return the result when it arrives. If timeout is not
+None and the result does not arrive within timeout seconds then
+multiprocessing.TimeoutError is raised. If the remote call raised an
+exception then that exception will be reraised by get().</p>
+</blockquote>
+
+<p><code class="highlighter-rouge">apply_async</code>返回的是<code class="highlighter-rouge">AsyncResult</code>，其中出现的异常只有在调用AsyncResult.get()的时候才会被重新引发。</p>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">multiprocessing</span> <span class="kn">import</span> <span class="n">Pool</span>
+
+
+<span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="n">cls_instance</span><span class="p">,</span> <span class="n">i</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">cls_instance</span><span class="o">.</span><span class="n">func</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">Runner</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pool</span> <span class="o">=</span> <span class="n">Pool</span><span class="p">(</span><span class="n">processes</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">):</span>
+            <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pool</span><span class="o">.</span><span class="n">apply_async</span><span class="p">(</span><span class="n">run</span><span class="p">,</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">)))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pool</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pool</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">):</span>
+            <span class="k">print</span> <span class="n">results</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">func</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="nb">ValueError</span><span class="p">(</span><span class="s">"xxx"</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">i</span>
+
+    <span class="k">def</span> <span class="nf">__getstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">self_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">del</span> <span class="n">self_dict</span><span class="p">[</span><span class="s">'pool'</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">self_dict</span>
+
+    <span class="k">def</span> <span class="nf">__setstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+
+
+<span class="n">runner</span> <span class="o">=</span> <span class="n">Runner</span><span class="p">()</span>
+</code></pre>
+</div>
+<p>这样就能看到异常了。</p>
+
+
+
+        <section class="author-detail">
+            <section class="post-footer-item comment">
+                <a href="/comment.html?title=今天遇到的Python多线程、多进程中的几个坑&article_id=/index.php/archives/318/" target="_blank">评论</a> | <a href="#" onclick="document.getElementById('wx-pay').style.display = ''; return false;">微信打赏</a> | 转载必须注明原文链接
+            </section>
+            <img src="https://storage.virusdefender.net/blog/images/utils/wx_pay_new.JPG" style="max-width: 90%;max-height: 90%; display: none;" id="wx-pay">
+        </section>
+    </article>
+</div>
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?e5ec0a55646c7c7c90dc530c56c80171";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+<footer class="g-footer">
+    <section>virusdefender's blog (＾－＾)V © 2019</section>
+    <section>Powered by <a href="//jekyllrb.com">Jekyll</a> | <a href="https://github.com/kaeyleo/jekyll-theme-H2O">Theme H2O</a></section>
+</footer>
+
+
+    <script src="https://cdn.staticfile.org/jquery/3.2.1/jquery.min.js"></script>
+    <script src="/assets/js/prism.js"></script>
+    <script src="/assets/js/index.min.js"></script>
+</body>
+</html>

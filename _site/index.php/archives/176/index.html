@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="content-language" content="zh-cn">
+    <title>验证码常见安全问题 - virusdefender's blog (＾－＾)V</title>
+    <link rel="shortcut icon" href="/assets/img/favicon.ico">
+    <meta name="author"  content="virusdefender">
+    <meta name="description" content=" 学而不思则罔，思而不学则殆">
+    <meta name="keywords"  content="virusdefender,blog">
+    <!-- Open Graph -->
+    <meta property="og:title" content="验证码常见安全问题 - virusdefender's blog (＾－＾)V">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://strcpy.me/index.php/archives/176/">
+    <meta property="og:description" content=" 学而不思则罔，思而不学则殆">
+    <meta property="og:site_name" content="virusdefender's blog (＾－＾)V">
+    <link rel="stylesheet" href="//cdn.staticfile.org/normalize/6.0.0/normalize.min.css">
+    <link rel="stylesheet" href="//at.alicdn.com/t/font_roc50gemkxpw4s4i.css">
+    <link rel="stylesheet" href="/assets/css/github-markdown.css">
+    <link rel="stylesheet" href="/assets/css/prism.css">
+    <link rel="stylesheet" href="/assets/css/app.min.css">
+    <link rel="alternate" type="application/rss+xml" title="RSS 2.0" href="https://strcpy.me/feed/" />
+</head>
+
+<body>
+    <!--[if lt IE 10]>
+<div class="alert-danger" role="alert">你的浏览器实在太太太旧了，放学别走，升级完浏览器再说！<a target="_blank" class="alert-link" href="http://browsehappy.com">立即升级</a></div>
+<![endif]-->
+    <header class="g-header">
+    <div class="g-logo">
+        <a href="/">virusdefender's blog (＾－＾)V</a>
+    </div>
+    <i id="menu-toggle" class="iconfont icon-menu"></i>
+    <nav class="g-nav">
+        <ul>
+            
+            <li><a href="/">home</a></li>
+            
+            <li><a href="http://www.npc.gov.cn/npc/xinwen/2016-11/07/content_2001605.htm">law</a></li>
+            
+            <li><a href="/index.php/archives/about/">about</a></li>
+            
+        </ul>
+    </nav>
+</header>
+
+
+<header class="g-banner post-header post-pattern-circuitBoard bgcolor-default post-no-cover" data-theme="default">
+    <div class="post-wrapper">
+        <div class="post-tags">
+             
+            
+            <a href="/tags/#安全" class="post-tag">安全</a>
+            
+            
+        </div>
+        <h1>验证码常见安全问题</h1>
+        <div class="post-meta">
+            <time class="post-meta-item" datetime="2015-03-01 14:45"><i class="iconfont icon-date"></i>2015-03-01 14:45</time>
+        </div>
+    </div>
+</header>
+
+<div class="post-content">
+    
+    <article class="markdown-body">
+        <p><strong>（1）.</strong> 验证码在页面或者cookies中输出。这个时候只需要提取一下就能直接使用了。经过加密的也不行，也可以直接去替换密文。</p>
+
+<p><strong>（2）.</strong> 验证码验证完成后没有销毁，导致验证码重复使用。
+验证码的值是在session中存储的，每次提交之后对比判断是否正确。如果验证完成后，没有更换或者清除session中的值，这时，如果不重新请求验证码就能一直使用之前的那个值了。
+这里有一个案例 http://wooyun.org/bugs/wooyun-2010-025053
+还比如 https://github.com/tianyu0915/DjangoCaptcha/blob/1b43e2af98b055c2e4b55a724f772b352de9c914/DjangoCaptcha/<strong>init</strong>.py</p>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="k">def</span> <span class="nf">check</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">code</span><span class="p">):</span>
+    <span class="s">""" 
+    检查用户输入的验证码是否正确 
+    """</span>
+    <span class="n">_code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">session_key</span><span class="p">)</span> <span class="ow">or</span> <span class="s">''</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">_code</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">False</span>
+    <span class="k">return</span> <span class="n">_code</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="nb">str</span><span class="p">(</span><span class="n">code</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+</code></pre>
+</div>
+<p>比如说这个验证码用在用户登录页面上，每次提交都需要验证码。我就可以把第一次显示验证码<code class="highlighter-rouge">aeft</code>设置的cookies记录下来，每次提交这个cookies和对应的验证码<code class="highlighter-rouge">aeft</code>就行了。这样就能绕过验证码了。
+我后来基于这个自己改写的验证码逻辑是</p>
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="k">def</span> <span class="nf">check</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">code</span><span class="p">):</span>
+        <span class="s">"""
+        检查用户输入的验证码是否正确
+        """</span>
+        <span class="n">_code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">session_key</span><span class="p">)</span> <span class="ow">or</span> <span class="s">''</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">_code</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        <span class="n">expires_time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">captcha_expires_time</span><span class="p">)</span> <span class="ow">or</span> <span class="mi">0</span>
+        <span class="c"># 注意 如果验证之后不清除之前的验证码的话 可能会造成重复验证的现象</span>
+        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">session</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">session_key</span><span class="p">]</span>
+        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">session</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">captcha_expires_time</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">_code</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="nb">str</span><span class="p">(</span><span class="n">code</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">and</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">&lt;</span> <span class="n">expires_time</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">False</span>
+</code></pre>
+</div>
+
+<p><strong>（3）.</strong> 验证码不过期
+验证码应该是有过期时间的，验证的时候判断，如果超时就认为是输入错误。参考上面我的代码</p>
+
+<p><strong>（4）.</strong> 各种脑残的判断是否需要验证码的逻辑问题</p>
+
+<ul>
+  <li>是否需要验证码是放在cookies或者session中的。比如说你登录的时候，错误次数超过3就要出现验证码，每次输入错误都加1，这个值存放在cookies或者session中，如果攻击者每次请求之前清除了本地的cookies，那服务器没办法识别了。这个情况下，应该是在数据库中对用户名和是否需要验证码进行绑定。</li>
+  <li>有的系统中，没有请求验证码的时候session中对应的值是空字符串或者固定值，这样的话，前端拦截了验证码请求之后，这个值就不会发生变化，验证码字段直接提交空字符串或者固定值就行了。</li>
+</ul>
+
+<p><strong>（5）.</strong> 验证码太弱，容易被识别。
+这个问题应该是安全和用户体验的平衡，常用的验证码识别技术参考 http://drops.wooyun.org/tips/4550  http://drops.wooyun.org/tips/141</p>
+
+<p><strong>（6）.</strong>新型验证码的问题
+比如说 https://www.v2ex.com/t/138479 这个验证码就是可以通过代码模拟得到几乎100%的通过率。还有图片验证码和语言验证码同时出现的那种，可能语音验证码就比图片验证码更好识别。</p>
+
+
+        <section class="author-detail">
+            <section class="post-footer-item comment">
+                <a href="/comment.html?title=验证码常见安全问题&article_id=/index.php/archives/176/" target="_blank">评论</a> | <a href="#" onclick="document.getElementById('wx-pay').style.display = ''; return false;">微信打赏</a> | 转载必须注明原文链接
+            </section>
+            <img src="https://storage.virusdefender.net/blog/images/utils/wx_pay_new.JPG" style="max-width: 90%;max-height: 90%; display: none;" id="wx-pay">
+        </section>
+    </article>
+</div>
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?e5ec0a55646c7c7c90dc530c56c80171";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+<footer class="g-footer">
+    <section>virusdefender's blog (＾－＾)V © 2019</section>
+    <section>Powered by <a href="//jekyllrb.com">Jekyll</a> | <a href="https://github.com/kaeyleo/jekyll-theme-H2O">Theme H2O</a></section>
+</footer>
+
+
+    <script src="https://cdn.staticfile.org/jquery/3.2.1/jquery.min.js"></script>
+    <script src="/assets/js/prism.js"></script>
+    <script src="/assets/js/index.min.js"></script>
+</body>
+</html>

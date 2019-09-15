@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="content-language" content="zh-cn">
+    <title>使用树莓派 Zero 实现带回显的新型 Bad USB - virusdefender's blog (＾－＾)V</title>
+    <link rel="shortcut icon" href="/assets/img/favicon.ico">
+    <meta name="author"  content="virusdefender">
+    <meta name="description" content=" 学而不思则罔，思而不学则殆">
+    <meta name="keywords"  content="virusdefender,blog">
+    <!-- Open Graph -->
+    <meta property="og:title" content="使用树莓派 Zero 实现带回显的新型 Bad USB - virusdefender's blog (＾－＾)V">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://strcpy.me/index.php/archives/773/">
+    <meta property="og:description" content=" 学而不思则罔，思而不学则殆">
+    <meta property="og:site_name" content="virusdefender's blog (＾－＾)V">
+    <link rel="stylesheet" href="//cdn.staticfile.org/normalize/6.0.0/normalize.min.css">
+    <link rel="stylesheet" href="//at.alicdn.com/t/font_roc50gemkxpw4s4i.css">
+    <link rel="stylesheet" href="/assets/css/github-markdown.css">
+    <link rel="stylesheet" href="/assets/css/prism.css">
+    <link rel="stylesheet" href="/assets/css/app.min.css">
+    <link rel="alternate" type="application/rss+xml" title="RSS 2.0" href="https://strcpy.me/feed/" />
+</head>
+
+<body>
+    <!--[if lt IE 10]>
+<div class="alert-danger" role="alert">你的浏览器实在太太太旧了，放学别走，升级完浏览器再说！<a target="_blank" class="alert-link" href="http://browsehappy.com">立即升级</a></div>
+<![endif]-->
+    <header class="g-header">
+    <div class="g-logo">
+        <a href="/">virusdefender's blog (＾－＾)V</a>
+    </div>
+    <i id="menu-toggle" class="iconfont icon-menu"></i>
+    <nav class="g-nav">
+        <ul>
+            
+            <li><a href="/">home</a></li>
+            
+            <li><a href="http://www.npc.gov.cn/npc/xinwen/2016-11/07/content_2001605.htm">law</a></li>
+            
+            <li><a href="/index.php/archives/about/">about</a></li>
+            
+        </ul>
+    </nav>
+</header>
+
+
+<header class="g-banner post-header post-pattern-circuitBoard bgcolor-default post-no-cover" data-theme="default">
+    <div class="post-wrapper">
+        <div class="post-tags">
+             
+            
+            <a href="/tags/#安全" class="post-tag">安全</a>
+            
+            
+        </div>
+        <h1>使用树莓派 Zero 实现带回显的新型 Bad USB</h1>
+        <div class="post-meta">
+            <time class="post-meta-item" datetime="2017-08-03 18:09"><i class="iconfont icon-date"></i>2017-08-03 18:09</time>
+        </div>
+    </div>
+</header>
+
+<div class="post-content">
+    
+    <article class="markdown-body">
+        <p>某天小黑以修理网络的名义潜入某公司办公室，想窃取一位运维台式机上的某个私钥文件，根据之前的信息收集，该公司电脑不能连接外网，而且有 DLP 产品监控的 agent，插入优盘后会提示，如果向优盘复制文件，会立即报警，文件也会被加密，无线网卡类设备也也不可以，只有键盘鼠标可以随便使用。办公环境下有一个 SSID 和密码已知的 guest 网络，可以访问外网。这种情况下怎么窃取私钥，并尽可能长时间的维持权限呢？</p>
+
+<p>很多人也许会说 <a href="https://security.tencent.com/index.php/blog/msg/74">BadUSB</a> ，但是这种情况下真的可以用么，怎么植入木马然后传回私钥呢？</p>
+
+<h2 id="现有的-badusb-设备的缺点">现有的 BadUSB 设备的缺点</h2>
+
+<h3 id="底层硬件和驱动修改复杂">底层硬件和驱动修改复杂</h3>
+
+<p>BadUSB 火了有几年了，网上的教程也是花式繁多，主要分为 Teensy 系列和 USB Rubber Ducky 系列，它们是使用 Arduino 或者优盘实现的，相对来说制作的难度比较大，因为宽泛来说都是属于”嵌入式编程”了，而且因为很多固件并不是真正开源的，是通过<a href="https://electronics.stackexchange.com/questions/49140/what-exactly-are-the-difference-between-a-usb-host-and-device">各种 Hack 实现的</a>。还有一点就是这个硬件平台都是很简化的，想增加功能，还受到硬件的限制。</p>
+
+<p><img src="http://storage.virusdefender.net/blog/images/773/1.jpg" alt="" /></p>
+
+<h3 id="单向数据传递没有回显无法更新-paylaod">单向数据传递，没有回显，无法更新 Paylaod</h3>
+
+<p>黑客在进行渗透测试的时候，很是很讨厌没有回显的洞的，因为看不到是否执行成功，甚至看不到执行结果，只能靠运气和人品。而且设备插上之后，是否成功就已经决定了，即使执行失败，也没有办法去更新和修复自己的 Payload，不是一个持久化的方案。我们希望的是能实现攻击者、BadUSB 和受害者三部分两条链路的长时间的双向通信。</p>
+
+<h3 id="遇到密码就懵逼">遇到密码就懵逼</h3>
+
+<p>如果你的 Payload 会弹出 UAC 或者需要 root 权限，那基本上避免不了需要输入密码了。有几个办法可以尝试下，首先是通过社工尝试收集密码字典然后暴力尝试，其次是自带一个提权脚本，很多洞的提权脚本并不长，而且很好用，最后那就是寄希望于人品了，如果对方直接就是使用的高权限用户，那就是人品大爆发了。这个问题的解决方案我们会放在展望章节中，并不在这一次的文章中解决。</p>
+
+<h2 id="树莓派也可以做-badusb">树莓派也可以做 BadUSB？</h2>
+
+<p>一般来说，USB 设备有两种，一种是 Host，比如电脑，可以去读取其他 USB 设备的数据，另外一种是 Device，比如键盘鼠标优盘。所以从根本上来说，制作一个 Bad USB 核心要求只有一个，就是自身可以作为 USB Device。参考 https://electronics.stackexchange.com/questions/49140/what-exactly-are-the-difference-between-a-usb-host-and-device</p>
+
+<p>市面上稍早些的树莓派，比如树莓派2B，树莓派3等，它们都只支持作为 Host，而迷你的<a href="https://www.raspberrypi.org/products/raspberry-pi-zero/">树莓派 Zero 和 Zero w</a> 同时支持作为 Host 和 Device。</p>
+
+<p>和 Zero 比，Zero w 主要是增加了 WiFi 和蓝牙，所以以下都是用的这个型号，官方价10刀，某宝大约需要25刀才能买到。缺点是体积稍大，长度略长，而宽度就是正常优盘的两倍多了。</p>
+
+<p><img src="http://storage.virusdefender.net/blog/images/773/7.jpg" alt="" /></p>
+
+<h3 id="电脑怎么知道我是一个键盘的">电脑怎么知道我是一个键盘的</h3>
+
+<p>http://www.usb.org/developers/hidpage/Hut1_12v2.pdf 是 HID 设备（人机交互设备）的部分通信协议，不需要看的太仔细，有大致印象，需要的时候会再回来翻阅。</p>
+
+<p>树莓派中运行的是更加熟悉的 Linux，系统已经集成了很多底层驱动，不用接触硬件细节，想声明自己是一个键盘也非常简单。</p>
+
+<h3 id="声明-usb-hid-设备">声明 USB HID 设备</h3>
+
+<p><a href="https://www.kernel.org/doc/htmldocs/gadget/index.html">USB Gadget</a> 实现了 USB 协议定义的设备端的软件功能，它需要一些配置，比如声明设备类型，序列号等。如果要创建一个 USB Gadget，就需要先配置那些信息。</p>
+
+<p>Linux 中一切皆文件，配置也是，使用创建文件和目录的方式就可以操作 configfs，告诉内核相关的配置，这一段就是围绕着这个来的。</p>
+
+<p>在 https://www.kernel.org/doc/Documentation/usb/gadget_configfs.txt 也有相关的配置说明。</p>
+
+<p>首先，每个 gadget 都有一个独立的文件夹，先创建一个</p>
+
+<div class="language-shell highlighter-rouge"><pre class="highlight"><code><span class="nb">cd</span> /sys/kernel/config/usb_gadget/
+mkdir -p g1
+<span class="nb">cd </span>g1
+</code></pre>
+</div>
+
+<p>然后需要 <code class="highlighter-rouge">vender id</code> 和 <code class="highlighter-rouge">product id</code>等信息，这里我们用别人的id</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>echo 0x1d6b &gt; idVendor # Linux Foundation
+echo 0x0104 &gt; idProduct # Multifunction Composite Gadget
+echo 0x0100 &gt; bcdDevice # v1.0.0
+echo 0x0200 &gt; bcdUSB # USB2
+</code></pre>
+</div>
+
+<p>每个设备还需要序列号，制造商等信息，Linux 要求的是在一个子文件夹中存储</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>mkdir -p strings/0x409
+echo "fedcba9876543210" &gt; strings/0x409/serialnumber
+echo "Valentin Brosseau" &gt; strings/0x409/manufacturer
+echo "Keyboard-dev" &gt; strings/0x409/product
+</code></pre>
+</div>
+
+<p>接下来是创建配置了，都是在 <code class="highlighter-rouge">configs/&lt;name&gt;.&lt;number&gt;</code> 中的</p>
+
+<div class="language-shell highlighter-rouge"><pre class="highlight"><code><span class="nv">C</span><span class="o">=</span>1
+mkdir -p configs/c.<span class="nv">$C</span>/strings/0x409
+<span class="nb">echo</span> <span class="s2">"Config </span><span class="nv">$C</span><span class="s2">"</span> &gt; configs/c.<span class="nv">$C</span>/strings/0x409/configuration
+<span class="nb">echo </span>1000 &gt; configs/c.<span class="nv">$C</span>/MaxPower
+</code></pre>
+</div>
+
+<p>然后是需要创建一些功能的描述，是在 <code class="highlighter-rouge">functions/&lt;name&gt;.&lt;instance name&gt;</code> 中的</p>
+
+<div class="language-shell highlighter-rouge"><pre class="highlight"><code>mkdir -p functions/hid.<span class="nv">$N</span>
+<span class="nb">echo </span>1 &gt; functions/hid.usb0/protocol
+<span class="nb">echo </span>1 &gt; functions/hid.usb0/subclass
+<span class="nb">echo </span>8 &gt; functions/hid.usb0/report_length
+<span class="nb">echo</span> -ne <span class="se">\\</span>x05<span class="se">\\</span>x01<span class="se">\\</span>x09<span class="se">\\</span>x06<span class="se">\\</span>xa1<span class="se">\\</span>x01<span class="se">\\</span>x05<span class="se">\\</span>x07<span class="se">\\</span>x19<span class="se">\\</span>xe0<span class="se">\\</span>x29<span class="se">\\</span>xe7<span class="se">\\</span>x15<span class="se">\\</span>x00<span class="se">\\</span>x25<span class="se">\\</span>x01<span class="se">\\</span>x75<span class="se">\\</span>x01<span class="se">\\</span>x95<span class="se">\\</span>x08<span class="se">\\</span>x81<span class="se">\\</span>x02<span class="se">\\</span>x95<span class="se">\\</span>x01<span class="se">\\</span>x75<span class="se">\\</span>x08<span class="se">\\</span>x81<span class="se">\\</span>x03<span class="se">\\</span>x95<span class="se">\\</span>x05<span class="se">\\</span>x75<span class="se">\\</span>x01<span class="se">\\</span>x05<span class="se">\\</span>x08<span class="se">\\</span>x19<span class="se">\\</span>x01<span class="se">\\</span>x29<span class="se">\\</span>x05<span class="se">\\</span>x91<span class="se">\\</span>x02<span class="se">\\</span>x95<span class="se">\\</span>x01<span class="se">\\</span>x75<span class="se">\\</span>x03<span class="se">\\</span>x91<span class="se">\\</span>x03<span class="se">\\</span>x95<span class="se">\\</span>x06<span class="se">\\</span>x75<span class="se">\\</span>x08<span class="se">\\</span>x15<span class="se">\\</span>x00<span class="se">\\</span>x25<span class="se">\\</span>x65<span class="se">\\</span>x05<span class="se">\\</span>x07<span class="se">\\</span>x19<span class="se">\\</span>x00<span class="se">\\</span>x29<span class="se">\\</span>x65<span class="se">\\</span>x81<span class="se">\\</span>x00<span class="se">\\</span>xc0 &gt; functions/hid.usb0/report_desc
+</code></pre>
+</div>
+
+<p>最后是关联配置和功能的文件夹和启用设备</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>ln -s functions/hid.$N configs/c.$C/
+ls /sys/class/udc &gt; UDC
+</code></pre>
+</div>
+
+<p>其中在创建功能描述的时候，有一些 Magic number，这些都是需要参考 USB 输入设备的协议规定的。</p>
+
+<p>对于 HID 设备来说，<code class="highlighter-rouge">protocol</code> 和 <code class="highlighter-rouge">subclass</code> 都是1，<code class="highlighter-rouge">report_length</code> 是8，然后 <code class="highlighter-rouge">report_desc</code> 是比较复杂的结构。暂时不用关心，后面才会用到。</p>
+
+<p>大家可以参考 https://github.com/c4software/pi-as-keyboard 的初始化脚本。</p>
+
+<h3 id="这就做完了">这就做完了</h3>
+
+<p>注意：树莓派 Zero 有两个 micro USB，一个标记 USB，一个标记 PWR，要使用标记 USB 的那个（题图红框区域），否则只能供电。</p>
+
+<p>Linux 上 <code class="highlighter-rouge">lsusb</code> 就可以看到这个设备</p>
+
+<div class="language-shell highlighter-rouge"><pre class="highlight"><code>Bus 001 Device 011: ID 1d6b:0104 Linux Foundation Multifunction Composite Gadget
+</code></pre>
+</div>
+
+<p>Mac上显示是这样的</p>
+
+<p><img src="http://storage.virusdefender.net/blog/images/773/2.jpg" alt="" /></p>
+
+<p>我们先简单的测试下，在树莓派上把</p>
+
+<div class="language-shell highlighter-rouge"><pre class="highlight"><code><span class="k">for </span>run <span class="k">in</span> <span class="o">{</span>1..10<span class="o">}</span>
+<span class="k">do
+  </span><span class="nb">echo</span> -ne <span class="s2">"</span><span class="se">\x</span><span class="s2">00</span><span class="se">\x</span><span class="s2">00</span><span class="se">\x</span><span class="s2">00</span><span class="se">\x</span><span class="s2">17</span><span class="se">\x</span><span class="s2">00</span><span class="se">\x</span><span class="s2">00</span><span class="se">\x</span><span class="s2">00</span><span class="se">\x</span><span class="s2">00"</span> &gt; /dev/hidg0
+  <span class="nb">echo</span> -ne <span class="s2">"</span><span class="se">\x</span><span class="s2">00</span><span class="se">\x</span><span class="s2">00</span><span class="se">\x</span><span class="s2">00</span><span class="se">\x</span><span class="s2">00</span><span class="se">\x</span><span class="s2">00</span><span class="se">\x</span><span class="s2">00</span><span class="se">\x</span><span class="s2">00</span><span class="se">\x</span><span class="s2">00"</span>  &gt; /dev/hidg0
+<span class="k">done</span>
+</code></pre>
+</div>
+
+<p>保存为 <code class="highlighter-rouge">test.sh</code>，然后使用 root 权限运行，如果看到看到自动输出了一堆字母 <code class="highlighter-rouge">t</code>，那就说明成功了一大半了。但是字符串是怎么转换为上面的一堆指令的呢？这时候要引入 KeyCode 的概念。</p>
+
+<p>KeyCode 顾名思义就是一个键就是一个编号，告诉系统对应的编号就可以。具体的实现是</p>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="p">[</span><span class="n">modifier</span><span class="p">,</span> <span class="n">reserved</span><span class="p">,</span> <span class="n">Key1</span><span class="p">,</span> <span class="n">Key2</span><span class="p">,</span> <span class="n">Key3</span><span class="p">,</span> <span class="n">Key4</span><span class="p">,</span> <span class="n">Key6</span><span class="p">,</span> <span class="n">Key7</span><span class="p">]</span>
+</code></pre>
+</div>
+
+<p>的结构，第一位是代表一些特殊的按键，比如 Ctrl、Shift 等，后面的6位就是指哪些键被按下了，它最多支持键盘上同时按下6个键。</p>
+
+<p>在上文提到的 USB 协议 PDF 的 <code class="highlighter-rouge">10 Keyboard/keypad page(0x07)</code> 章节规定了所有的 KeyCode，可以查阅，网上也有一些转换脚本。然后通过输入连续的8个 null 数据，代表按键结束了。</p>
+
+<p>在协议中，大小写字母还有部分数字和符号的 KeyCode 是一样的，这个时候，需要修改第一个位为 Shift，和平时使用键盘是一样的。比如</p>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="c"># t</span>
+\<span class="n">x00</span>\<span class="n">x00</span>\<span class="n">x00</span>\<span class="n">x17</span>\<span class="n">x00</span>\<span class="n">x00</span>\<span class="n">x00</span>\<span class="n">x00</span>
+<span class="c"># T</span>
+\<span class="n">x02</span>\<span class="n">x00</span>\<span class="n">x00</span>\<span class="n">x17</span>\<span class="n">x00</span>\<span class="n">x00</span>\<span class="n">x00</span>\<span class="n">x00</span>
+</code></pre>
+</div>
+
+<p>如果使用 Python 实现的话，就是</p>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s">"/dev/hidg0"</span><span class="p">,</span> <span class="s">"wb"</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">s</span><span class="p">:</span>
+      <span class="n">s</span><span class="p">,</span> <span class="n">k</span> <span class="o">=</span> <span class="n">letter_to_keycode</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+      <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">s</span> <span class="o">+</span> <span class="s">"</span><span class="se">\x00</span><span class="s">"</span> <span class="o">+</span> <span class="n">k</span> <span class="o">+</span> <span class="s">"</span><span class="se">\x00</span><span class="s">"</span> <span class="o">*</span> <span class="mi">5</span><span class="p">)</span>
+      <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">"</span><span class="se">\x00</span><span class="s">"</span> <span class="o">*</span> <span class="mi">8</span><span class="p">)</span>
+      <span class="n">f</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+</code></pre>
+</div>
+
+<p>至此，如果我们将对应的指令修改为创建后门（下载文件执行、上传文件到网络等等）的命令，然后插入后自动运行脚本，那市面上常见的 BadUSB 就制作完成了。</p>
+
+<h3 id="树莓派安装小贴士">树莓派安装小贴士</h3>
+
+<ul>
+  <li>如果 <code class="highlighter-rouge">systemctl status enable_hid</code> 出现 <code class="highlighter-rouge">enable_hid.sh[623]: /usr/bin/enable_hid.sh: line 27:   636 Segmentation fault      ls /sys/class/udc &gt; UDC</code>，请降级系统，<a href="https://github.com/raspberrypi/linux/issues/1943">这个问题目前已经修复但是没有发布</a>。可以使用命令 <code class="highlighter-rouge">rpi-update 2ca627126e49c152beb1bf7abd7122ce076dcc65</code> 回退到和我一样的版本。</li>
+  <li>
+    <p>树莓派写存储卡镜像之后，在存储卡根目录创建一个 <code class="highlighter-rouge">wpa_supplicant.conf</code> 的文件，内容是</p>
+
+    <div class="highlighter-rouge"><pre class="highlight"><code>  network={
+     ssid="WiFi SSID"
+     psk="WiFi 密码"
+     key_mgmt=WPA-PSK
+  }
+</code></pre>
+    </div>
+  </li>
+</ul>
+
+<p>然后创建一个 <code class="highlighter-rouge">ssh</code> 文件，内容为空，这样树莓派启动之后会自动联网和开启 ssh，默认用户名密码是<code class="highlighter-rouge">pi:raspberry</code>。</p>
+
+<h2 id="下面才是重点">下面才是重点</h2>
+
+<p>但是我们不能满足于此，上面提到的问题一个都没解决呢。</p>
+
+<h3 id="自带网卡和蓝牙的树莓派">自带网卡和蓝牙的树莓派</h3>
+
+<p>相对其他 BadUSB 的平台，树莓派 Zero w 自带网卡和蓝牙，这样我们就可以实现远程的交互了。比如可以使用蓝牙在实施攻击的初期进行配置，比如 WiFi 密码和 Payload 类型，之后就可以使用 client，通过 socket 远程加密连接到控制端，如果发现 Payload 有 bug 或者有更好的 Payload 就可以随时更新了，是不是很棒。</p>
+
+<h3 id="黑夜中的那盏灯">黑夜中的那盏灯</h3>
+
+<p>键盘特点是用来输出，很多人认为 Host 无法给键盘写入数据，其实并不是的。</p>
+
+<p><img src="http://storage.virusdefender.net/blog/images/773/3.jpg" alt="黑夜里的一盏灯" /></p>
+
+<p>键盘上按下 Caps Lock，再打开了系统自带的软键盘，点击软键盘的 Caps Lock，这个灯是会熄灭的，也就是键盘上的 LED 灯也是可以被软件控制的，主机也会发送信号给键盘的。</p>
+
+<h3 id="回归原始的0和1">回归原始的0和1</h3>
+
+<p>还记得<a href="http://www.freebuf.com/news/127629.html">使用硬盘灯进行边信道攻击的新闻</a>么 ，虽然看起来有些魔幻，但是确实有人能做到，所以我们也要做到。</p>
+
+<p>在 Linux 上，可以使用 <a href="http://blog.sina.com.cn/s/blog_602f87700101dno6.html">Input 子系统 Event Interface</a> 来控制 LED 灯或者使用 sysfs 控制，但是系统怎么知道我们有多少个灯呢，怎么知道我们支持哪些灯呢？这就要回到开头的 HID <code class="highlighter-rouge">report_desc</code> 和协议 <code class="highlighter-rouge">11 LED Page (0x08)</code> 章节了，在那一长串数据中隐藏了 LED 灯的秘密。</p>
+
+<p>我们的定义是</p>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="mh">0x95</span><span class="p">,</span> <span class="mh">0x05</span><span class="p">,</span>        <span class="o">//</span>   <span class="n">Report</span> <span class="n">Count</span> <span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+<span class="mh">0x75</span><span class="p">,</span> <span class="mh">0x01</span><span class="p">,</span>        <span class="o">//</span>   <span class="n">Report</span> <span class="n">Size</span> <span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="mh">0x05</span><span class="p">,</span> <span class="mh">0x08</span><span class="p">,</span>        <span class="o">//</span>   <span class="n">Usage</span> <span class="n">Page</span> <span class="p">(</span><span class="n">LEDs</span><span class="p">)</span>
+<span class="mh">0x19</span><span class="p">,</span> <span class="mh">0x01</span><span class="p">,</span>        <span class="o">//</span>   <span class="n">Usage</span> <span class="n">Minimum</span> <span class="p">(</span><span class="n">Num</span> <span class="n">Lock</span><span class="p">)</span>
+<span class="mh">0x29</span><span class="p">,</span> <span class="mh">0x05</span><span class="p">,</span>        <span class="o">//</span>   <span class="n">Usage</span> <span class="n">Maximum</span> <span class="p">(</span><span class="n">Kana</span><span class="p">)</span>
+</code></pre>
+</div>
+
+<p>但是通过测试发现下面两个 “feature” ，让这个用法变得困难</p>
+
+<ul>
+  <li>Linux 只能最多展示控制5个灯的状态（这是我 descriptor 写的不对还是特性？）</li>
+  <li>每个灯发送的控制指令和上一次的不一致才可以收到这个信号</li>
+</ul>
+
+<p><img src="http://storage.virusdefender.net/blog/images/773/4.jpg" alt="" /></p>
+
+<p>图的上半部分是声明了3个 LED 灯，下半部分是声明了6个 LED 灯，但是实际只能显示出5个。</p>
+
+<p>向 <code class="highlighter-rouge">input7::capslock/brightness</code> 写入0或者1可以改变对应灯的状态，但是这里一次只能改变一个，而且重复写入相同的状态，在树莓派上是收不到的。可以在树莓派上使用脚本读取 <code class="highlighter-rouge">/dev/hidg0</code> 设备查看。</p>
+
+<p>这种 “feature” 就阻碍了数据的传输，因为这是一次可以传递 n bit （n 为灯的数量）数据的带宽，但是现在的情况下到底还能不能传递数据了呢？答案是肯定的，那就是使用两个 bit 代表一个 bit 的数据。</p>
+
+<p>使用 <code class="highlighter-rouge">00</code> 和 <code class="highlighter-rouge">01</code> 状态代表数据0，使用 <code class="highlighter-rouge">10</code> 和 <code class="highlighter-rouge">11</code> 状态代表数据1，假设初始状态为<code class="highlighter-rouge">00</code>，如果下一位是1，则使用 <code class="highlighter-rouge">10</code> 状态，只改变第一个灯的开关，如果下一位还是0，那使用 <code class="highlighter-rouge">01</code> 状态，以此类推，就可以发现，无论下一位是什么状态，总可以只改变一个灯的状态，这一点和数字电路中的<a href="https://zh.wikipedia.org/wiki/%E6%A0%BC%E9%9B%B7%E7%A0%81">格雷码</a>有点像。</p>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">state_table</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">0</span><span class="n">b01</span><span class="p">,</span> <span class="mi">0</span><span class="n">b10</span><span class="p">],</span>
+               <span class="p">[</span><span class="mi">0</span><span class="n">b00</span><span class="p">,</span> <span class="mi">0</span><span class="n">b11</span><span class="p">],</span>
+               <span class="p">[</span><span class="mi">0</span><span class="n">b00</span><span class="p">,</span> <span class="mi">0</span><span class="n">b11</span><span class="p">],</span>
+               <span class="p">[</span><span class="mi">0</span><span class="n">b01</span><span class="p">,</span> <span class="mi">0</span><span class="n">b10</span><span class="p">]]</span>
+
+<span class="n">last_state</span> <span class="o">=</span> <span class="mi">0</span>
+
+<span class="k">def</span> <span class="nf">write_data</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+    <span class="k">global</span> <span class="n">last_state</span>
+    <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+        <span class="n">cur_value</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">item</span> <span class="o">!=</span> <span class="s">"0"</span><span class="p">)</span>
+        <span class="n">last_state</span> <span class="o">=</span> <span class="n">state_table</span><span class="p">[</span><span class="n">last_state</span><span class="p">][</span><span class="n">cur_value</span><span class="p">]</span>
+        <span class="c"># print "data", item, "cur value", cur_value, "cur_state", last_state</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">):</span>
+            <span class="c"># print "write led", i, "value", int((last_state &amp; (i + 1)) != 0)</span>
+            <span class="n">write_led</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="nb">int</span><span class="p">((</span><span class="n">last_state</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">))</span>
+</code></pre>
+</div>
+
+<p>这个在代码层面上就是写对应的 <code class="highlighter-rouge">brightness</code> 文件或者使用 Input Event 实现，其中 LED 的 code 是 <code class="highlighter-rouge">EV_LED</code>。使用 Python 实现的简化代码如下</p>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="c"># 写 sysfs</span>
+<span class="k">if</span> <span class="n">led</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+   <span class="n">path</span> <span class="o">=</span> <span class="s">"/sys/class/leds/input23::numlock/brightness"</span>
+<span class="k">else</span><span class="p">:</span>
+   <span class="n">path</span> <span class="o">=</span> <span class="s">"/sys/class/leds/input23::capslock/brightness"</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">"w"</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+   <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
+   <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.001</span><span class="p">)</span>
+
+<span class="c"># Input Event</span>
+<span class="n">fd</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="nb">open</span><span class="p">(</span><span class="n">device_path</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">O_WRONLY</span><span class="p">)</span>
+<span class="n">now</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+<span class="n">sec</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">now</span><span class="p">)</span>
+<span class="n">usec</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">now</span> <span class="o">-</span> <span class="n">sec</span><span class="p">)</span> <span class="o">*</span> <span class="mf">1.0E6</span><span class="p">)</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="s">'@llHHI'</span><span class="p">,</span> <span class="n">sec</span><span class="p">,</span> <span class="n">usec</span><span class="p">,</span> <span class="mh">0x11</span><span class="p">,</span> <span class="n">led</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+<span class="n">os</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+<span class="n">os</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">fd</span><span class="p">)</span>
+</code></pre>
+</div>
+
+<p>经过测试，写 sysfs 要比 Input Event 快一些，但是每次 write 之间最好 sleep 1毫秒，否则可能出现一些奇怪的数据（黑人问号，我也不知道为啥啊）。总体上可以实现也就比 56k 猫才慢百倍的带宽。</p>
+
+<p>美中不足的是:</p>
+
+<ol>
+  <li>需要 BadUSB 输入一个脚本或者可执行文件，然后才可以与键盘交互。这也是所有 BadUSB 存在的问题。</li>
+  <li>bit 传递数据太暴力了，如果中间有一位丢失或者发生错误，可能导致整个数据乱掉，如果想实现一些更高级的校验，就会进一步的降低带宽。</li>
+  <li>Linux 上操作 sysfs 和使用 Input Event 都需要 root 权限。</li>
+</ol>
+
+<p>控制键盘 LED 的代码，Mac版本的实现在 https://developer.apple.com/library/content/samplecode/HID_LED_test_tool/Introduction/Intro.html，Windows版本的实现在 https://github.com/dnet/usbpwn-host，并没有测试这两个平台上的权限情况。</p>
+
+<h3 id="大道至简">大道至简</h3>
+
+<p>虽然实现了交互，但是这个速度并不能让人满意。我们需要去更底层上去操作设备，从而规避上面的这些问题，那就是 <code class="highlighter-rouge">hidraw</code>。在<a href="https://www.kernel.org/doc/Documentation/hid/hidraw.txt">内核的相关文档</a>中， 提到说这个接口是底层的底层接口，部分非标准的设备可以使用它传递原始数据。</p>
+
+<p>hidapi https://github.com/signal11/hidapi 库实现了三平台上的向 HID 设备写 raw 数据的 API <code class="highlighter-rouge">hid_write</code>。（Linux 上需要 root 权限，据说 Windows 上不需要特殊权限？）</p>
+
+<p>以 Linux 为例，其实逻辑非常非常简单，使用 Python 描述就是</p>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">fd</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="nb">open</span><span class="p">(</span><span class="s">"/dev/hidraw1"</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">O_RDWR</span><span class="p">)</span>
+<span class="n">os</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+<span class="n">os</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">fd</span><span class="p">)</span>
+</code></pre>
+</div>
+
+<p>而且这个是可读的，也就是你在树莓派中向 <code class="highlighter-rouge">/dev/hidg0</code> 写入的数据，这里可以直接读取到，而且不会再触发输入动作。除了第一步写 client，之后就再也不需要使用键盘打开 shell，输入，然后快速关闭 shell 的流程了，可以在后台完成一切的操作。这个也大大的降低了被发现的几率。</p>
+
+<p>我们发现事情是越做越简单了，而且这个接口速度要快的多，一般的命令执行结果，都几乎可以实时读取到。</p>
+
+<h3 id="攻击小-tips">攻击小 tips</h3>
+
+<p>在插入 BadUSB 设备之后，不要立即调用键盘输入，毕竟人坐在电脑前面还是能注意到一个一闪而过的黑框的，可以先模拟按下大写锁定键，如果发现很快就切换回了小写状态，那用户很可能正在使用电脑，如果长期没有响应，那可能用户不在电脑前面。</p>
+
+<h2 id="展望">展望</h2>
+
+<h3 id="usb-中间人">USB 中间人</h3>
+
+<p>还记得某宝上的硬件 USB 键盘记录器么</p>
+
+<p><img src="http://storage.virusdefender.net/blog/images/773/5.jpg" alt="" /></p>
+
+<p>但是这种键盘记录器只能被动的记录，无法传输记录的内容，如果我们的 BadUSB 和这种 keyLogger 结合在一起就大有作为了。</p>
+
+<p>一种场景是先默默的记录键盘输入，然后自动或者人工筛选可能是密码的值，比如 <code class="highlighter-rouge">sudo $command</code> 后面跟的一串奇怪的字符串，之后使用密码获取更高权限植入传输脚本和传输数据。</p>
+
+<p>在某宝上还有一种带 GPS 和 SIM 卡的 USB 数据线，相信把 BadUSB 做成这样的体积也不难。</p>
+
+<p><img src="http://storage.virusdefender.net/blog/images/773/8.jpg" alt="" /></p>
+
+<h3 id="使用优盘启动">使用优盘启动</h3>
+
+<p>在2016年 Geekpwn 上，有一个环节叫”机器人挑战赛”，来自哈尔滨理工大学的选手<a href="http://www.sohu.com/a/136066424_505799">薛恩鹏</a>实现了使用机器人给电脑插入优盘窃取资料，但是我并不清楚实现的细节，可能是在 BIOS 中设置为优盘启动（类似安装操作系统的流程），在硬盘没有加密的情况下就可以完全绕过主机里面的 DLP 产品。BadUSB 也可以使用相同的思路，因为我们的树莓派也是完全可以将自己模拟为一个优盘的。</p>
+
+<h3 id="bad-bridge">Bad Bridge</h3>
+
+<p>其实薛恩鹏的机器人还可以做的更多，比如使用机器拔掉电脑的网线，然后植入 <a href="https://greatscottgadgets.com/throwingstar/">Throwing Star LAN Tap</a> 类似的流量抓包工具，360也有一款类似的产品，原理都很简单，就是 Hub。</p>
+
+<p><img src="http://storage.virusdefender.net/blog/images/773/6.jpg" alt="" /></p>
+
+<p>可以使用树莓派作为抓包端，兼顾 BadUSB，就可以实现实时的流量中转了。</p>
+
+<h2 id="防范">防范</h2>
+
+<ul>
+  <li>安全意识，不要随便插来历不明的 USB 设备，不仅仅是优盘，包括键盘鼠标。</li>
+  <li>USB 白名单，DLP 产品应该使用更加严格的 USB 限制策略。</li>
+  <li>全盘加密，对开机密码、root密码等引入多因素认证。</li>
+</ul>
+
+<p>8月3日，Red Hat 发表<a href="http://rhelblog.redhat.com/2017/08/03/built-in-protection-against-usb-security-attacks-with-usbguard/">文章</a>，声称 Red Hat Enterprise Linux 7.4 版本开始集成 USBGuard 软件框架，利用黑白名单等技术抵御流氓 USB 设备的攻击。</p>
+
+<h2 id="感谢">感谢</h2>
+
+<ul>
+  <li>http://www.csoonline.com/article/3087484/security/say-hello-to-badusb-20-usb-man-in-the-middle-attack-proof-of-concept.html 伦敦 Royal Holloway University 信息安全组发表的论文</li>
+  <li>技术最厉害的萌神，给指点了很多思路</li>
+</ul>
+
+
+
+        <section class="author-detail">
+            <section class="post-footer-item comment">
+                <a href="/comment.html?title=使用树莓派 Zero 实现带回显的新型 Bad USB&article_id=/index.php/archives/773/" target="_blank">评论</a> | <a href="#" onclick="document.getElementById('wx-pay').style.display = ''; return false;">微信打赏</a> | 转载必须注明原文链接
+            </section>
+            <img src="https://storage.virusdefender.net/blog/images/utils/wx_pay_new.JPG" style="max-width: 90%;max-height: 90%; display: none;" id="wx-pay">
+        </section>
+    </article>
+</div>
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?e5ec0a55646c7c7c90dc530c56c80171";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+<footer class="g-footer">
+    <section>virusdefender's blog (＾－＾)V © 2019</section>
+    <section>Powered by <a href="//jekyllrb.com">Jekyll</a> | <a href="https://github.com/kaeyleo/jekyll-theme-H2O">Theme H2O</a></section>
+</footer>
+
+
+    <script src="https://cdn.staticfile.org/jquery/3.2.1/jquery.min.js"></script>
+    <script src="/assets/js/prism.js"></script>
+    <script src="/assets/js/index.min.js"></script>
+</body>
+</html>

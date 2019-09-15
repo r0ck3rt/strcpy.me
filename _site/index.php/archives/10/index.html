@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="content-language" content="zh-cn">
+    <title>使用Python的mock模拟测试 - virusdefender's blog (＾－＾)V</title>
+    <link rel="shortcut icon" href="/assets/img/favicon.ico">
+    <meta name="author"  content="virusdefender">
+    <meta name="description" content=" 学而不思则罔，思而不学则殆">
+    <meta name="keywords"  content="virusdefender,blog">
+    <!-- Open Graph -->
+    <meta property="og:title" content="使用Python的mock模拟测试 - virusdefender's blog (＾－＾)V">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://strcpy.me/index.php/archives/10/">
+    <meta property="og:description" content=" 学而不思则罔，思而不学则殆">
+    <meta property="og:site_name" content="virusdefender's blog (＾－＾)V">
+    <link rel="stylesheet" href="//cdn.staticfile.org/normalize/6.0.0/normalize.min.css">
+    <link rel="stylesheet" href="//at.alicdn.com/t/font_roc50gemkxpw4s4i.css">
+    <link rel="stylesheet" href="/assets/css/github-markdown.css">
+    <link rel="stylesheet" href="/assets/css/prism.css">
+    <link rel="stylesheet" href="/assets/css/app.min.css">
+    <link rel="alternate" type="application/rss+xml" title="RSS 2.0" href="https://strcpy.me/feed/" />
+</head>
+
+<body>
+    <!--[if lt IE 10]>
+<div class="alert-danger" role="alert">你的浏览器实在太太太旧了，放学别走，升级完浏览器再说！<a target="_blank" class="alert-link" href="http://browsehappy.com">立即升级</a></div>
+<![endif]-->
+    <header class="g-header">
+    <div class="g-logo">
+        <a href="/">virusdefender's blog (＾－＾)V</a>
+    </div>
+    <i id="menu-toggle" class="iconfont icon-menu"></i>
+    <nav class="g-nav">
+        <ul>
+            
+            <li><a href="/">home</a></li>
+            
+            <li><a href="http://www.npc.gov.cn/npc/xinwen/2016-11/07/content_2001605.htm">law</a></li>
+            
+            <li><a href="/index.php/archives/about/">about</a></li>
+            
+        </ul>
+    </nav>
+</header>
+
+
+<header class="g-banner post-header post-pattern-circuitBoard bgcolor-default post-no-cover" data-theme="default">
+    <div class="post-wrapper">
+        <div class="post-tags">
+             
+            
+            <a href="/tags/#Python" class="post-tag">Python</a>
+            
+            
+        </div>
+        <h1>使用Python的mock模拟测试</h1>
+        <div class="post-meta">
+            <time class="post-meta-item" datetime="2014-10-03 09:54"><i class="iconfont icon-date"></i>2014-10-03 09:54</time>
+        </div>
+    </div>
+</header>
+
+<div class="post-content">
+    
+    <article class="markdown-body">
+        <p>最近写的项目里面有一个创建预约成功后就给客户发一条短信或者邮件的功能，但是怎么去自动化的测试这个功能呢，难道每次都要发送一遍，然后去看么。这时候我们就可以引入Python的mock测试，我们首先来看一个<a href="http://www.toptal.com/python/an-introduction-to-mocking-in-python">网上流传的比较广的教程</a>里面的例子。</p>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="c">#!/usr/bin/env python</span>
+<span class="c"># -*- coding: utf-8 -*-</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="k">def</span> <span class="nf">rm</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+</code></pre>
+</div>
+<p>然后测试是这样的</p>
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="c">#!/usr/bin/env python</span>
+<span class="c"># -*- coding: utf-8 -*-</span>
+
+<span class="kn">from</span> <span class="nn">mymodule</span> <span class="kn">import</span> <span class="n">rm</span>
+
+<span class="kn">import</span> <span class="nn">os.path</span>
+<span class="kn">import</span> <span class="nn">tempfile</span>
+<span class="kn">import</span> <span class="nn">unittest</span>
+
+<span class="k">class</span> <span class="nc">RmTestCase</span><span class="p">(</span><span class="n">unittest</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span>
+
+    <span class="n">tmpfilepath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tempfile</span><span class="o">.</span><span class="n">gettempdir</span><span class="p">(),</span> <span class="s">"tmp-testfile"</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">setUp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tmpfilepath</span><span class="p">,</span> <span class="s">"wb"</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">"Delete me!"</span><span class="p">)</span>
+        
+    <span class="k">def</span> <span class="nf">test_rm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c"># remove the file</span>
+        <span class="n">rm</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tmpfilepath</span><span class="p">)</span>
+        <span class="c"># test that it was actually removed</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertFalse</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tmpfilepath</span><span class="p">),</span> <span class="s">"Failed to remove the file."</span><span class="p">)</span>
+</code></pre>
+</div>
+<p>使用mock改写后的测试是这样的</p>
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="c">#!/usr/bin/env python</span>
+<span class="c"># -*- coding: utf-8 -*-</span>
+
+<span class="kn">from</span> <span class="nn">mymodule</span> <span class="kn">import</span> <span class="n">rm</span>
+
+<span class="kn">import</span> <span class="nn">mock</span>
+<span class="kn">import</span> <span class="nn">unittest</span>
+
+<span class="k">class</span> <span class="nc">RmTestCase</span><span class="p">(</span><span class="n">unittest</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span>
+    
+    <span class="nd">@mock.patch</span><span class="p">(</span><span class="s">'mymodule.os'</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">test_rm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mock_os</span><span class="p">):</span>
+        <span class="n">rm</span><span class="p">(</span><span class="s">"any path"</span><span class="p">)</span>
+        <span class="c"># test that rm called os.remove with the right parameters</span>
+        <span class="n">mock_os</span><span class="o">.</span><span class="n">remove</span><span class="o">.</span><span class="n">assert_called_with</span><span class="p">(</span><span class="s">"any path"</span><span class="p">)</span>
+</code></pre>
+</div>
+<p>上面用到了<code class="highlighter-rouge">assert_called_with(*args, **kwargs)</code>按照官方文档，这就是assert这个方法被调用的一个简介的方法（翻译好别扭）
+This method is a convenient way of asserting that calls are made in a particular way:</p>
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">mock</span> <span class="o">=</span> <span class="n">Mock</span><span class="p">()</span>
+<span class="n">mock</span><span class="o">.</span><span class="n">method</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="s">'wow'</span><span class="p">)</span>
+<span class="o">&lt;</span><span class="n">Mock</span> <span class="n">name</span><span class="o">=</span><span class="s">'mock.method()'</span> <span class="nb">id</span><span class="o">=</span><span class="s">'...'</span><span class="o">&gt;</span>
+<span class="n">mock</span><span class="o">.</span><span class="n">method</span><span class="o">.</span><span class="n">assert_called_with</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="s">'wow'</span><span class="p">)</span>
+</code></pre>
+</div>
+
+<p>然后修改了一下删除文件的代码，删除之前先去判断一下文件是否存在</p>
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="c">#!/usr/bin/env python</span>
+<span class="c"># -*- coding: utf-8 -*-</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">os.path</span>
+
+<span class="k">def</span> <span class="nf">rm</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+</code></pre>
+</div>
+<p>相应的单元测试是这样的</p>
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="c">#!/usr/bin/env python</span>
+<span class="c"># -*- coding: utf-8 -*-</span>
+
+<span class="kn">from</span> <span class="nn">mymodule</span> <span class="kn">import</span> <span class="n">rm</span>
+
+<span class="kn">import</span> <span class="nn">mock</span>
+<span class="kn">import</span> <span class="nn">unittest</span>
+
+<span class="k">class</span> <span class="nc">RmTestCase</span><span class="p">(</span><span class="n">unittest</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span>
+    
+    <span class="nd">@mock.patch</span><span class="p">(</span><span class="s">'mymodule.os.path'</span><span class="p">)</span>
+    <span class="nd">@mock.patch</span><span class="p">(</span><span class="s">'mymodule.os'</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">test_rm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mock_os</span><span class="p">,</span> <span class="n">mock_path</span><span class="p">):</span>
+        <span class="c"># set up the mock</span>
+        <span class="n">mock_path</span><span class="o">.</span><span class="n">isfile</span><span class="o">.</span><span class="n">return_value</span> <span class="o">=</span> <span class="bp">False</span>
+        
+        <span class="n">rm</span><span class="p">(</span><span class="s">"any path"</span><span class="p">)</span>
+        
+        <span class="c"># test that the remove call was NOT called.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertFalse</span><span class="p">(</span><span class="n">mock_os</span><span class="o">.</span><span class="n">remove</span><span class="o">.</span><span class="n">called</span><span class="p">,</span> <span class="s">"Failed to not remove the file if not present."</span><span class="p">)</span>
+        
+        <span class="c"># make the file 'exist'</span>
+        <span class="n">mock_path</span><span class="o">.</span><span class="n">isfile</span><span class="o">.</span><span class="n">return_value</span> <span class="o">=</span> <span class="bp">True</span>
+        
+        <span class="n">rm</span><span class="p">(</span><span class="s">"any path"</span><span class="p">)</span>
+        
+        <span class="n">mock_os</span><span class="o">.</span><span class="n">remove</span><span class="o">.</span><span class="n">assert_called_with</span><span class="p">(</span><span class="s">"any path"</span><span class="p">)</span>
+</code></pre>
+</div>
+<p>里面用到了<code class="highlighter-rouge">return_value</code>这个方法，这个就是设置mock的返回值的，比如</p>
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">mock</span> <span class="o">=</span> <span class="n">Mock</span><span class="p">()</span>
+<span class="n">mock</span><span class="o">.</span><span class="n">return_value</span> <span class="o">=</span> <span class="s">'fish'</span>
+<span class="n">mock</span><span class="p">()</span>
+<span class="o">&gt;&gt;&gt;</span><span class="s">'fish'</span>
+</code></pre>
+</div>
+<p><code class="highlighter-rouge">is_called</code>方法就是看这个方法是否被调用，前面的<code class="highlighter-rouge">assert_called_with</code>就是在这个的基础上来的。</p>
+
+<p>然后上面的那些都是mock的一些函数，下面我们将测试去mock一下类和实例。
+我们将上面删除文件的函数改写成这样的</p>
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="c">#!/usr/bin/env python</span>
+<span class="c"># -*- coding: utf-8 -*-</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">os.path</span>
+
+<span class="k">class</span> <span class="nc">RemovalService</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="s">"""A service for removing objects from the filesystem."""</span>
+    
+    <span class="c">#这个self貌似是原作者笔误漏掉了</span>
+    <span class="k">def</span> <span class="nf">rm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+</code></pre>
+</div>
+<p>然后单元测试是这样的</p>
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="c">#!/usr/bin/env python</span>
+<span class="c"># -*- coding: utf-8 -*-</span>
+
+<span class="kn">from</span> <span class="nn">mymodule</span> <span class="kn">import</span> <span class="n">RemovalService</span>
+
+<span class="kn">import</span> <span class="nn">mock</span>
+<span class="kn">import</span> <span class="nn">unittest</span>
+
+<span class="k">class</span> <span class="nc">RemovalServiceTestCase</span><span class="p">(</span><span class="n">unittest</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span>
+    
+    <span class="nd">@mock.patch</span><span class="p">(</span><span class="s">'mymodule.os.path'</span><span class="p">)</span>
+    <span class="nd">@mock.patch</span><span class="p">(</span><span class="s">'mymodule.os'</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">test_rm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mock_os</span><span class="p">,</span> <span class="n">mock_path</span><span class="p">):</span>
+        <span class="c"># instantiate our service</span>
+        <span class="n">reference</span> <span class="o">=</span> <span class="n">RemovalService</span><span class="p">()</span>
+        
+        <span class="c"># set up the mock</span>
+        <span class="n">mock_path</span><span class="o">.</span><span class="n">isfile</span><span class="o">.</span><span class="n">return_value</span> <span class="o">=</span> <span class="bp">False</span>
+        
+        <span class="n">reference</span><span class="o">.</span><span class="n">rm</span><span class="p">(</span><span class="s">"any path"</span><span class="p">)</span>
+        
+        <span class="c"># test that the remove call was NOT called.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertFalse</span><span class="p">(</span><span class="n">mock_os</span><span class="o">.</span><span class="n">remove</span><span class="o">.</span><span class="n">called</span><span class="p">,</span> <span class="s">"Failed to not remove the file if not present."</span><span class="p">)</span>
+        
+        <span class="c"># make the file 'exist'</span>
+        <span class="n">mock_path</span><span class="o">.</span><span class="n">isfile</span><span class="o">.</span><span class="n">return_value</span> <span class="o">=</span> <span class="bp">True</span>
+        
+        <span class="n">reference</span><span class="o">.</span><span class="n">rm</span><span class="p">(</span><span class="s">"any path"</span><span class="p">)</span>
+        
+        <span class="n">mock_os</span><span class="o">.</span><span class="n">remove</span><span class="o">.</span><span class="n">assert_called_with</span><span class="p">(</span><span class="s">"any path"</span><span class="p">)</span>
+</code></pre>
+</div>
+<p>我们现在想知道<code class="highlighter-rouge">RemovalService</code>是否正常工作，我们先声明它为一个实例。在另外的一个类里面调用它。</p>
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="c">#!/usr/bin/env python</span>
+<span class="c"># -*- coding: utf-8 -*-</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">os.path</span>
+
+<span class="k">class</span> <span class="nc">RemovalService</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="s">"""A service for removing objects from the filesystem."""</span>
+
+    <span class="k">def</span> <span class="nf">rm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+            
+
+<span class="k">class</span> <span class="nc">UploadService</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">removal_service</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">removal_service</span> <span class="o">=</span> <span class="n">removal_service</span>
+        
+    <span class="k">def</span> <span class="nf">upload_complete</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">removal_service</span><span class="o">.</span><span class="n">rm</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+</code></pre>
+</div>
+<p>到目前为止，我们的测试已经覆盖了RemovalService， 我们就不用对我们测试用例中UploadService的内部函数rm进行验证了。相反，我们将调用UploadService的RemovalService.rm方法来进行简单的测试（为了不产生其他副作用），我们通过之前的测试用例可以知道它可以正确地工作。
+有两种方法可以实现以上需求:</p>
+
+<ul>
+  <li>模拟RemovalService.rm方法本身。</li>
+  <li>在UploadService类的构造函数中提供一个模拟实例。</li>
+</ul>
+
+<p><strong>模拟实例方法</strong>
+该模拟库有一个特殊的方法用来装饰模拟对象实例的方法和参数。使用@mock.patch.object 进行装饰</p>
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="c">#!/usr/bin/env python</span>
+<span class="c"># -*- coding: utf-8 -*-</span>
+
+<span class="kn">from</span> <span class="nn">mymodule</span> <span class="kn">import</span> <span class="n">RemovalService</span><span class="p">,</span> <span class="n">UploadService</span>
+
+<span class="kn">import</span> <span class="nn">mock</span>
+<span class="kn">import</span> <span class="nn">unittest</span>
+
+<span class="k">class</span> <span class="nc">RemovalServiceTestCase</span><span class="p">(</span><span class="n">unittest</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span>
+    
+    <span class="nd">@mock.patch</span><span class="p">(</span><span class="s">'mymodule.os.path'</span><span class="p">)</span>
+    <span class="nd">@mock.patch</span><span class="p">(</span><span class="s">'mymodule.os'</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">test_rm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mock_os</span><span class="p">,</span> <span class="n">mock_path</span><span class="p">):</span>
+        <span class="c"># instantiate our service</span>
+        <span class="n">reference</span> <span class="o">=</span> <span class="n">RemovalService</span><span class="p">()</span>
+        
+        <span class="c"># set up the mock</span>
+        <span class="n">mock_path</span><span class="o">.</span><span class="n">isfile</span><span class="o">.</span><span class="n">return_value</span> <span class="o">=</span> <span class="bp">False</span>
+        
+        <span class="n">reference</span><span class="o">.</span><span class="n">rm</span><span class="p">(</span><span class="s">"any path"</span><span class="p">)</span>
+        
+        <span class="c"># test that the remove call was NOT called.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertFalse</span><span class="p">(</span><span class="n">mock_os</span><span class="o">.</span><span class="n">remove</span><span class="o">.</span><span class="n">called</span><span class="p">,</span> <span class="s">"Failed to not remove the file if not present."</span><span class="p">)</span>
+        
+        <span class="c"># make the file 'exist'</span>
+        <span class="n">mock_path</span><span class="o">.</span><span class="n">isfile</span><span class="o">.</span><span class="n">return_value</span> <span class="o">=</span> <span class="bp">True</span>
+        
+        <span class="n">reference</span><span class="o">.</span><span class="n">rm</span><span class="p">(</span><span class="s">"any path"</span><span class="p">)</span>
+        
+        <span class="n">mock_os</span><span class="o">.</span><span class="n">remove</span><span class="o">.</span><span class="n">assert_called_with</span><span class="p">(</span><span class="s">"any path"</span><span class="p">)</span>
+      
+      
+<span class="k">class</span> <span class="nc">UploadServiceTestCase</span><span class="p">(</span><span class="n">unittest</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span>
+
+    <span class="nd">@mock.patch.object</span><span class="p">(</span><span class="n">RemovalService</span><span class="p">,</span> <span class="s">'rm'</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">test_upload_complete</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mock_rm</span><span class="p">):</span>
+        <span class="c"># build our dependencies</span>
+        <span class="n">removal_service</span> <span class="o">=</span> <span class="n">RemovalService</span><span class="p">()</span>
+        <span class="n">reference</span> <span class="o">=</span> <span class="n">UploadService</span><span class="p">(</span><span class="n">removal_service</span><span class="p">)</span>
+        
+        <span class="c"># call upload_complete, which should, in turn, call `rm`:</span>
+        <span class="n">reference</span><span class="o">.</span><span class="n">upload_complete</span><span class="p">(</span><span class="s">"my uploaded file"</span><span class="p">)</span>
+        
+        <span class="c"># check that it called the rm method of any RemovalService</span>
+        <span class="n">mock_rm</span><span class="o">.</span><span class="n">assert_called_with</span><span class="p">(</span><span class="s">"my uploaded file"</span><span class="p">)</span>
+        
+        <span class="c"># check that it called the rm method of _our_ removal_service</span>
+        <span class="n">removal_service</span><span class="o">.</span><span class="n">rm</span><span class="o">.</span><span class="n">assert_called_with</span><span class="p">(</span><span class="s">"my uploaded file"</span><span class="p">)</span>
+</code></pre>
+</div>
+<p>这里有一个使用修饰符的陷阱，就是使用修饰符的顺序和参数的顺序
+比如说</p>
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="nd">@mock.patch</span><span class="p">(</span><span class="s">'mymodule.sys'</span><span class="p">)</span>
+    <span class="nd">@mock.patch</span><span class="p">(</span><span class="s">'mymodule.os'</span><span class="p">)</span>
+    <span class="nd">@mock.patch</span><span class="p">(</span><span class="s">'mymodule.os.path'</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">test_something</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mock_os_path</span><span class="p">,</span> <span class="n">mock_os</span><span class="p">,</span> <span class="n">mock_sys</span><span class="p">):</span>
+        <span class="k">pass</span>
+</code></pre>
+</div>
+<p>然后实际情况是这样调用的
+<code class="highlighter-rouge">patch_sys(patch_os(patch_os_path(test_something)))</code>
+也就是说是相反的
+由于这个关于<code class="highlighter-rouge">sys</code>的在最外层，因此会在最后被执行，使得它成为实际测试方法的最后一个参数。请特别注意这一点，并且在做测试使用调试器来保证正确的参数按照正确的顺序被注入。</p>
+
+<p><strong>创建一个mock实例</strong>
+我们可以在UploadService的构造函数中提供一个模拟测试实例，而不是模拟创建具体的模拟测试方法。</p>
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="c">#!/usr/bin/env python</span>
+<span class="c"># -*- coding: utf-8 -*-</span>
+
+<span class="kn">from</span> <span class="nn">mymodule</span> <span class="kn">import</span> <span class="n">RemovalService</span><span class="p">,</span> <span class="n">UploadService</span>
+
+<span class="kn">import</span> <span class="nn">mock</span>
+<span class="kn">import</span> <span class="nn">unittest</span>
+
+<span class="k">class</span> <span class="nc">RemovalServiceTestCase</span><span class="p">(</span><span class="n">unittest</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span>
+    
+    <span class="nd">@mock.patch</span><span class="p">(</span><span class="s">'mymodule.os.path'</span><span class="p">)</span>
+    <span class="nd">@mock.patch</span><span class="p">(</span><span class="s">'mymodule.os'</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">test_rm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mock_os</span><span class="p">,</span> <span class="n">mock_path</span><span class="p">):</span>
+        <span class="c"># instantiate our service</span>
+        <span class="n">reference</span> <span class="o">=</span> <span class="n">RemovalService</span><span class="p">()</span>
+        
+        <span class="c"># set up the mock</span>
+        <span class="n">mock_path</span><span class="o">.</span><span class="n">isfile</span><span class="o">.</span><span class="n">return_value</span> <span class="o">=</span> <span class="bp">False</span>
+        
+        <span class="n">reference</span><span class="o">.</span><span class="n">rm</span><span class="p">(</span><span class="s">"any path"</span><span class="p">)</span>
+        
+        <span class="c"># test that the remove call was NOT called.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertFalse</span><span class="p">(</span><span class="n">mock_os</span><span class="o">.</span><span class="n">remove</span><span class="o">.</span><span class="n">called</span><span class="p">,</span> <span class="s">"Failed to not remove the file if not present."</span><span class="p">)</span>
+        
+        <span class="c"># make the file 'exist'</span>
+        <span class="n">mock_path</span><span class="o">.</span><span class="n">isfile</span><span class="o">.</span><span class="n">return_value</span> <span class="o">=</span> <span class="bp">True</span>
+        
+        <span class="n">reference</span><span class="o">.</span><span class="n">rm</span><span class="p">(</span><span class="s">"any path"</span><span class="p">)</span>
+        
+        <span class="n">mock_os</span><span class="o">.</span><span class="n">remove</span><span class="o">.</span><span class="n">assert_called_with</span><span class="p">(</span><span class="s">"any path"</span><span class="p">)</span>
+      
+      
+<span class="k">class</span> <span class="nc">UploadServiceTestCase</span><span class="p">(</span><span class="n">unittest</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span>
+
+    <span class="c">#原作者这里还有一个参数是mock_rm，没用吧？</span>
+    <span class="k">def</span> <span class="nf">test_upload_complete</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c"># build our dependencies</span>
+        <span class="n">mock_removal_service</span> <span class="o">=</span> <span class="n">mock</span><span class="o">.</span><span class="n">create_autospec</span><span class="p">(</span><span class="n">RemovalService</span><span class="p">)</span>
+        <span class="n">reference</span> <span class="o">=</span> <span class="n">UploadService</span><span class="p">(</span><span class="n">mock_removal_service</span><span class="p">)</span>
+        
+        <span class="c"># call upload_complete, which should, in turn, call `rm`:</span>
+        <span class="n">reference</span><span class="o">.</span><span class="n">upload_complete</span><span class="p">(</span><span class="s">"my uploaded file"</span><span class="p">)</span>
+        
+        <span class="c"># test that it called the rm method</span>
+        <span class="n">mock_removal_service</span><span class="o">.</span><span class="n">rm</span><span class="o">.</span><span class="n">assert_called_with</span><span class="p">(</span><span class="s">"my uploaded file"</span><span class="p">)</span>
+</code></pre>
+</div>
+<p>mock库包含两个重要的类mock.Mock和mock.MagicMock，大多数内部函数都是建立在这两个类之上的。在选择使用mock.Mock实例，mock.MagicMock实例或auto-spec方法的时候,通常倾向于选择使用 auto-spec方法，因为它能够对未来的变化保持测试的合理性。这是因为mock.Mock和mock.MagicMock会无视底层的API，接受所有的方法调用和参数赋值。比如下面这个用例：</p>
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="k">class</span> <span class="nc">Target</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">apply</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">value</span>
+
+<span class="k">def</span> <span class="nf">method</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">target</span><span class="o">.</span><span class="nb">apply</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+</code></pre>
+</div>
+<p>We can test this with a mock.Mock instance like this:</p>
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="k">class</span> <span class="nc">MethodTestCase</span><span class="p">(</span><span class="n">unittest</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">test_method</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">target</span> <span class="o">=</span> <span class="n">mock</span><span class="o">.</span><span class="n">Mock</span><span class="p">()</span>
+
+        <span class="n">method</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="s">"value"</span><span class="p">)</span>
+
+        <span class="n">target</span><span class="o">.</span><span class="nb">apply</span><span class="o">.</span><span class="n">assert_called_with</span><span class="p">(</span><span class="s">"value"</span><span class="p">)</span>
+</code></pre>
+</div>
+<p>This logic seems sane, but let’s modify the Target.apply method to take more parameters:</p>
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="k">class</span> <span class="nc">Target</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">apply</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">are_you_sure</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">are_you_sure</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">value</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">None</span>
+</code></pre>
+</div>
+<p>重新运行你的测试，然后你会发现它仍然能够通过。这是因为它不是针对你的API创建的。这就是为什么你总是应该使用create_autospec方法，并且在使用@patch和@patch.object装饰方法时使用autospec参数。</p>
+
+
+        <section class="author-detail">
+            <section class="post-footer-item comment">
+                <a href="/comment.html?title=使用Python的mock模拟测试&article_id=/index.php/archives/10/" target="_blank">评论</a> | <a href="#" onclick="document.getElementById('wx-pay').style.display = ''; return false;">微信打赏</a> | 转载必须注明原文链接
+            </section>
+            <img src="https://storage.virusdefender.net/blog/images/utils/wx_pay_new.JPG" style="max-width: 90%;max-height: 90%; display: none;" id="wx-pay">
+        </section>
+    </article>
+</div>
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?e5ec0a55646c7c7c90dc530c56c80171";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+<footer class="g-footer">
+    <section>virusdefender's blog (＾－＾)V © 2019</section>
+    <section>Powered by <a href="//jekyllrb.com">Jekyll</a> | <a href="https://github.com/kaeyleo/jekyll-theme-H2O">Theme H2O</a></section>
+</footer>
+
+
+    <script src="https://cdn.staticfile.org/jquery/3.2.1/jquery.min.js"></script>
+    <script src="/assets/js/prism.js"></script>
+    <script src="/assets/js/index.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="content-language" content="zh-cn">
+    <title>短信平台被黑引发的诈骗短信 - virusdefender's blog (＾－＾)V</title>
+    <link rel="shortcut icon" href="/assets/img/favicon.ico">
+    <meta name="author"  content="virusdefender">
+    <meta name="description" content=" 学而不思则罔，思而不学则殆">
+    <meta name="keywords"  content="virusdefender,blog">
+    <!-- Open Graph -->
+    <meta property="og:title" content="短信平台被黑引发的诈骗短信 - virusdefender's blog (＾－＾)V">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://strcpy.me/index.php/archives/626/">
+    <meta property="og:description" content=" 学而不思则罔，思而不学则殆">
+    <meta property="og:site_name" content="virusdefender's blog (＾－＾)V">
+    <link rel="stylesheet" href="//cdn.staticfile.org/normalize/6.0.0/normalize.min.css">
+    <link rel="stylesheet" href="//at.alicdn.com/t/font_roc50gemkxpw4s4i.css">
+    <link rel="stylesheet" href="/assets/css/github-markdown.css">
+    <link rel="stylesheet" href="/assets/css/prism.css">
+    <link rel="stylesheet" href="/assets/css/app.min.css">
+    <link rel="alternate" type="application/rss+xml" title="RSS 2.0" href="https://strcpy.me/feed/" />
+</head>
+
+<body>
+    <!--[if lt IE 10]>
+<div class="alert-danger" role="alert">你的浏览器实在太太太旧了，放学别走，升级完浏览器再说！<a target="_blank" class="alert-link" href="http://browsehappy.com">立即升级</a></div>
+<![endif]-->
+    <header class="g-header">
+    <div class="g-logo">
+        <a href="/">virusdefender's blog (＾－＾)V</a>
+    </div>
+    <i id="menu-toggle" class="iconfont icon-menu"></i>
+    <nav class="g-nav">
+        <ul>
+            
+            <li><a href="/">home</a></li>
+            
+            <li><a href="http://www.npc.gov.cn/npc/xinwen/2016-11/07/content_2001605.htm">law</a></li>
+            
+            <li><a href="/index.php/archives/about/">about</a></li>
+            
+        </ul>
+    </nav>
+</header>
+
+
+<header class="g-banner post-header post-pattern-circuitBoard bgcolor-default post-no-cover" data-theme="default">
+    <div class="post-wrapper">
+        <div class="post-tags">
+             
+            
+            <a href="/tags/#安全" class="post-tag">安全</a>
+            
+            
+        </div>
+        <h1>短信平台被黑引发的诈骗短信</h1>
+        <div class="post-meta">
+            <time class="post-meta-item" datetime="2015-12-26 13:20"><i class="iconfont icon-date"></i>2015-12-26 13:20</time>
+        </div>
+    </div>
+</header>
+
+<div class="post-content">
+    
+    <article class="markdown-body">
+        <p>大半夜的收到这样一条短信，是以学校平时发送短信的端口发送的，而且青大的用校园网手机号的几乎都收到了</p>
+
+<p><img src="http://storage.virusdefender.net/blog/images/626/1.png" alt="QQ20151226-3.png" /></p>
+
+<p>不用说，这肯定不是伪基站，而是学校群发短信的平台被入侵了。</p>
+
+<p>短信上的那个链接是非常典型的钓鱼网站，而且只能用手机或者电脑改 ua 看。</p>
+
+<p><img src="http://storage.virusdefender.net/blog/images/626/2.png" alt="QQ20151226-4.png" /></p>
+
+<p><img src="http://storage.virusdefender.net/blog/images/626/3.png" alt="QQ20151226-5.png" /></p>
+
+<p><img src="http://storage.virusdefender.net/blog/images/626/4.png" alt="QQ20151226-6.png" /></p>
+
+<p>可以注意到最后一张图，会提示你下载一个 apk，我就简单的逆向了一下，看和之前遇到的手段是否一样。</p>
+
+<p>解压缩，拿到 classes.dex，dex2jar 处理，再解压缩就拿到所有的 classes，果然非常弱智，一点保护和混淆都没有。</p>
+
+<!--more-->
+
+<p><img src="http://storage.virusdefender.net/blog/images/626/5.png" alt="QQ20151226-7.png" /></p>
+
+<p>再反编译 classes 文件的时候遇到了麻烦，我的工具不知道为什么抽风，很多函数只能显示函数名，而函数的内容没法显示，只好就再用 IDA 了。</p>
+
+<div class="language-java highlighter-rouge"><pre class="highlight"><code><span class="c1">//一些配置</span>
+<span class="kd">public</span> <span class="kd">static</span> <span class="kd">final</span> <span class="n">String</span> <span class="n">APPLICATION_ID</span> <span class="o">=</span> <span class="s">"com.jmz.fandroid"</span><span class="o">;</span>
+<span class="kd">public</span> <span class="kd">static</span> <span class="kd">final</span> <span class="n">String</span> <span class="n">BUILD_TYPE</span> <span class="o">=</span> <span class="s">"release"</span><span class="o">;</span>
+<span class="kd">public</span> <span class="kd">static</span> <span class="kd">final</span> <span class="kt">boolean</span> <span class="n">DEBUG</span> <span class="o">=</span> <span class="kc">false</span><span class="o">;</span>
+<span class="kd">public</span> <span class="kd">static</span> <span class="kd">final</span> <span class="n">String</span> <span class="n">FLAVOR</span> <span class="o">=</span> <span class="s">""</span><span class="o">;</span>
+<span class="kd">public</span> <span class="kd">static</span> <span class="kd">final</span> <span class="kt">int</span> <span class="n">VERSION_CODE</span> <span class="o">=</span> <span class="mi">1</span><span class="o">;</span>
+<span class="kd">public</span> <span class="kd">static</span> <span class="kd">final</span> <span class="n">String</span> <span class="n">VERSION_NAME</span> <span class="o">=</span> <span class="s">"1.0"</span><span class="o">;</span>
+</code></pre>
+</div>
+
+<p>入口是 MainActivity，然后弹框提示</p>
+
+<div class="language-java highlighter-rouge"><pre class="highlight"><code><span class="n">var4</span><span class="o">.</span><span class="na">setTitle</span><span class="o">(</span><span class="s">"系统提示"</span><span class="o">);</span>
+<span class="n">var4</span><span class="o">.</span><span class="na">setMessage</span><span class="o">(</span><span class="s">"激活成功，安卓手机稍后会提示是否允许接收发送短信等提示，请一定要选择永久允许，否者我们将无法根据系统来给您充值话费，请认真操作!"</span><span class="o">);</span>
+</code></pre>
+</div>
+
+<p>接下来是设置设备管理器和隐藏图标，让一般用户无法自行卸载。</p>
+
+<div class="language-java highlighter-rouge"><pre class="highlight"><code><span class="c1">// 设备管理器权限</span>
+<span class="n">Intent</span> <span class="n">var1</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Intent</span><span class="o">(</span><span class="s">"android.app.action.ADD_DEVICE_ADMIN"</span><span class="o">);</span>
+<span class="n">var1</span><span class="o">.</span><span class="na">putExtra</span><span class="o">(</span><span class="s">"android.app.extra.DEVICE_ADMIN"</span><span class="o">,</span> <span class="k">this</span><span class="o">.</span><span class="na">mComponentName</span><span class="o">);</span>
+<span class="n">var1</span><span class="o">.</span><span class="na">putExtra</span><span class="o">(</span><span class="s">"android.app.extra.ADD_EXPLANATION"</span><span class="o">,</span> <span class="s">""</span><span class="o">);</span>
+</code></pre>
+</div>
+
+<div class="language-java highlighter-rouge"><pre class="highlight"><code><span class="c1">//隐藏桌面图标</span>
+<span class="n">PackageManager</span> <span class="n">var1</span> <span class="o">=</span> <span class="k">this</span><span class="o">.</span><span class="na">getPackageManager</span><span class="o">();</span>
+<span class="k">this</span><span class="o">.</span><span class="na">mComponentName</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ComponentName</span><span class="o">(</span><span class="k">this</span><span class="o">,</span> <span class="n">MainActivity</span><span class="o">.</span><span class="na">class</span><span class="o">);</span>
+<span class="n">var1</span><span class="o">.</span><span class="na">setComponentEnabledSetting</span><span class="o">(</span><span class="k">this</span><span class="o">.</span><span class="na">mComponentName</span><span class="o">,</span> <span class="mi">2</span><span class="o">,</span> <span class="mi">1</span><span class="o">);</span>
+</code></pre>
+</div>
+
+<p>之后就会执行<code class="highlighter-rouge">MyIntentService.class</code>里面的函数，但是我看不到函数内容，就换用 IDA 继续看。</p>
+
+<p><img src="http://storage.virusdefender.net/blog/images/626/6.png" alt="QQ20151226-8.png" /></p>
+
+<p>截图是这个类的方法列表和 init 函数的内容，可以看到这个类具有的功能有</p>
+
+<ul>
+  <li>从指定的 url 获取信息</li>
+  <li>发送设备当前在线状态</li>
+  <li>将数据发送到指定的 url 上去</li>
+  <li>打电话</li>
+  <li>获取联系人</li>
+  <li>获取短信内容</li>
+  <li>发送短信</li>
+</ul>
+
+<p>url，发送短信的手机号码都在 init 函数中，明文可见。里面还有一条测试短信，内容是</p>
+
+<blockquote>
+  <p>失恋算个啥？轻轻的，你走吧，千万别后悔，因为只要你一挥手，就会发现，已经有那等不及的意中人，正偷偷摸摸拉你的手！测试短信不收费</p>
+</blockquote>
+
+<p>online 函数会把手机的型号，手机号码等放在 query string 中发送出去
+<img src="http://storage.virusdefender.net/blog/images/626/7.png" alt="QQ20151226-9.png" /></p>
+
+<p>获取短信内容
+<img src="http://storage.virusdefender.net/blog/images/626/8.png" alt="QQ20151226-10.png" /></p>
+
+<p>查询出现的两个域名的 whois 信息，发现都是同一个人注册的，还有 qq 邮箱。</p>
+
+<p><img src="http://storage.virusdefender.net/blog/images/626/9.png" alt="QQ20151226-12.png" /></p>
+
+<p><img src="http://storage.virusdefender.net/blog/images/626/10.png" alt="Screenshot_2015-12-26-13-30-55-018_QQ.png" /></p>
+
+<p>还真是黑产牛</p>
+
+<p><img src="http://storage.virusdefender.net/blog/images/626/11.png" alt="QQ20151226-13.png" /></p>
+
+<p>app 中发送信息的 url 直接打开是一个后台，简单试了下，应该没注入，admin + 6位数的密码跑了大部分也没跑出来。</p>
+
+<p><img src="http://storage.virusdefender.net/blog/images/626/12.png" alt="QQ20151226-14.png" /></p>
+
+<p>这个和以前逆向的 app 的区别是短信联系人等内容是发送到服务器的，而不是发送到邮箱。之前我们就直接拿到了邮箱的账号密码了，然后继续找到后台，那个比较挫，access 数据库存在注入，然后拿到了账号密码，贴几张图。</p>
+
+<p><img src="http://storage.virusdefender.net/blog/images/626/13.png" alt="QQ20151130-0.png" /></p>
+
+<p><img src="http://storage.virusdefender.net/blog/images/626/14.png" alt="QQ20151130-4.png" /></p>
+
+<p><img src="http://storage.virusdefender.net/blog/images/626/15.png" alt="QQ20151201-1.png" /></p>
+
+
+
+        <section class="author-detail">
+            <section class="post-footer-item comment">
+                <a href="/comment.html?title=短信平台被黑引发的诈骗短信&article_id=/index.php/archives/626/" target="_blank">评论</a> | <a href="#" onclick="document.getElementById('wx-pay').style.display = ''; return false;">微信打赏</a> | 转载必须注明原文链接
+            </section>
+            <img src="https://storage.virusdefender.net/blog/images/utils/wx_pay_new.JPG" style="max-width: 90%;max-height: 90%; display: none;" id="wx-pay">
+        </section>
+    </article>
+</div>
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?e5ec0a55646c7c7c90dc530c56c80171";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+<footer class="g-footer">
+    <section>virusdefender's blog (＾－＾)V © 2019</section>
+    <section>Powered by <a href="//jekyllrb.com">Jekyll</a> | <a href="https://github.com/kaeyleo/jekyll-theme-H2O">Theme H2O</a></section>
+</footer>
+
+
+    <script src="https://cdn.staticfile.org/jquery/3.2.1/jquery.min.js"></script>
+    <script src="/assets/js/prism.js"></script>
+    <script src="/assets/js/index.min.js"></script>
+</body>
+</html>

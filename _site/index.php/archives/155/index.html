@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="content-language" content="zh-cn">
+    <title>支付平台伪造支付结果漏洞 - virusdefender's blog (＾－＾)V</title>
+    <link rel="shortcut icon" href="/assets/img/favicon.ico">
+    <meta name="author"  content="virusdefender">
+    <meta name="description" content=" 学而不思则罔，思而不学则殆">
+    <meta name="keywords"  content="virusdefender,blog">
+    <!-- Open Graph -->
+    <meta property="og:title" content="支付平台伪造支付结果漏洞 - virusdefender's blog (＾－＾)V">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://strcpy.me/index.php/archives/155/">
+    <meta property="og:description" content=" 学而不思则罔，思而不学则殆">
+    <meta property="og:site_name" content="virusdefender's blog (＾－＾)V">
+    <link rel="stylesheet" href="//cdn.staticfile.org/normalize/6.0.0/normalize.min.css">
+    <link rel="stylesheet" href="//at.alicdn.com/t/font_roc50gemkxpw4s4i.css">
+    <link rel="stylesheet" href="/assets/css/github-markdown.css">
+    <link rel="stylesheet" href="/assets/css/prism.css">
+    <link rel="stylesheet" href="/assets/css/app.min.css">
+    <link rel="alternate" type="application/rss+xml" title="RSS 2.0" href="https://strcpy.me/feed/" />
+</head>
+
+<body>
+    <!--[if lt IE 10]>
+<div class="alert-danger" role="alert">你的浏览器实在太太太旧了，放学别走，升级完浏览器再说！<a target="_blank" class="alert-link" href="http://browsehappy.com">立即升级</a></div>
+<![endif]-->
+    <header class="g-header">
+    <div class="g-logo">
+        <a href="/">virusdefender's blog (＾－＾)V</a>
+    </div>
+    <i id="menu-toggle" class="iconfont icon-menu"></i>
+    <nav class="g-nav">
+        <ul>
+            
+            <li><a href="/">home</a></li>
+            
+            <li><a href="http://www.npc.gov.cn/npc/xinwen/2016-11/07/content_2001605.htm">law</a></li>
+            
+            <li><a href="/index.php/archives/about/">about</a></li>
+            
+        </ul>
+    </nav>
+</header>
+
+
+<header class="g-banner post-header post-pattern-circuitBoard bgcolor-default post-no-cover" data-theme="default">
+    <div class="post-wrapper">
+        <div class="post-tags">
+             
+            
+            <a href="/tags/#安全" class="post-tag">安全</a>
+            
+            
+        </div>
+        <h1>支付平台伪造支付结果漏洞</h1>
+        <div class="post-meta">
+            <time class="post-meta-item" datetime="2015-02-04 16:32"><i class="iconfont icon-date"></i>2015-02-04 16:32</time>
+        </div>
+    </div>
+</header>
+
+<div class="post-content">
+    
+    <article class="markdown-body">
+        <p>最近在使用某个第三方提供的支付 sdk 开发的时候，发现一个问题，可能造成支付结果伪造。目前漏洞已经修复。</p>
+
+<p>整个的流程大致是这样的，你的前端(app 或者网页)将姓名地址手机等订单信息发送到服务器，服务器创建订单，然后使用这个订单号创建一个该 sdk 的 charge 对象，返回给前端，sdk 会使用这个 charge 对象调用支付宝等进行支付。等待用户支付完成后，sdk的服务器会向你的一个异步通知 notify_url 推送消息，然后服务器根据消息里面的订单号和支付结果修改付款状态。其实这个和支付宝等官方的 sdk 流程没什么大的区别，只是帮助封装了一些加密解密的操作。</p>
+
+<p>因为这异步通知的消息格式是确定的，字段的值是全部可预测的的（因为在 charge 对象里面都能看到)，所以我们能不能伪造这个异步通知结果呢，这样的话，就能不付款买东西了。</p>
+
+<p>但是问题来了，这个异步通知的 url 我们是不知道的。怎么才能获取到呢？其实是在一个 ajax 请求中泄露的。</p>
+
+<p>登录管理控制台，链接是这个形式的，https://xxxx.com/app/detail?app_id=app_<strong>**</strong><strong>**</strong>，后面就是我的 app_id，而这个在前端和服务器交互数据中可以看到的。把我的 app_id 换成别人的，结果发现点击哪里都是显示应用不存在，但是使用浏览器开发者工具能看到一个 ajax 请求，https://xxxx.com/auto/app?app_id=<strong>**</strong>*，返回结果确实是那个 app_id 的，里面就是包含 notify_url。</p>
+
+<p>这样，将前面获取的订单号，app_id 等等直接构造一个 charge 对象，post 到那个 notify_url 就好了。服务器返回” success” 的话，就表明已经收到消息。</p>
+
+<p>分析这个漏洞，sdk开发者和用户都有责任。</p>
+
+<p>首先，sdk 开发者应该指导用户正确的去校验消息和确认支付状态。目前没有签名等校验方法，只能拿订单号再去查询一遍。而绝大多数的用户没有考虑的这么多，收到了通知就修改了订单状态。</p>
+
+<p>翻了翻支付宝的文档，在 wap 版本中，它的异步通知 url 是每次自定义的，而且是不公开的。大致的流程是使用交易服务器使用订单号等换取一个 token，然后将 token 传递给前端。它的每次请求都有签名的，RSA 或者 MD5，RSA 的数据都是加密的，需要用自己的私钥解密后才能看到内容。MD5的那个是明文数据，MD5校验值是数据的一部分。这个时候，如果用户选择了 RSA 签名，基本上消息不能伪造了，因为在不泄露的情况下你不知道用户私钥(当然前面不泄露 notify_url 也不能伪造结果)，就没办法去加密数据。MD5的话，只能自己去验证签名了，因为 MD5 的时候加入了用户私钥。</p>
+
+<p>用户在使用的时候我觉得是最安全的方法是：</p>
+
+<ul>
+  <li>将 notify_url 复杂化</li>
+  <li>收到异步通知后再去查询一下付款状态</li>
+  <li>使用 https</li>
+  <li>绑定通知服务器 ip</li>
+  <li>注意不同平台之间差异</li>
+</ul>
+
+<p>为什么说注意不同平台之间差异呢，因为后台给使用这个支付服务的 app 抓包的时候，发现上面提到的有些信息并不完全是未知的。app支付的流程并不一样，上面流程中使用订单号换取 token 的步骤没了，而是直接将数据传递给 app，这个时候 notify_url 也是公开的了。所以还是需要服务器校验。</p>
+
+<p>在上面看了几个支付宝的文档，网页版的和 app 版本的应该不是一个团队写的，风格、加密方式等等都不一样。真心蛋疼。。。</p>
+
+
+
+        <section class="author-detail">
+            <section class="post-footer-item comment">
+                <a href="/comment.html?title=支付平台伪造支付结果漏洞&article_id=/index.php/archives/155/" target="_blank">评论</a> | <a href="#" onclick="document.getElementById('wx-pay').style.display = ''; return false;">微信打赏</a> | 转载必须注明原文链接
+            </section>
+            <img src="https://storage.virusdefender.net/blog/images/utils/wx_pay_new.JPG" style="max-width: 90%;max-height: 90%; display: none;" id="wx-pay">
+        </section>
+    </article>
+</div>
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?e5ec0a55646c7c7c90dc530c56c80171";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+<footer class="g-footer">
+    <section>virusdefender's blog (＾－＾)V © 2019</section>
+    <section>Powered by <a href="//jekyllrb.com">Jekyll</a> | <a href="https://github.com/kaeyleo/jekyll-theme-H2O">Theme H2O</a></section>
+</footer>
+
+
+    <script src="https://cdn.staticfile.org/jquery/3.2.1/jquery.min.js"></script>
+    <script src="/assets/js/prism.js"></script>
+    <script src="/assets/js/index.min.js"></script>
+</body>
+</html>

