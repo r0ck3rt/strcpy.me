@@ -1,6 +1,12 @@
 [
   
     {
+      "title"    : "使用 xray 反连平台挖掘和验证 SSRF",
+      "tags"     : "安全",
+      "url"      : "/index.php/archives/796/"
+    } ,
+  
+    {
       "title"    : "XRAY 安全评估工具社区版",
       "tags"     : "安全",
       "url"      : "/index.php/archives/795/"
