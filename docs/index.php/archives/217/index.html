@@ -63,7 +63,23 @@
 <div class="post-content">
     
     <article class="markdown-body">
-        <blockquote>
+        <script type="text/javascript" src="https://cdn.bootcss.com/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    extensions: ["tex2jax.js"],
+    jax: ["input/TeX", "output/HTML-CSS"],
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
+      processEscapes: true
+    },
+    "HTML-CSS": { availableFonts: ["TeX"] }
+  });
+</script>
+
+<blockquote>
   <p>问题：袋子中有a个黑球，b个白球，现在一只只的摸出来，求第k次摸出黑球的概率。（a ≤ k ≤ a + b)</p>
 </blockquote>
 

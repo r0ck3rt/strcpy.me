@@ -41,13 +41,21 @@
             </div>
             <div class="form-group">
                 <label>内容</label>
-                <textarea class="form-control" rows="3" id="content" placeholder="想说什么，必填" required></textarea>
+                <textarea class="form-control" rows="3" id="content" placeholder="想说什么，必填，不方便评论的在主站右上角 ABOUT 页面也有博主邮箱可以联系。" required></textarea>
             </div>
             <button type="button" class="btn btn-outline-primary" onclick="submitComment()">提交</button>
         </div>
     </div>
 </div>
 <script>
+    var hostname = window.location.hostname;
+    if (hostname == "localhost" || hostname == "strcpy.me") {
+        var APP_ID = "DtDfEVB7C3HUGv5tgwF0kTtu-gzGzoHsz";
+        var APP_KEY = "diD5ri3GRuyqIwUwA2ibfBgF";
+        var FTQQ_KEY = "SCU645T65ba8e8c04e95c74a5c719404083d6c55d820496658b3";
+    } else {
+        alert("请到 https://www.leancloud.cn/ 申请自己的 APP_ID、APP_KEY，到 http://sc.ftqq.com/3.version 申请自己的 FTQQ_KEY，并在源码中对应修改。");
+    }
     var articleID = getParams("article_id");
     var title = getParams("title");
     if (!articleID || !title) {
@@ -56,8 +64,6 @@
     }
     document.getElementById("article-title").innerText = escapeHtml(getParams("title"));
     document.getElementById("article-url").href = articleID;
-    var APP_ID = "DtDfEVB7C3HUGv5tgwF0kTtu-gzGzoHsz";
-    var APP_KEY = "diD5ri3GRuyqIwUwA2ibfBgF";
 
     AV.init({
         appId: APP_ID,
@@ -147,7 +153,7 @@
             document.getElementById("username").value = "";
             document.getElementById("email").value = "";
             document.getElementById("content").value = "";
-            (new Image()).src = "https://sc.ftqq.com/SCU645T57f2913b7c0fc69372e997031f7cc4e0561b7f85f2b3d.send?text=有新评论了&desp=" + escape(content);
+            (new Image()).src = "https://sc.ftqq.com/" + FTQQ_KEY + ".send?text=有新评论了&desp=" + encodeURIComponent(content);
         }).catch(function (err) {
             alert("评论提交失败~");
         })
