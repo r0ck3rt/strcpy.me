@@ -8,7 +8,6 @@ baseurl: '/'
 # Navigation links
 nav:
   home: '/'
-  law: 'http://www.npc.gov.cn/npc/xinwen/2016-11/07/content_2001605.htm'
   about: '/index.php/archives/about/'
 
 # Author 配置博主信息

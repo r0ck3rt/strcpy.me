@@ -1,7 +1,0 @@
-sudo: required
-services:
-    - docker
-before_install:
-    - docker pull jekyll/jekyll
-script:
-    - docker run -it --rm -e HOST=$HOST -e USER=$USER -e PASS=$PASS -v $PWD:/src jekyll/jekyll /src/deploy/deploy.sh
