@@ -1,6 +1,12 @@
 [
   
     {
+      "title"    : "安全人员的代码水平",
+      "tags"     : "安全",
+      "url"      : "/index.php/archives/797/"
+    } ,
+  
+    {
       "title"    : "使用 xray 反连平台挖掘和验证 SSRF",
       "tags"     : "安全",
       "url"      : "/index.php/archives/796/"
