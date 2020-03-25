@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="content-language" content="zh-cn">
+    <title>PostgreSQL 11.0 删除操作 Segmentation fault 解决方案 - virusdefender's blog (＾－＾)V</title>
+    <link rel="shortcut icon" href="/assets/img/favicon.ico">
+    <meta name="author"  content="virusdefender">
+    <meta name="description" content=" 学而不思则罔，思而不学则殆">
+    <meta name="keywords"  content="virusdefender,blog">
+    <!-- Open Graph -->
+    <meta property="og:title" content="PostgreSQL 11.0 删除操作 Segmentation fault 解决方案 - virusdefender's blog (＾－＾)V">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://strcpy.me/index.php/archives/798/">
+    <meta property="og:description" content=" 学而不思则罔，思而不学则殆">
+    <meta property="og:site_name" content="virusdefender's blog (＾－＾)V">
+    <link rel="stylesheet" href="//cdn.staticfile.org/normalize/6.0.0/normalize.min.css">
+    <link rel="stylesheet" href="//at.alicdn.com/t/font_roc50gemkxpw4s4i.css">
+    <link rel="stylesheet" href="/assets/css/github-markdown.css">
+    <link rel="stylesheet" href="/assets/css/prism.css">
+    <link rel="stylesheet" href="/assets/css/app.min.css">
+    <link rel="alternate" type="application/rss+xml" title="RSS 2.0" href="https://strcpy.me/feed/" />
+</head>
+
+<body>
+    <!--[if lt IE 10]>
+<div class="alert-danger" role="alert">你的浏览器实在太太太旧了，放学别走，升级完浏览器再说！<a target="_blank" class="alert-link" href="http://browsehappy.com">立即升级</a></div>
+<![endif]-->
+    <header class="g-header">
+    <div class="g-logo">
+        <a href="/">virusdefender's blog (＾－＾)V</a>
+    </div>
+    <i id="menu-toggle" class="iconfont icon-menu"></i>
+    <nav class="g-nav">
+        <ul>
+            
+            <li><a href="/">home</a></li>
+            
+            <li><a href="/index.php/archives/about/">about</a></li>
+            
+        </ul>
+    </nav>
+</header>
+
+
+<header class="g-banner post-header post-pattern-circuitBoard bgcolor-default post-no-cover" data-theme="default">
+    <div class="post-wrapper">
+        <div class="post-tags">
+             
+            
+            <a href="/tags/#后端" class="post-tag">后端</a>
+            
+            
+        </div>
+        <h1>PostgreSQL 11.0 删除操作 Segmentation fault 解决方案</h1>
+        <div class="post-meta">
+            <time class="post-meta-item" datetime="2020-03-24 00:00"><i class="iconfont icon-date"></i>2020-03-24 00:00</time>
+        </div>
+    </div>
+</header>
+
+<div class="post-content">
+    
+    <article class="markdown-body">
+        <p>此问题在公司内部已经被两个项目组遇到了，表现为在删除操作的时候，PostgreSQL 进程会直接崩溃，服务器日志大概如下</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>2020-03-25 02:30:59.813 UTC [1] LOG:  server process (PID 89) was terminated by signal 11: Segmentation fault
+2020-03-25 02:30:59.813 UTC [1] DETAIL:  Failed process was running: DELETE FROM a;
+2020-03-25 02:30:59.815 UTC [1] LOG:  terminating any other active server processes
+2020-03-25 02:30:59.817 UTC [74] WARNING:  terminating connection because of crash of another server process
+2020-03-25 02:30:59.817 UTC [74] DETAIL:  The postmaster has commanded this server process to roll back the current transaction and exit, because another server process exited abnormally and possibly corrupted shared memory.
+2020-03-25 02:30:59.817 UTC [74] HINT:  In a moment you should be able to reconnect to the database and repeat your command.
+2020-03-25 02:30:59.833 UTC [1] LOG:  all server processes terminated; reinitializing
+2020-03-25 02:30:59.861 UTC [91] LOG:  database system was interrupted; last known up at 2020-03-25 02:30:49 UTC
+2020-03-25 02:31:00.032 UTC [91] LOG:  database system was not properly shut down; automatic recovery in progress
+2020-03-25 02:31:00.036 UTC [91] LOG:  redo starts at 0/1652540
+</code></pre>
+</div>
+
+<h2 id="解决方案">解决方案</h2>
+
+<p>这是 PostgreSQL 的一个 bug，尝试运行</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>VACUUM FULL ANALYZE; 
+</code></pre>
+</div>
+
+<p>之后一般可以恢复正常。</p>
+
+<p>终极解决方案还是升级 PostgreSQL 到 11.x 最新版本，至少是 11.1，小版本升级没兼容性问题，请勿直接升级到 12.x 版本。</p>
+
+<h2 id="问题复现方法">问题复现方法</h2>
+
+<p>使用 PostgreSQL 11.0 版本，然后执行下面的 sql</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>CREATE TABLE a (
+     id bigint
+);
+
+INSERT INTO a (id) VALUES (1); 
+
+ALTER TABLE ONLY a ADD CONSTRAINT a_pkey PRIMARY KEY (id);
+
+CREATE TABLE b (
+     a_id bigint
+);
+
+ALTER TABLE ONLY b ADD CONSTRAINT b_a_id_fkey FOREIGN KEY (a_id) REFERENCES a(id);
+
+ALTER TABLE a ADD x BOOLEAN NOT NULL DEFAULT FALSE; 
+</code></pre>
+</div>
+
+<p>再执行 <code class="highlighter-rouge">DELETE FROM a;</code> 的时候就可以复现问题。</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>root=# DELETE FROM a;
+server closed the connection unexpectedly
+	This probably means the server terminated abnormally
+	before or while processing the request.
+The connection to the server was lost. Attempting reset: Failed.
+</code></pre>
+</div>
+
+<p>修复的代码见 <a href="https://git.postgresql.org/gitweb/?p=postgresql.git&amp;a=commit&amp;h=7636e5c60f">https://git.postgresql.org/gitweb/?p=postgresql.git&amp;a=commit&amp;h=7636e5c60f</a></p>
+
+<p>邮件列表问题反馈 <a href="https://www.postgresql.org/message-id/flat/0ff5c33e-43b9-d3e2-9f74-572b694b0ac1%40lab.ntt.co.jp#ff27fe2a4b4c94cde21e56bf69400cae">https://www.postgresql.org/message-id/flat/0ff5c33e-43b9-d3e2-9f74-572b694b0ac1%40lab.ntt.co.jp#ff27fe2a4b4c94cde21e56bf69400cae</a></p>
+
+
+        <section class="author-detail">
+            <section class="post-footer-item comment">
+                <a href="/comment.html?title=PostgreSQL 11.0 删除操作 Segmentation fault 解决方案&article_id=/index.php/archives/798/" target="_blank">评论</a> | <a href="#" onclick="document.getElementById('wx-pay').style.display = ''; return false;">微信打赏</a> | 转载必须注明原文链接
+            </section>
+            <img src="https://storage.virusdefender.net/blog/images/utils/wx_pay_new.JPG" style="max-width: 90%;max-height: 90%; display: none;" id="wx-pay">
+        </section>
+    </article>
+</div>
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?e5ec0a55646c7c7c90dc530c56c80171";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+<footer class="g-footer">
+    <section>virusdefender's blog (＾－＾)V © 2020</section>
+    <section>Powered by <a href="//jekyllrb.com">Jekyll</a> | <a href="https://github.com/kaeyleo/jekyll-theme-H2O">Theme H2O</a></section>
+</footer>
+
+
+    <script src="https://cdn.staticfile.org/jquery/3.2.1/jquery.min.js"></script>
+    <script src="/assets/js/prism.js"></script>
+    <script src="/assets/js/index.min.js"></script>
+</body>
+</html>

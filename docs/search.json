@@ -1,6 +1,12 @@
 [
   
     {
+      "title"    : "PostgreSQL 11.0 删除操作 Segmentation fault 解决方案",
+      "tags"     : "后端",
+      "url"      : "/index.php/archives/798/"
+    } ,
+  
+    {
       "title"    : "安全人员的代码水平",
       "tags"     : "安全",
       "url"      : "/index.php/archives/797/"
