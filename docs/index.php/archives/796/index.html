@@ -103,67 +103,64 @@
 
 <p>首先去 <a href="https://github.com/chaitin/xray/releases">GitHub</a> 下载最新的 xray 二进制文件，然后运行 <code class="highlighter-rouge">./xray help</code> 让 xray 生成一个默认的配置文件 <code class="highlighter-rouge">cofig.yaml</code>。我们需要在这个配置文件中配置反连平台的一些参数，默认是配置如下。</p>
 
-<div class="language-yml highlighter-rouge"><pre class="highlight"><code><span class="s">reverse</span><span class="pi">:</span>
-  <span class="s">db_file_path</span><span class="pi">:</span> <span class="s2">"</span><span class="s">./xray.db"</span>
-  <span class="s">token</span><span class="pi">:</span> <span class="s2">"</span><span class="s">"</span>
-  <span class="s">http</span><span class="pi">:</span>
-    <span class="s">enabled</span><span class="pi">:</span> <span class="s">true</span>
-    <span class="s">listen_ip</span><span class="pi">:</span> <span class="s">127.0.0.1</span>
-    <span class="s">listen_port</span><span class="pi">:</span> <span class="s2">"</span><span class="s">"</span>
-  <span class="s">dns</span><span class="pi">:</span>
-    <span class="s">enabled</span><span class="pi">:</span> <span class="s">false</span>
-    <span class="s">listen_ip</span><span class="pi">:</span> <span class="s">127.0.0.1</span>
-    <span class="s">domain</span><span class="pi">:</span> <span class="s2">"</span><span class="s">"</span>
+<div class="language-yml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">reverse</span><span class="pi">:</span>
+  <span class="na">db_file_path</span><span class="pi">:</span> <span class="s2">"</span><span class="s">./xray.db"</span>
+  <span class="na">token</span><span class="pi">:</span> <span class="s2">"</span><span class="s">"</span>
+  <span class="na">http</span><span class="pi">:</span>
+    <span class="na">enabled</span><span class="pi">:</span> <span class="no">true</span>
+    <span class="na">listen_ip</span><span class="pi">:</span> <span class="s">127.0.0.1</span>
+    <span class="na">listen_port</span><span class="pi">:</span> <span class="s2">"</span><span class="s">"</span>
+  <span class="na">dns</span><span class="pi">:</span>
+    <span class="na">enabled</span><span class="pi">:</span> <span class="no">false</span>
+    <span class="na">listen_ip</span><span class="pi">:</span> <span class="s">127.0.0.1</span>
+    <span class="na">domain</span><span class="pi">:</span> <span class="s2">"</span><span class="s">"</span>
     <span class="c1"># 静态解析规则</span>
-    <span class="s">resolve</span><span class="pi">:</span>
-    <span class="pi">-</span> <span class="s">type</span><span class="pi">:</span> <span class="s">A</span> <span class="c1"># A, AAAA, TXT 三种</span>
-      <span class="s">record</span><span class="pi">:</span> <span class="s">localhost</span>
-      <span class="s">value</span><span class="pi">:</span> <span class="s">127.0.0.1</span>
-      <span class="s">ttl</span><span class="pi">:</span> <span class="s">60</span>
-  <span class="s">client</span><span class="pi">:</span>
-    <span class="s">http_base_url</span><span class="pi">:</span> <span class="s2">"</span><span class="s">"</span>
-    <span class="s">dns_server_ip</span><span class="pi">:</span> <span class="s2">"</span><span class="s">"</span>
-    <span class="s">remote_server</span><span class="pi">:</span> <span class="s">false</span>
-</code></pre>
-</div>
+    <span class="na">resolve</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">type</span><span class="pi">:</span> <span class="s">A</span> <span class="c1"># A, AAAA, TXT 三种</span>
+      <span class="na">record</span><span class="pi">:</span> <span class="s">localhost</span>
+      <span class="na">value</span><span class="pi">:</span> <span class="s">127.0.0.1</span>
+      <span class="na">ttl</span><span class="pi">:</span> <span class="s">60</span>
+  <span class="na">client</span><span class="pi">:</span>
+    <span class="na">http_base_url</span><span class="pi">:</span> <span class="s2">"</span><span class="s">"</span>
+    <span class="na">dns_server_ip</span><span class="pi">:</span> <span class="s2">"</span><span class="s">"</span>
+    <span class="na">remote_server</span><span class="pi">:</span> <span class="no">false</span>
+</code></pre></div></div>
 
 <p>暂时只需要反连平台的 HTTP 相关功能，而不需要漏洞扫描和反连平台 DNS 相关的功能，所以只关心上面 DNS 以外的配置文件就足够了。</p>
 
 <p>为了让之前提到的存在 ssrf 漏洞的应用可以访问的到，我们将 xray 运行在一个公网 IP 的机器上，所以 xray 监听的 IP 等等都需要配置，将上面的配置修改如下。</p>
 
-<div class="language-yml highlighter-rouge"><pre class="highlight"><code><span class="s">reverse</span><span class="pi">:</span>
+<div class="language-yml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">reverse</span><span class="pi">:</span>
   <span class="c1"># 数据库文件路径，默认不用修改。</span>
   <span class="c1"># 本文件只能一个进程访问，如果启动两个 xray 就需要指定不同的路径。</span>
-  <span class="s">db_file_path</span><span class="pi">:</span> <span class="s2">"</span><span class="s">./xray.db"</span>
+  <span class="na">db_file_path</span><span class="pi">:</span> <span class="s2">"</span><span class="s">./xray.db"</span>
   <span class="c1"># 用于生成的 url 验证，否则反连平台的 IP 一旦泄露，任何人访问你的平台都会被记录访问记录。</span>
   <span class="c1"># 有了 token 可以限制生效范围，而且修改 token 就可以失效以前的 url。</span>
   <span class="c1"># 我们修改为一个自定义的值</span>
-  <span class="s">token</span><span class="pi">:</span> <span class="s2">"</span><span class="s">imtoken1"</span>
-  <span class="s">http</span><span class="pi">:</span>
-    <span class="s">enabled</span><span class="pi">:</span> <span class="s">true</span>
+  <span class="na">token</span><span class="pi">:</span> <span class="s2">"</span><span class="s">imtoken1"</span>
+  <span class="na">http</span><span class="pi">:</span>
+    <span class="na">enabled</span><span class="pi">:</span> <span class="no">true</span>
     <span class="c1"># 监听地址，我们在公网机器上需要修改为 `0.0.0.0`，让所有地址都可以访问</span>
     <span class="c1"># 注意不一定是机器的公网 IP，本机不一定拥有这个 IP，否则会出错</span>
-    <span class="s">listen_ip</span><span class="pi">:</span> <span class="s2">"</span><span class="s">0.0.0.0"</span>
+    <span class="na">listen_ip</span><span class="pi">:</span> <span class="s2">"</span><span class="s">0.0.0.0"</span>
     <span class="c1"># 监听端口，我们使用 4445</span>
-    <span class="s">listen_port</span><span class="pi">:</span> <span class="s2">"</span><span class="s">4445"</span>
+    <span class="na">listen_port</span><span class="pi">:</span> <span class="s2">"</span><span class="s">4445"</span>
   <span class="c1"># dns 部分没有修改</span>
-  <span class="s">client</span><span class="pi">:</span>
+  <span class="na">client</span><span class="pi">:</span>
     <span class="c1"># 指定 http 部分的访问地址，这里才应该是机器的公网 IP</span>
-    <span class="s">http_base_url</span><span class="pi">:</span> <span class="s2">"</span><span class="s">http://140.143.224.171:4445"</span>
-    <span class="s">dns_server_ip</span><span class="pi">:</span> <span class="s2">"</span><span class="s">"</span>
-    <span class="s">remote_server</span><span class="pi">:</span> <span class="s">false</span>
-</code></pre>
-</div>
+    <span class="na">http_base_url</span><span class="pi">:</span> <span class="s2">"</span><span class="s">http://140.143.224.171:4445"</span>
+    <span class="na">dns_server_ip</span><span class="pi">:</span> <span class="s2">"</span><span class="s">"</span>
+    <span class="na">remote_server</span><span class="pi">:</span> <span class="no">false</span>
+</code></pre></div></div>
 
 <p>修改完成之后，运行 <code class="highlighter-rouge">./xray reverse</code>，就可以看到反连平台启动了。</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>[INFO] 2019-09-08 09:25:02 +0800 [default:config.go:160] loading config from config.yaml
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[INFO] 2019-09-08 09:25:02 +0800 [default:config.go:160] loading config from config.yaml
 reverse server base url: http://140.143.224.171:4445, token: imtoken1
 reverse server webUI: http://140.143.224.171:4445/cland/
 [DBUG] 2019-09-08 09:25:03 +0800 [default:reverse.go:40] reverse http server started, base url: http://140.143.224.171:4445, token: imtoken1
 [INFO] 2019-09-08 09:25:03 +0800 [reverse:http_server.go:118] starting reverse http server
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>访问提示的地址 <code class="highlighter-rouge">http://140.143.224.171:4445/cland/</code> 就可以看到反连平台的的界面了。点击 <code class="highlighter-rouge">生成一个 URL</code> 就会提示输入 token。</p>
 
@@ -173,28 +170,27 @@ reverse server webUI: http://140.143.224.171:4445/cland/
 
 <p>先按照页面上的提示先测试下反连平台的功能，运行 <code class="highlighter-rouge">curl -v http://140.143.224.171:4445/p/89acfe/H34v/</code></p>
 
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>curl -v http://140.143.224.171:4445/p/89acfe/H34v/
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>curl <span class="nt">-v</span> http://140.143.224.171:4445/p/89acfe/H34v/
 <span class="k">*</span>   Trying 140.143.224.171...
 <span class="k">*</span> TCP_NODELAY <span class="nb">set</span>
 <span class="k">*</span> Connected to 140.143.224.171 <span class="o">(</span>140.143.224.171<span class="o">)</span> port 4445 <span class="o">(</span><span class="c">#0)</span>
-<span class="gp">&gt; </span>GET /p/89acfe/H34v/ HTTP/1.1
-<span class="gp">&gt; </span>Host: 140.143.224.171:4445
-<span class="gp">&gt; </span>User-Agent: curl/7.54.0
-<span class="gp">&gt; </span>Accept: <span class="k">*</span>/<span class="k">*</span>
-&gt;
+<span class="o">&gt;</span> GET /p/89acfe/H34v/ HTTP/1.1
+<span class="o">&gt;</span> Host: 140.143.224.171:4445
+<span class="o">&gt;</span> User-Agent: curl/7.54.0
+<span class="o">&gt;</span> Accept: <span class="k">*</span>/<span class="k">*</span>
+<span class="o">&gt;</span>
 &lt; HTTP/1.1 200 OK
-&lt; Content-Security-Policy: default-src <span class="s1">'self'</span>; script-src <span class="s1">'self'</span> <span class="s1">'unsafe-inline'</span>; object-src <span class="s1">'self'</span>; style-src <span class="s1">'self'</span> <span class="s1">'unsafe-inline'</span>; img-src <span class="s1">'self'</span>; media-src <span class="s1">'self'</span>; frame-src <span class="s1">'self'</span>; font-src <span class="s1">'self'</span> data:; connect-src <span class="s1">'self'</span>
+&lt; Content-Security-Policy: default-src <span class="s1">'self'</span><span class="p">;</span> script-src <span class="s1">'self'</span> <span class="s1">'unsafe-inline'</span><span class="p">;</span> object-src <span class="s1">'self'</span><span class="p">;</span> style-src <span class="s1">'self'</span> <span class="s1">'unsafe-inline'</span><span class="p">;</span> img-src <span class="s1">'self'</span><span class="p">;</span> media-src <span class="s1">'self'</span><span class="p">;</span> frame-src <span class="s1">'self'</span><span class="p">;</span> font-src <span class="s1">'self'</span> data:<span class="p">;</span> connect-src <span class="s1">'self'</span>
 &lt; Content-Type: application/json
 &lt; X-Content-Type-Options: nosniff
 &lt; X-Frame-Options: SAMEORIGIN
-&lt; X-Xss-Protection: 1; <span class="nv">mode</span><span class="o">=</span>block
+&lt; X-Xss-Protection: 1<span class="p">;</span> <span class="nv">mode</span><span class="o">=</span>block
 &lt; Date: Sun, 08 Sep 2019 01:28:16 GMT
 &lt; Content-Length: 22
 &lt;
 <span class="k">*</span> Connection <span class="c">#0 to host 140.143.224.171 left intact</span>
 <span class="o">{</span><span class="s2">"code"</span>:0,<span class="s2">"data"</span>:null<span class="o">}</span>%
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>然后在左边的 <code class="highlighter-rouge">HTTP</code> 一栏中就可以看到了访问记录</p>
 
@@ -214,15 +210,15 @@ reverse server webUI: http://140.143.224.171:4445/cland/
 
 <p>点击保存之后，我们先用 curl 测试下。</p>
 
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>curl -v http://140.143.224.171:4445/p/1cd0a7/3OGA/
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>curl <span class="nt">-v</span> http://140.143.224.171:4445/p/1cd0a7/3OGA/
 <span class="k">*</span>   Trying 140.143.224.171...
 <span class="k">*</span> TCP_NODELAY <span class="nb">set</span>
 <span class="k">*</span> Connected to 140.143.224.171 <span class="o">(</span>140.143.224.171<span class="o">)</span> port 4445 <span class="o">(</span><span class="c">#0)</span>
-<span class="gp">&gt; </span>GET /p/1cd0a7/3OGA/ HTTP/1.1
-<span class="gp">&gt; </span>Host: 140.143.224.171:4445
-<span class="gp">&gt; </span>User-Agent: curl/7.54.0
-<span class="gp">&gt; </span>Accept: <span class="k">*</span>/<span class="k">*</span>
-&gt;
+<span class="o">&gt;</span> GET /p/1cd0a7/3OGA/ HTTP/1.1
+<span class="o">&gt;</span> Host: 140.143.224.171:4445
+<span class="o">&gt;</span> User-Agent: curl/7.54.0
+<span class="o">&gt;</span> Accept: <span class="k">*</span>/<span class="k">*</span>
+<span class="o">&gt;</span>
 &lt; HTTP/1.1 302 Found
 &lt; Content-Type: text/html
 &lt; Location: http://127.0.0.1:8000/api/internal/secret
@@ -230,8 +226,7 @@ reverse server webUI: http://140.143.224.171:4445/cland/
 &lt; Content-Length: 0
 &lt;
 <span class="k">*</span> Connection <span class="c">#0 to host 140.143.224.171 left intact</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>工作一切正常。</p>
 
@@ -281,42 +276,40 @@ reverse server webUI: http://140.143.224.171:4445/cland/
 
 <p>编辑刚才的配置文件</p>
 
-<div class="language-yml highlighter-rouge"><pre class="highlight"><code><span class="s">reverse</span><span class="pi">:</span>
+<div class="language-yml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">reverse</span><span class="pi">:</span>
   <span class="c1"># 其他的项目没有修改 ...</span>
-  <span class="s">dns</span><span class="pi">:</span>
-    <span class="s">enabled</span><span class="pi">:</span> <span class="s">true</span>
+  <span class="na">dns</span><span class="pi">:</span>
+    <span class="na">enabled</span><span class="pi">:</span> <span class="no">true</span>
     <span class="c1"># 和之前 http 的 listen ip 含义一样，修改为 0.0.0.0</span>
-    <span class="s">listen_ip</span><span class="pi">:</span> <span class="s2">"</span><span class="s">0.0.0.0"</span>
+    <span class="na">listen_ip</span><span class="pi">:</span> <span class="s2">"</span><span class="s">0.0.0.0"</span>
     <span class="c1"># 刚才注册的域名</span>
-    <span class="s">domain</span><span class="pi">:</span> <span class="s2">"</span><span class="s">revc.xyz"</span>
+    <span class="na">domain</span><span class="pi">:</span> <span class="s2">"</span><span class="s">revc.xyz"</span>
     <span class="c1"># 静态解析规则，如果请求解析的域名在下面配置了，就直接返回对应的结果</span>
     <span class="c1"># dns rebinding 返回的 ip 是动态的</span>
     <span class="c1"># 示例配置文件的中的 localhost 是演示使用的，我们添加 ns1 和 ns2 的 A 记录</span>
-    <span class="s">resolve</span><span class="pi">:</span>
-    <span class="pi">-</span> <span class="s">type</span><span class="pi">:</span> <span class="s">A</span>
-      <span class="s">record</span><span class="pi">:</span> <span class="s">ns1</span>
-      <span class="s">value</span><span class="pi">:</span> <span class="s">140.143.224.171</span>
-      <span class="s">ttl</span><span class="pi">:</span> <span class="s">60</span>
-    <span class="pi">-</span> <span class="s">type</span><span class="pi">:</span> <span class="s">A</span>
-      <span class="s">record</span><span class="pi">:</span> <span class="s">ns2</span>
-      <span class="s">ttl</span><span class="pi">:</span> <span class="s">60</span>
-      <span class="s">value</span><span class="pi">:</span> <span class="s">140.143.224.171</span>
-  <span class="s">client</span><span class="pi">:</span>
-    <span class="s">dns_server_ip</span><span class="pi">:</span> <span class="s2">"</span><span class="s">140.143.224.171"</span>
+    <span class="na">resolve</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">type</span><span class="pi">:</span> <span class="s">A</span>
+      <span class="na">record</span><span class="pi">:</span> <span class="s">ns1</span>
+      <span class="na">value</span><span class="pi">:</span> <span class="s">140.143.224.171</span>
+      <span class="na">ttl</span><span class="pi">:</span> <span class="s">60</span>
+    <span class="pi">-</span> <span class="na">type</span><span class="pi">:</span> <span class="s">A</span>
+      <span class="na">record</span><span class="pi">:</span> <span class="s">ns2</span>
+      <span class="na">ttl</span><span class="pi">:</span> <span class="s">60</span>
+      <span class="na">value</span><span class="pi">:</span> <span class="s">140.143.224.171</span>
+  <span class="na">client</span><span class="pi">:</span>
+    <span class="na">dns_server_ip</span><span class="pi">:</span> <span class="s2">"</span><span class="s">140.143.224.171"</span>
     <span class="c1"># 其他的项目没有修改 ...</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p><code class="highlighter-rouge">./xray reverse</code> 启动，这时候可以看到提示信息多了一些，<code class="highlighter-rouge">dns server</code> 也启动了。</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>[INFO] 2019-09-08 10:20:16 +0800 [default:config.go:160] loading config from config.yaml
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[INFO] 2019-09-08 10:20:16 +0800 [default:config.go:160] loading config from config.yaml
 reverse server base url: http://140.143.224.171:4445, token: imtoken1
 reverse server webUI: http://140.143.224.171:4445/cland/
 [DBUG] 2019-09-08 10:20:16 +0800 [default:reverse.go:40] reverse http server started, base url: http://140.143.224.171:4445, token: imtoken1
 [DBUG] 2019-09-08 10:20:16 +0800 [default:reverse.go:52] reverse dns started
 [INFO] 2019-09-08 10:20:16 +0800 [reverse:dns_server.go:167] starting reverse dns server
 [INFO] 2019-09-08 10:20:16 +0800 [reverse:http_server.go:118] starting reverse http server
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>要注意的是 dns 服务需要监听 UDP 53 端口，需要 root 权限而且记得在防火墙中放行。</p>
 
@@ -324,12 +317,12 @@ reverse server webUI: http://140.143.224.171:4445/cland/
 
 <p>回到界面上，点击 <code class="highlighter-rouge">生成一个域名</code>，我们先来验证一下之前的配置有没有生效，因为 ns 记录大概需要几个小时才能全球生效，当然如果指定了 dns 服务器为自己的的话，就不需要了。</p>
 
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="nv">$dig</span> ns1.revc.xyz A @140.143.224.171
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$dig</span> ns1.revc.xyz A @140.143.224.171
 
-; &lt;&lt;&gt;&gt; DiG 9.10.6 &lt;&lt;&gt;&gt; ns1.revc.xyz A @140.143.224.171
-;; global options: +cmd
-;; Got answer:
-;; -&gt;&gt;HEADER<span class="sh">&lt;&lt;- opcode: QUERY, status: NOERROR, id: 852
+<span class="p">;</span> &lt;&lt;<span class="o">&gt;&gt;</span> DiG 9.10.6 &lt;&lt;<span class="o">&gt;&gt;</span> ns1.revc.xyz A @140.143.224.171
+<span class="p">;;</span> global options: +cmd
+<span class="p">;;</span> Got answer:
+<span class="p">;;</span> -&gt;&gt;HEADER<span class="o">&lt;&lt;-</span> <span class="no">opcode</span><span class="sh">: QUERY, status: NOERROR, id: 852
 ;; flags: qr aa rd; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 0
 ;; WARNING: recursion requested but not available
 
@@ -343,8 +336,7 @@ ns1.revc.xyz.		60	IN	A	140.143.224.171
 ;; SERVER: 140.143.224.171#53(140.143.224.171)
 ;; WHEN: Sun Sep 08 10:22:23 CST 2019
 ;; MSG SIZE  rcvd: 58
-</span></code></pre>
-</div>
+</span></code></pre></div></div>
 
 <p>可以看出来 ns1 的解析记录是对的，这个是我们配置文件中的静态解析规则。</p>
 
@@ -362,12 +354,12 @@ ns1.revc.xyz.		60	IN	A	140.143.224.171
 
 <p>点击保存之后，同样是先本地测试一下。</p>
 
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="nv">$dig</span> p-04f887-2kua.revc.xyz A @140.143.224.171
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$dig</span> p-04f887-2kua.revc.xyz A @140.143.224.171
 
-; &lt;&lt;&gt;&gt; DiG 9.10.6 &lt;&lt;&gt;&gt; p-04f887-2kua.revc.xyz A @140.143.224.171
-;; global options: +cmd
-;; Got answer:
-;; -&gt;&gt;HEADER<span class="sh">&lt;&lt;- opcode: QUERY, status: NOERROR, id: 35
+<span class="p">;</span> &lt;&lt;<span class="o">&gt;&gt;</span> DiG 9.10.6 &lt;&lt;<span class="o">&gt;&gt;</span> p-04f887-2kua.revc.xyz A @140.143.224.171
+<span class="p">;;</span> global options: +cmd
+<span class="p">;;</span> Got answer:
+<span class="p">;;</span> -&gt;&gt;HEADER<span class="o">&lt;&lt;-</span> <span class="no">opcode</span><span class="sh">: QUERY, status: NOERROR, id: 35
 ;; flags: qr aa rd; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 0
 ;; WARNING: recursion requested but not available
 
@@ -384,7 +376,7 @@ p-04f887-2kua.revc.xyz.	0	IN	A	1.2.3.4
 
 
 
-$dig p-04f887-2kua.revc.xyz A @140.143.224.171
+</span><span class="nv">$dig</span><span class="sh"> p-04f887-2kua.revc.xyz A @140.143.224.171
 
 ; &lt;&lt;&gt;&gt; DiG 9.10.6 &lt;&lt;&gt;&gt; p-04f887-2kua.revc.xyz A @140.143.224.171
 ;; global options: +cmd
@@ -403,8 +395,7 @@ p-04f887-2kua.revc.xyz.	0	IN	A	127.0.0.1
 ;; SERVER: 140.143.224.171#53(140.143.224.171)
 ;; WHEN: Sun Sep 08 10:29:29 CST 2019
 ;; MSG SIZE  rcvd: 78
-</span></code></pre>
-</div>
+</span></code></pre></div></div>
 
 <p>可以看出来第一次和第二次的解析结果是不一样的，将 DNS 服务器更换为 <code class="highlighter-rouge">8.8.8.8</code> 可以得到相同的结果。</p>
 

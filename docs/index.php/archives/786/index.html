@@ -111,7 +111,7 @@ int main(int argc, char *argv[]) {
 <p>在 <code class="highlighter-rouge">strcpy</code> 那一行下断点，然后运行，输入 256 长度的 <code class="highlighter-rouge">A</code>。
 代码和栈内存是这样的</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>[-------------------------------------code-------------------------------------]
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[-------------------------------------code-------------------------------------]
    0x40067a &lt;bar+25&gt;:	lea    rax,[rbp-0x100]
    0x400681 &lt;bar+32&gt;:	mov    rsi,rdx
    0x400684 &lt;bar+35&gt;:	mov    rdi,rax
@@ -137,12 +137,11 @@ arg[2]: 0x7fffffffe52c ('A' &lt;repeats 200 times&gt;...)
 
 gdb-peda$ p &amp;buf
 $1 = (char (*)[256]) 0x7fffffffe030
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>如果 buf 复制 256 字节数据，那它的内存地址就是 <code class="highlighter-rouge">0x7fffffffe030 - (0x7fffffffe130 - 1)</code> 了，<code class="highlighter-rouge">0x7fffffffe130</code> 地址上的数据将被覆盖，而上面寄存器也可以看出来，rbp 就是 <code class="highlighter-rouge">0x7fffffffe130</code> 地址。</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>[----------------------------------registers-----------------------------------]
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[----------------------------------registers-----------------------------------]
 RAX: 0x7fffffffe030 --&gt; 0x0
 RBX: 0x0
 RCX: 0x8000100000000000
@@ -161,12 +160,11 @@ R13: 0x7fffffffe250 --&gt; 0x2
 R14: 0x0
 R15: 0x0
 EFLAGS: 0x202 (carry parity adjust zero sign trap INTERRUPT direction overflow)
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>栈在 <code class="highlighter-rouge">0x7fffffffe130</code> 附近是</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>0224| 0x7fffffffe100 --&gt; 0x7fffffffe52c ('A' &lt;repeats 200 times&gt;...)
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>0224| 0x7fffffffe100 --&gt; 0x7fffffffe52c ('A' &lt;repeats 200 times&gt;...)
 0232| 0x7fffffffe108 --&gt; 0x0
 0240| 0x7fffffffe110 --&gt; 0x7fffffffe270 --&gt; 0x7fffffffe62d ("USER=virusdefender")
 0248| 0x7fffffffe118 --&gt; 0x7fffffffe258 --&gt; 0x7fffffffe4fe ("/home/virusdefender/Desktop/pwn/offbyone/vuln")
@@ -178,18 +176,16 @@ EFLAGS: 0x202 (carry parity adjust zero sign trap INTERRUPT direction overflow)
 0296| 0x7fffffffe148 --&gt; 0x7fffffffe52c ('A' &lt;repeats 200 times&gt;...)
 0304| 0x7fffffffe150 --&gt; 0x7fffffffe170 --&gt; 0x400700 (&lt;__libc_csu_init&gt;:	push   r15)
 0312| 0x7fffffffe158 --&gt; 0x4006ec (&lt;main+93&gt;:	mov    eax,0x0)
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>覆盖前后的数据对比</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>gdb-peda$ x/8xb 0x7fffffffe130
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>gdb-peda$ x/8xb 0x7fffffffe130
 0x7fffffffe130:	0x50	0xe1	0xff	0xff	0xff	0x7f	0x00	0x00
 
 gdb-peda$ x/8xb 0x7fffffffe130
 0x7fffffffe130:	0x00	0xe1	0xff	0xff	0xff	0x7f	0x00	0x00
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>也就是 <code class="highlighter-rouge">0x7fffffffe150</code> 会被覆盖为 <code class="highlighter-rouge">0x7fffffffe100</code>，这个地址正好是 buf 内可控的地址。</p>
 

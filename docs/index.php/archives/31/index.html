@@ -66,7 +66,7 @@
     
     <article class="markdown-body">
         <p>1 查看网页源代码提示<code class="highlighter-rouge">index.php.bak</code>，下载下来源代码如下</p>
-<div class="language-php highlighter-rouge"><pre class="highlight"><code><span class="cp">&lt;?php</span>
+<div class="language-php highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">&lt;?php</span>
 <span class="nv">$flag</span><span class="o">=</span><span class="s1">'xxx'</span><span class="p">;</span>
 <span class="nb">extract</span><span class="p">(</span><span class="nv">$_GET</span><span class="p">);</span>
 <span class="k">if</span><span class="p">(</span><span class="nb">isset</span><span class="p">(</span><span class="nv">$gift</span><span class="p">))</span>
@@ -81,8 +81,7 @@
        <span class="k">echo</span><span class="s1">'Oh..'</span><span class="p">;</span>
     <span class="p">}</span>
 <span class="p">}</span><span class="cp">?&gt;</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>很明显，这里存在变量覆盖漏洞，构造参数<code class="highlighter-rouge">gift为本文件内容，flag=index.php.bak</code>或者两个参数都留空就可以得到flag。
 关于这个漏洞可以参考 http://zone.wooyun.org/content/1872</p>
 
@@ -99,7 +98,7 @@
 <p>3 NormalFile</p>
 
 <p>首先使用linux命令<code class="highlighter-rouge">strings</code>查看文件内有没有什么可疑字符串，后来发现出了常规的图片文件信息外貌似还有一些类似文件路径的东西，可能是文件隐写，尝试解压，提示错误，后来在windows上解压才成功的。然后就获取到了一个相同的图片，使用同样的方法，继续解压，得到一个安卓的apk。因为对安卓平台不熟悉，直接<code class="highlighter-rouge">grep -r "flag"</code>发现确实存在这个字符串，但是没有实际的flag，尝试逆向之后获取的java代码是在看不懂了</p>
-<div class="language-java highlighter-rouge"><pre class="highlight"><code><span class="c1">// Decompiled by DJ v3.11.11.95 Copyright 2009 Atanas Neshkov  Date: 2014/11/8 21:49:13</span>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// Decompiled by DJ v3.11.11.95 Copyright 2009 Atanas Neshkov  Date: 2014/11/8 21:49:13</span>
 <span class="c1">// Home Page: http://members.fortunecity.com/neshkov/dj.html  http://www.neshkov.com/dj.html - Check often for new version!</span>
 <span class="c1">// Decompiler options: packimports(3)</span>
 
@@ -190,8 +189,7 @@
             <span class="k">return</span> <span class="kd">super</span><span class="o">.</span><span class="na">onOptionsItemSelected</span><span class="o">(</span><span class="n">menuitem</span><span class="o">);</span>
     <span class="o">}</span>
 <span class="o">}</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 
 

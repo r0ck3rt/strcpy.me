@@ -94,7 +94,7 @@ key的时候，这可能导致攻击者绕过两步验证，然后可以创建�
 <p>受影响的都是使用Ruby，PHP，Perl，Java和ColdFusion SDK的。用户名处可以出现管道符，同时用户名也是被用作为Duo ID的（这个可以是用户id或者邮箱，这个不能使用管道符）。</p>
 
 <p>看下面的这段Ruby代码</p>
-<div class="language-ruby highlighter-rouge"><pre class="highlight"><code><span class="nb">require</span> <span class="s1">'base64'</span>
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">require</span> <span class="s1">'base64'</span>
 <span class="nb">require</span> <span class="s1">'openssl'</span>
 <span class="k">def</span> <span class="nf">hmac_sha1</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
   <span class="no">OpenSSL</span><span class="o">::</span><span class="no">HMAC</span><span class="p">.</span><span class="nf">hexdigest</span><span class="p">(</span><span class="no">OpenSSL</span><span class="o">::</span><span class="no">Digest</span><span class="o">::</span><span class="no">Digest</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="s1">'sha1'</span><span class="p">),</span> <span class="n">key</span><span class="p">,</span> <span class="n">data</span><span class="p">.</span><span class="nf">to_s</span><span class="p">)</span>
@@ -123,18 +123,16 @@ key的时候，这可能导致攻击者绕过两步验证，然后可以创建�
   <span class="k">return</span> <span class="kp">nil</span> <span class="k">if</span> <span class="n">ts</span> <span class="o">&gt;=</span> <span class="n">exp</span><span class="p">.</span><span class="nf">to_i</span>
   <span class="k">return</span> <span class="n">user</span>
 <span class="k">end</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>如果你想创建一个用户名是<code class="highlighter-rouge">victim||9999999999</code>的用户，我们获取到的APP token会和用户名叫<code class="highlighter-rouge">victim</code>的解析出一样的结果。</p>
 
-<div class="language-ruby highlighter-rouge"><pre class="highlight"><code><span class="n">sig1</span> <span class="o">=</span> <span class="n">sign_vals</span><span class="p">(</span><span class="s1">'AKEY'</span><span class="p">,[</span><span class="s1">'victim'</span><span class="p">,</span><span class="s1">'IKEY'</span><span class="p">],</span><span class="s1">'APP'</span><span class="p">,</span><span class="mi">3600</span><span class="p">)</span>
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">sig1</span> <span class="o">=</span> <span class="n">sign_vals</span><span class="p">(</span><span class="s1">'AKEY'</span><span class="p">,[</span><span class="s1">'victim'</span><span class="p">,</span><span class="s1">'IKEY'</span><span class="p">],</span><span class="s1">'APP'</span><span class="p">,</span><span class="mi">3600</span><span class="p">)</span>
 <span class="nb">puts</span> <span class="n">parse_vals</span><span class="p">(</span><span class="s1">'AKEY'</span><span class="p">,</span> <span class="n">sig1</span><span class="p">,</span> <span class="s1">'APP'</span><span class="p">)</span> <span class="c1">#returns 'victim'</span>
 
 
 <span class="n">sig2</span> <span class="o">=</span> <span class="n">sign_vals</span><span class="p">(</span><span class="s1">'AKEY'</span><span class="p">,[</span><span class="s1">'victim||9999999999'</span><span class="p">,</span><span class="s1">'IKEY'</span><span class="p">],</span><span class="s1">'APP'</span><span class="p">,</span><span class="mi">3600</span><span class="p">)</span>
 <span class="nb">puts</span> <span class="n">parse_vals</span><span class="p">(</span><span class="s1">'AKEY'</span><span class="p">,</span> <span class="n">sig2</span><span class="p">,</span> <span class="s1">'APP'</span><span class="p">)</span> <span class="c1">#returns 'victim' too</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>如果你仍然没看懂的话，就仔细看下面的。</p>
 
 <p>app使用<code class="highlighter-rouge">victim|IKEY|12345678</code>为受害者签名，<code class="highlighter-rouge">user, ikey, exp = string.split('|')</code>返回的是<code class="highlighter-rouge">user=victim</code>和<code class="highlighter-rouge">exp=12345678</code>。</p>
@@ -158,7 +156,7 @@ key的时候，这可能导致攻击者绕过两步验证，然后可以创建�
   </li>
 </ul>
 
-<div class="language-ruby highlighter-rouge"><pre class="highlight"><code><span class="p">{</span>
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span>
 <span class="s2">"WMI_MERCHANT_ID"</span><span class="o">=&gt;</span><span class="s2">"119175088534"</span><span class="p">,</span>
 <span class="s2">"WMI_PAYMENT_AMOUNT"</span><span class="o">=&gt;</span><span class="s2">"100.00"</span><span class="p">,</span>
 <span class="s2">"WMI_CURRENCY_ID"</span>    <span class="o">=&gt;</span> <span class="s2">"643"</span><span class="p">,</span>
@@ -169,8 +167,7 @@ key的时候，这可能导致攻击者绕过两步验证，然后可以创建�
 <span class="s2">"WMI_FAIL_URL"</span>       <span class="o">=&gt;</span> <span class="s2">"https://myshop.com/w1/fail.php"</span>
 <span class="p">}.</span><span class="nf">sort</span><span class="p">.</span><span class="nf">map</span><span class="p">{</span><span class="o">|</span><span class="n">key</span><span class="p">,</span><span class="n">value</span><span class="o">|</span> <span class="n">value</span><span class="p">}.</span><span class="nf">join</span>
 <span class="c1"># # =&gt; 643BASE64:f2019-12-31T23:59:59https://myshop.com/w1/fail.php119175088534100.0012345-001https://myshop.com/w1/success.php</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <h1 id="第二部分sms是怎么绕过authy的两步验证的">第二部分：<code class="highlighter-rouge">../sms</code>是怎么绕过Authy的两步验证的</h1>
 
@@ -179,8 +176,8 @@ key的时候，这可能导致攻击者绕过两步验证，然后可以创建�
 <h2 id="api的调用流程是">API的调用流程是：</h2>
 
 <ul>
-  <li>客户端请求新的token <code class="highlighter-rouge">http://api.authy.com/protected/json/sms/AUTHY_ID?api_key=KEY</code>，AUTHY_ID是公开的和当前用户关联的凭据，期望的响应是<code class="highlighter-rouge"><span class="p">{</span><span class="nt">"success"</span><span class="p">:</span><span class="kc">true</span><span class="p">,</span><span class="nt">"message"</span><span class="p">:</span><span class="s2">"SMS token was sent"</span><span class="p">,</span><span class="nt">"cellphone"</span><span class="p">:</span><span class="s2">"+1-XXX-XXX-XX85"</span><span class="p">}</span></code>，http status是200。</li>
-  <li>用户输入token，然后验证这个token是否有效，url是<code class="highlighter-rouge">http://api.authy.com/protected/json/verify/用户输入的token/AUTHY_ID?api_key=KEY</code>，如果验证通过，就返回<code class="highlighter-rouge"><span class="p">{</span><span class="nt">"success"</span><span class="p">:</span><span class="kc">true</span><span class="p">,</span><span class="nt">"message"</span><span class="p">:</span><span class="s2">"Token is valid."</span><span class="p">,</span><span class="nt">"token"</span><span class="p">:</span><span class="s2">"is valid"</span><span class="p">}</span></code>，http status是200。</li>
+  <li>客户端请求新的token <code class="highlighter-rouge">http://api.authy.com/protected/json/sms/AUTHY_ID?api_key=KEY</code>，AUTHY_ID是公开的和当前用户关联的凭据，期望的响应是<code class="highlighter-rouge">{"success":true,"message":"SMS token was sent","cellphone":"+1-XXX-XXX-XX85"}</code>，http status是200。</li>
+  <li>用户输入token，然后验证这个token是否有效，url是<code class="highlighter-rouge">http://api.authy.com/protected/json/verify/用户输入的token/AUTHY_ID?api_key=KEY</code>，如果验证通过，就返回<code class="highlighter-rouge">{"success":true,"message":"Token is valid.","token":"is valid"}</code>，http status是200。</li>
 </ul>
 
 <h2 id="authy-node没有编码用户输入的token">Authy-node没有编码用户输入的token</h2>
@@ -211,7 +208,7 @@ key的时候，这可能导致攻击者绕过两步验证，然后可以创建�
   <li>攻击者将<code class="highlighter-rouge">../sms</code>填入短信验证码文本框。</li>
   <li>客户端将其编码为<code class="highlighter-rouge">..%2fsms</code>，然后调用Authy的api <code class="highlighter-rouge">https://api.authy.com/protected/json/verify/..%2fsms/authy_id</code></li>
   <li>目录遍历中间件将路径解码为<code class="highlighter-rouge">https://api.authy.com/protected/json/verify/../sms/authy_id</code>，通过斜线分割，然后移除了<code class="highlighter-rouge">/..</code>之前的目录。</li>
-  <li>实际上Authy api看到的路径是<code class="highlighter-rouge">https://api.authy.com/protected/json/sms/authy_id </code>，这样就把另一条短信发给了authy_id（攻击者），然后相应200，内容是<code class="highlighter-rouge"><span class="p">{</span><span class="nt">"success"</span><span class="p">:</span><span class="kc">true</span><span class="p">,</span><span class="nt">"message"</span><span class="p">:</span><span class="s2">"SMS token was sent"</span><span class="p">,</span><span class="nt">"cellphone"</span><span class="p">:</span><span class="s2">"+1-XXX-XXX-XX85"</span><span class="p">}</span></code></li>
+  <li>实际上Authy api看到的路径是<code class="highlighter-rouge">https://api.authy.com/protected/json/sms/authy_id </code>，这样就把另一条短信发给了authy_id（攻击者），然后相应200，内容是<code class="highlighter-rouge">{"success":true,"message":"SMS token was sent","cellphone":"+1-XXX-XXX-XX85"}</code></li>
   <li>所有的authy sdk都把http status 200认为是一个成功的响应，然后让攻击者登录进来。即使有的客户自己集成的产品是看响应里面的<code class="highlighter-rouge">"success":"true"</code>，但是我们<code class="highlighter-rouge">/sms</code>响应里面也是有这个的。所以唯一的安全的方法就是看响应里面有没有<code class="highlighter-rouge">"token":"is valid"</code></li>
 </ul>
 

@@ -87,38 +87,34 @@
 
 <p>再反编译 classes 文件的时候遇到了麻烦，我的工具不知道为什么抽风，很多函数只能显示函数名，而函数的内容没法显示，只好就再用 IDA 了。</p>
 
-<div class="language-java highlighter-rouge"><pre class="highlight"><code><span class="c1">//一些配置</span>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">//一些配置</span>
 <span class="kd">public</span> <span class="kd">static</span> <span class="kd">final</span> <span class="n">String</span> <span class="n">APPLICATION_ID</span> <span class="o">=</span> <span class="s">"com.jmz.fandroid"</span><span class="o">;</span>
 <span class="kd">public</span> <span class="kd">static</span> <span class="kd">final</span> <span class="n">String</span> <span class="n">BUILD_TYPE</span> <span class="o">=</span> <span class="s">"release"</span><span class="o">;</span>
 <span class="kd">public</span> <span class="kd">static</span> <span class="kd">final</span> <span class="kt">boolean</span> <span class="n">DEBUG</span> <span class="o">=</span> <span class="kc">false</span><span class="o">;</span>
 <span class="kd">public</span> <span class="kd">static</span> <span class="kd">final</span> <span class="n">String</span> <span class="n">FLAVOR</span> <span class="o">=</span> <span class="s">""</span><span class="o">;</span>
 <span class="kd">public</span> <span class="kd">static</span> <span class="kd">final</span> <span class="kt">int</span> <span class="n">VERSION_CODE</span> <span class="o">=</span> <span class="mi">1</span><span class="o">;</span>
 <span class="kd">public</span> <span class="kd">static</span> <span class="kd">final</span> <span class="n">String</span> <span class="n">VERSION_NAME</span> <span class="o">=</span> <span class="s">"1.0"</span><span class="o">;</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>入口是 MainActivity，然后弹框提示</p>
 
-<div class="language-java highlighter-rouge"><pre class="highlight"><code><span class="n">var4</span><span class="o">.</span><span class="na">setTitle</span><span class="o">(</span><span class="s">"系统提示"</span><span class="o">);</span>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">var4</span><span class="o">.</span><span class="na">setTitle</span><span class="o">(</span><span class="s">"系统提示"</span><span class="o">);</span>
 <span class="n">var4</span><span class="o">.</span><span class="na">setMessage</span><span class="o">(</span><span class="s">"激活成功，安卓手机稍后会提示是否允许接收发送短信等提示，请一定要选择永久允许，否者我们将无法根据系统来给您充值话费，请认真操作!"</span><span class="o">);</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>接下来是设置设备管理器和隐藏图标，让一般用户无法自行卸载。</p>
 
-<div class="language-java highlighter-rouge"><pre class="highlight"><code><span class="c1">// 设备管理器权限</span>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// 设备管理器权限</span>
 <span class="n">Intent</span> <span class="n">var1</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Intent</span><span class="o">(</span><span class="s">"android.app.action.ADD_DEVICE_ADMIN"</span><span class="o">);</span>
 <span class="n">var1</span><span class="o">.</span><span class="na">putExtra</span><span class="o">(</span><span class="s">"android.app.extra.DEVICE_ADMIN"</span><span class="o">,</span> <span class="k">this</span><span class="o">.</span><span class="na">mComponentName</span><span class="o">);</span>
 <span class="n">var1</span><span class="o">.</span><span class="na">putExtra</span><span class="o">(</span><span class="s">"android.app.extra.ADD_EXPLANATION"</span><span class="o">,</span> <span class="s">""</span><span class="o">);</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
-<div class="language-java highlighter-rouge"><pre class="highlight"><code><span class="c1">//隐藏桌面图标</span>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">//隐藏桌面图标</span>
 <span class="n">PackageManager</span> <span class="n">var1</span> <span class="o">=</span> <span class="k">this</span><span class="o">.</span><span class="na">getPackageManager</span><span class="o">();</span>
 <span class="k">this</span><span class="o">.</span><span class="na">mComponentName</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ComponentName</span><span class="o">(</span><span class="k">this</span><span class="o">,</span> <span class="n">MainActivity</span><span class="o">.</span><span class="na">class</span><span class="o">);</span>
 <span class="n">var1</span><span class="o">.</span><span class="na">setComponentEnabledSetting</span><span class="o">(</span><span class="k">this</span><span class="o">.</span><span class="na">mComponentName</span><span class="o">,</span> <span class="mi">2</span><span class="o">,</span> <span class="mi">1</span><span class="o">);</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>之后就会执行<code class="highlighter-rouge">MyIntentService.class</code>里面的函数，但是我看不到函数内容，就换用 IDA 继续看。</p>
 

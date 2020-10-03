@@ -65,17 +65,16 @@
 <div class="post-content">
     
     <article class="markdown-body">
-        <p>这几年比较火的一个漏洞就是 jinjia2 之类的模板引擎的注入，通过注入模板引擎的一些特定的指令格式，比如<code class="highlighter-rouge"><span class="p">{</span><span class="err">{1+1</span><span class="p">}</span><span class="err">}</span></code>而返回了<code class="highlighter-rouge">2</code>得知漏洞存在。实际类似的问题在 Python 原生字符串中就存在，尤其是Python 3.6新增 <code class="highlighter-rouge">f</code> 字符串后，虽然利用还不明确，但是应该引起注意。</p>
+        <p>这几年比较火的一个漏洞就是 jinjia2 之类的模板引擎的注入，通过注入模板引擎的一些特定的指令格式，比如<code class="highlighter-rouge">{{1+1}}</code>而返回了<code class="highlighter-rouge">2</code>得知漏洞存在。实际类似的问题在 Python 原生字符串中就存在，尤其是Python 3.6新增 <code class="highlighter-rouge">f</code> 字符串后，虽然利用还不明确，但是应该引起注意。</p>
 
 <h2 id="最原始的">最原始的<code class="highlighter-rouge">%</code></h2>
 
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">userdata</span> <span class="o">=</span> <span class="p">{</span><span class="s">"user"</span> <span class="p">:</span> <span class="s">"jdoe"</span><span class="p">,</span> <span class="s">"password"</span> <span class="p">:</span> <span class="s">"secret"</span> <span class="p">}</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">userdata</span> <span class="o">=</span> <span class="p">{</span><span class="s">"user"</span> <span class="p">:</span> <span class="s">"jdoe"</span><span class="p">,</span> <span class="s">"password"</span> <span class="p">:</span> <span class="s">"secret"</span> <span class="p">}</span>
 <span class="n">passwd</span>  <span class="o">=</span> <span class="nb">raw_input</span><span class="p">(</span><span class="s">"Password: "</span><span class="p">)</span>
 
 <span class="k">if</span> <span class="n">passwd</span> <span class="o">!=</span> <span class="n">userdata</span><span class="p">[</span><span class="s">"password"</span><span class="p">]:</span>
     <span class="k">print</span> <span class="p">(</span><span class="s">"Password "</span> <span class="o">+</span> <span class="n">passwd</span> <span class="o">+</span> <span class="s">" is wrong for user </span><span class="si">%(user)</span><span class="s">s"</span><span class="p">)</span> <span class="o">%</span> <span class="n">userdata</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>如果用户输入 <code class="highlighter-rouge">%(password)s</code> 那就可以获取用户的真实密码了。</p>
 
@@ -85,11 +84,10 @@
 
 <p>除了上面的 payload 改写为<code class="highlighter-rouge">print ("Password " + passwd + " is wrong for user {user}").format(**userdata)</code>之外，还可以</p>
 
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="o">&gt;&gt;&gt;</span> <span class="kn">import</span> <span class="nn">os</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">&gt;&gt;&gt;</span> <span class="kn">import</span> <span class="nn">os</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="s">'{0.system}'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">os</span><span class="p">)</span>
 <span class="s">'&lt;built-in function system&gt;'</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>会先把<code class="highlighter-rouge">0</code>替换为<code class="highlighter-rouge">format</code>中的参数，然后继续获取相关的属性。</p>
 
@@ -97,7 +95,7 @@
 
 <p>例子: http://lucumr.pocoo.org/2016/12/29/careful-with-str-format/</p>
 
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">CONFIG</span> <span class="o">=</span> <span class="p">{</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">CONFIG</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s">'SECRET_KEY'</span><span class="p">:</span> <span class="s">'super secret key'</span>
 <span class="p">}</span>
 
@@ -109,10 +107,9 @@
 
 <span class="k">def</span> <span class="nf">format_event</span><span class="p">(</span><span class="n">format_string</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
     <span class="k">return</span> <span class="n">format_string</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">event</span><span class="o">=</span><span class="n">event</span><span class="p">)</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
-<p>如果 <code class="highlighter-rouge">format_string</code> 为 <code class="highlighter-rouge"><span class="p">{</span><span class="err">event.__init__.__globals__[CONFIG][SECRET_KEY]</span><span class="p">}</span><span class="w"> </span></code>就可以泄露敏感信息。</p>
+<p>如果 <code class="highlighter-rouge">format_string</code> 为 <code class="highlighter-rouge">{event.__init__.__globals__[CONFIG][SECRET_KEY]} </code>就可以泄露敏感信息。</p>
 
 <p>理论上，可以通过类的各种继承关系找到想要的信息，比如在 Django 中的思路为 https://xianzhi.aliyun.com/forum/read/615.html</p>
 
@@ -122,16 +119,15 @@
 
 <p>https://docs.python.org/3/reference/lexical_analysis.html#f-strings</p>
 
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="o">&gt;&gt;&gt;</span> <span class="n">a</span> <span class="o">=</span> <span class="s">"Hello"</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">&gt;&gt;&gt;</span> <span class="n">a</span> <span class="o">=</span> <span class="s">"Hello"</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="n">b</span> <span class="o">=</span> <span class="n">f</span><span class="s">"{a} World"</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="n">b</span>
 <span class="s">'Hello World'</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>而且不仅仅限制为属性了，代码可以执行了。</p>
 
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="o">&gt;&gt;&gt;</span> <span class="kn">import</span> <span class="nn">os</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">&gt;&gt;&gt;</span> <span class="kn">import</span> <span class="nn">os</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="n">f</span><span class="s">"{os.system('ls')}"</span>
 <span class="nb">bin</span>      <span class="n">etc</span>      <span class="n">lib</span>      <span class="n">media</span>    <span class="n">proc</span>     <span class="n">run</span>      <span class="n">srv</span>      <span class="n">tmp</span>      <span class="n">var</span>
 <span class="n">dev</span>      <span class="n">home</span>     <span class="n">linuxrc</span>  <span class="n">mnt</span>      <span class="n">root</span>     <span class="n">sbin</span>     <span class="n">sys</span>      <span class="n">usr</span>
@@ -139,8 +135,7 @@
 
 <span class="o">&gt;&gt;&gt;</span> <span class="n">f</span><span class="s">"{(lambda x: x - 10)(100)}"</span>
 <span class="s">'90'</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>但是貌似<a href="https://www.python.org/dev/peps/pep-0498/#concatenating-strings">没有</a>把一个普通字符串转换为 <code class="highlighter-rouge">f</code> 字符串的方法，也就是说用户很可能无法控制一个 <code class="highlighter-rouge">f</code> 字符串，可能无法利用，还需要继续查一下。</p>
 

@@ -161,11 +161,10 @@ int main() {
 <!--more-->
 
 <p>引用计数有个明显的缺点就是没办法处理循环引用，比如</p>
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">l</span> <span class="o">=</span> <span class="p">[]</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">l</span> <span class="o">=</span> <span class="p">[]</span>
 <span class="n">l</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
 <span class="k">del</span> <span class="n">l</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>这个 l 永远没办法被回收，因为它的引用计数没办法归零了。为了解决循环引用的问题，CPython特别设计了一个模块gc，其主要作用就是检查出循环引用的垃圾对象，并清除他们。该模块的实现，实际上也是引入了其余两种主流的垃圾收集技术——标记清除和分代收集。</p>
 
 <p><code class="highlighter-rouge">gc</code>模块是 Python 对外暴露的垃圾回收机制，这个模块包含了控制垃圾回收操作的函数，还有检查垃圾回收状态的函数。</p>
@@ -174,7 +173,7 @@ int main() {
 <p><code class="highlighter-rouge">gc</code>模块里面有两个函数<code class="highlighter-rouge">get_referents(*objs)</code>和<code class="highlighter-rouge">get_referrers(*objs)</code>。第一个函数是return a list of objects directly referred to by any of the arguments，也就是获取引用 objs 的 objects，第二个函数是return the list of objects that directly refer to any of objs，也就是获取 objs 引用的 objects。</p>
 
 <p>代码示例</p>
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">gc</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">gc</span>
 <span class="kn">import</span> <span class="nn">pprint</span>
 
 <span class="k">class</span> <span class="nc">Graph</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
@@ -199,10 +198,9 @@ int main() {
 <span class="k">print</span> <span class="s">'three refers to:'</span>
 <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">gc</span><span class="o">.</span><span class="n">get_referents</span><span class="p">(</span><span class="n">three</span><span class="p">):</span>
     <span class="n">pprint</span><span class="o">.</span><span class="n">pprint</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>输出是</p>
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="err">$</span> <span class="n">python</span> <span class="n">gc_get_referents</span><span class="o">.</span><span class="n">py</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="err">$</span> <span class="n">python</span> <span class="n">gc_get_referents</span><span class="o">.</span><span class="n">py</span>
 
 <span class="n">Linking</span> <span class="n">nodes</span> <span class="n">Graph</span><span class="p">(</span><span class="n">one</span><span class="p">)</span><span class="o">.</span><span class="nb">next</span> <span class="o">=</span> <span class="n">Graph</span><span class="p">(</span><span class="n">two</span><span class="p">)</span>
 <span class="n">Linking</span> <span class="n">nodes</span> <span class="n">Graph</span><span class="p">(</span><span class="n">two</span><span class="p">)</span><span class="o">.</span><span class="nb">next</span> <span class="o">=</span> <span class="n">Graph</span><span class="p">(</span><span class="n">three</span><span class="p">)</span>
@@ -211,13 +209,12 @@ int main() {
 <span class="n">three</span> <span class="n">refers</span> <span class="n">to</span><span class="p">:</span>
 <span class="p">{</span><span class="s">'name'</span><span class="p">:</span> <span class="s">'three'</span><span class="p">,</span> <span class="s">'next'</span><span class="p">:</span> <span class="n">Graph</span><span class="p">(</span><span class="n">one</span><span class="p">)}</span>
 <span class="o">&lt;</span><span class="k">class</span> <span class="err">'</span><span class="nc">__main__</span><span class="o">.</span><span class="n">Graph</span><span class="s">'&gt;</span><span class="err">
-</span></code></pre>
-</div>
+</span></code></pre></div></div>
 <p>这个例子中，<code class="highlighter-rouge">three</code>这个实例在<code class="highlighter-rouge">__dict__</code>属性中保存了对它的实例字典的引用。</p>
 
 <p>下面这个例子，使用<code class="highlighter-rouge">Queue</code>对所有的引用来进行广度优先搜索，用来发现循环依赖。队列中的每个元素都是一个元组，里面包含了引用链和下一个需要检查的元素。从<code class="highlighter-rouge">three</code>这个实例开始，然后遍历它引用的所有的东西。</p>
 
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="c">#!/usr/bin/env python</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c">#!/usr/bin/env python</span>
 <span class="c"># encoding: utf-8</span>
 <span class="c">#</span>
 <span class="c"># Copyright (c) 2010 Doug Hellmann.  All rights reserved.</span>
@@ -284,11 +281,10 @@ int main() {
                 <span class="k">print</span> <span class="s">"put:"</span><span class="p">,</span> <span class="n">chain</span><span class="p">,</span> <span class="n">r</span>
                 <span class="n">to_process</span><span class="o">.</span><span class="n">put</span><span class="p">((</span><span class="n">chain</span><span class="p">,</span> <span class="n">r</span><span class="p">))</span>
     <span class="k">print</span> <span class="s">"---------------"</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>输出是</p>
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">Linking</span> <span class="n">nodes</span> <span class="n">Graph</span><span class="p">(</span><span class="n">one</span><span class="p">)</span><span class="o">.</span><span class="nb">next</span> <span class="o">=</span> <span class="n">Graph</span><span class="p">(</span><span class="n">two</span><span class="p">)</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">Linking</span> <span class="n">nodes</span> <span class="n">Graph</span><span class="p">(</span><span class="n">one</span><span class="p">)</span><span class="o">.</span><span class="nb">next</span> <span class="o">=</span> <span class="n">Graph</span><span class="p">(</span><span class="n">two</span><span class="p">)</span>
 <span class="n">Linking</span> <span class="n">nodes</span> <span class="n">Graph</span><span class="p">(</span><span class="n">two</span><span class="p">)</span><span class="o">.</span><span class="nb">next</span> <span class="o">=</span> <span class="n">Graph</span><span class="p">(</span><span class="n">three</span><span class="p">)</span>
 <span class="n">Linking</span> <span class="n">nodes</span> <span class="n">Graph</span><span class="p">(</span><span class="n">three</span><span class="p">)</span><span class="o">.</span><span class="nb">next</span> <span class="o">=</span> <span class="n">Graph</span><span class="p">(</span><span class="n">one</span><span class="p">)</span>
 <span class="c"># 初始化的状态 下一个要检查的是 three</span>
@@ -348,12 +344,11 @@ int main() {
   <span class="mi">4</span><span class="p">:</span> <span class="n">Graph</span><span class="p">(</span><span class="n">two</span><span class="p">)</span>
   <span class="mi">5</span><span class="p">:</span> <span class="p">{</span><span class="s">'name'</span><span class="p">:</span> <span class="s">'two'</span><span class="p">,</span> <span class="s">'next'</span><span class="p">:</span> <span class="n">Graph</span><span class="p">(</span><span class="n">three</span><span class="p">)}</span>
 <span class="o">---------------</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <h2 id="强制进行垃圾回收">强制进行垃圾回收</h2>
 <p>代码示例</p>
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">gc</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">gc</span>
 <span class="kn">import</span> <span class="nn">pprint</span>
 
 <span class="k">class</span> <span class="nc">Graph</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
@@ -387,10 +382,9 @@ int main() {
     <span class="k">print</span> <span class="s">'Remaining Garbage:'</span><span class="p">,</span> 
     <span class="n">pprint</span><span class="o">.</span><span class="n">pprint</span><span class="p">(</span><span class="n">gc</span><span class="o">.</span><span class="n">garbage</span><span class="p">)</span>
     <span class="k">print</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>输出</p>
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="err">$</span> <span class="n">python</span> <span class="n">gc_collect</span><span class="o">.</span><span class="n">py</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="err">$</span> <span class="n">python</span> <span class="n">gc_collect</span><span class="o">.</span><span class="n">py</span>
 
 <span class="n">Linking</span> <span class="n">nodes</span> <span class="n">Graph</span><span class="p">(</span><span class="n">one</span><span class="p">)</span><span class="o">.</span><span class="nb">next</span> <span class="o">=</span> <span class="n">Graph</span><span class="p">(</span><span class="n">two</span><span class="p">)</span>
 <span class="n">Linking</span> <span class="n">nodes</span> <span class="n">Graph</span><span class="p">(</span><span class="n">two</span><span class="p">)</span><span class="o">.</span><span class="nb">next</span> <span class="o">=</span> <span class="n">Graph</span><span class="p">(</span><span class="n">three</span><span class="p">)</span>
@@ -403,12 +397,11 @@ int main() {
 <span class="n">Collecting</span> <span class="mi">1</span> <span class="o">...</span>
 <span class="n">Unreachable</span> <span class="n">objects</span><span class="p">:</span> <span class="mi">0</span>
 <span class="n">Remaining</span> <span class="n">Garbage</span><span class="p">:[]</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>这个例子中，第一次进行垃圾回收的时候，循环引用就被打破了，除了自己，没有再引用 Graph 节点的了。<code class="highlighter-rouge">collect()</code>函数返回了 unreachable 的 objects 的数量(不知道怎么翻译比较好，反正就是没办法再获取到这三个实例了，因为之前对它三个的引用被赋值为 None 了)。这个例子中，这个值是6，因为有3个类实例和自己的实例属性字典。</p>
 
 <p>如果<code class="highlighter-rouge">Graph</code>有<code class="highlighter-rouge">__del()__</code>方法的话，垃圾回收就不能打破循环了。</p>
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">gc</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">gc</span>
 <span class="kn">import</span> <span class="nn">pprint</span>
 
 <span class="k">class</span> <span class="nc">Graph</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
@@ -440,10 +433,9 @@ int main() {
 <span class="k">print</span> <span class="s">'Unreachable objects:'</span><span class="p">,</span> <span class="n">n</span>
 <span class="k">print</span> <span class="s">'Remaining Garbage:'</span><span class="p">,</span> 
 <span class="n">pprint</span><span class="o">.</span><span class="n">pprint</span><span class="p">(</span><span class="n">gc</span><span class="o">.</span><span class="n">garbage</span><span class="p">)</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>输出</p>
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="err">$</span> <span class="n">python</span> <span class="n">gc_collect_with_del</span><span class="o">.</span><span class="n">py</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="err">$</span> <span class="n">python</span> <span class="n">gc_collect_with_del</span><span class="o">.</span><span class="n">py</span>
 
 <span class="n">Graph</span><span class="p">(</span><span class="n">one</span><span class="p">)</span><span class="o">.</span><span class="nb">next</span> <span class="o">=</span> <span class="n">Graph</span><span class="p">(</span><span class="n">two</span><span class="p">)</span>
 <span class="n">Graph</span><span class="p">(</span><span class="n">two</span><span class="p">)</span><span class="o">.</span><span class="nb">next</span> <span class="o">=</span> <span class="n">Graph</span><span class="p">(</span><span class="n">three</span><span class="p">)</span>
@@ -451,12 +443,11 @@ int main() {
 <span class="n">Collecting</span><span class="o">...</span>
 <span class="n">Unreachable</span> <span class="n">objects</span><span class="p">:</span> <span class="mi">6</span>
 <span class="n">Remaining</span> <span class="n">Garbage</span><span class="p">:[</span><span class="n">Graph</span><span class="p">(</span><span class="n">one</span><span class="p">),</span> <span class="n">Graph</span><span class="p">(</span><span class="n">two</span><span class="p">),</span> <span class="n">Graph</span><span class="p">(</span><span class="n">three</span><span class="p">)]</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>因为在循环中，超过一个的 object 拥有 finalizer 方法，垃圾回收机制没办法确定回收的顺序，为了安全起见，就保持原样了。</p>
 
 <p>当打破循环的时候，Graph 实例就可以被回收了。</p>
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">gc</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">gc</span>
 <span class="kn">import</span> <span class="nn">pprint</span>
 
 <span class="k">class</span> <span class="nc">Graph</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
@@ -504,10 +495,9 @@ int main() {
 <span class="k">print</span> <span class="s">'Unreachable objects:'</span><span class="p">,</span> <span class="n">n</span>
 <span class="k">print</span> <span class="s">'Remaining Garbage:'</span><span class="p">,</span> 
 <span class="n">pprint</span><span class="o">.</span><span class="n">pprint</span><span class="p">(</span><span class="n">gc</span><span class="o">.</span><span class="n">garbage</span><span class="p">)</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>输出</p>
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="err">$</span> <span class="n">python</span> <span class="n">gc_collect_break_cycle</span><span class="o">.</span><span class="n">py</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="err">$</span> <span class="n">python</span> <span class="n">gc_collect_break_cycle</span><span class="o">.</span><span class="n">py</span>
 
 <span class="n">Linking</span> <span class="n">nodes</span> <span class="n">Graph</span><span class="p">(</span><span class="n">one</span><span class="p">)</span><span class="o">.</span><span class="nb">next</span> <span class="o">=</span> <span class="n">Graph</span><span class="p">(</span><span class="n">two</span><span class="p">)</span>
 <span class="n">Linking</span> <span class="n">nodes</span> <span class="n">Graph</span><span class="p">(</span><span class="n">two</span><span class="p">)</span><span class="o">.</span><span class="nb">next</span> <span class="o">=</span> <span class="n">Graph</span><span class="p">(</span><span class="n">three</span><span class="p">)</span>
@@ -527,13 +517,12 @@ int main() {
 <span class="n">Collecting</span><span class="o">...</span>
 <span class="n">Unreachable</span> <span class="n">objects</span><span class="p">:</span> <span class="mi">0</span>
 <span class="n">Remaining</span> <span class="n">Garbage</span><span class="p">:[]</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>因为<code class="highlighter-rouge">gc.garbage</code>会有一个对上次的垃圾回收的引用，这里打破循环后必须清除掉它，减少引用计数，然后回收掉。</p>
 
 <h2 id="寻找对不能被垃圾回收的-objects-的引用">寻找对不能被垃圾回收的 objects 的引用</h2>
 <p>这个例子创建了一个循环依赖，然后通过垃圾回收的 Graph 实例来寻找和移除对父节点的引用。</p>
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">gc</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">gc</span>
 <span class="kn">import</span> <span class="nn">pprint</span>
 <span class="kn">import</span> <span class="nn">Queue</span>
 
@@ -605,26 +594,23 @@ int main() {
 <span class="k">print</span> <span class="s">'Unreachable objects:'</span><span class="p">,</span> <span class="n">n</span>
 <span class="k">print</span> <span class="s">'Remaining Garbage:'</span><span class="p">,</span> 
 <span class="n">pprint</span><span class="o">.</span><span class="n">pprint</span><span class="p">(</span><span class="n">gc</span><span class="o">.</span><span class="n">garbage</span><span class="p">)</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <h2 id="collection-thresholds-and-generations">Collection Thresholds and Generations</h2>
 <p>垃圾收集器维护了三个列表，每一个列表都成为”一代”。每一代的 objects 都会被检查的时候，它不是被垃圾回收就是进入了下一代，直到进入了被永久保存的的状态。</p>
 
 <p>垃圾收集的频率是可以调节的，这个和 objects 的分配和回收的数量有关。当分配的数目减去释放的数目大于这一代的 threshold 的时候，就会进行垃圾收集。这个 thresholds 可以使用<code class="highlighter-rouge">get_threshold()</code>函数看到。</p>
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">gc</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">gc</span>
 
 <span class="k">print</span> <span class="n">gc</span><span class="o">.</span><span class="n">get_threshold</span><span class="p">()</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>返回每一代的 threshold 的值</p>
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="err">$</span> <span class="n">python</span> <span class="n">gc_get_threshold</span><span class="o">.</span><span class="n">py</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="err">$</span> <span class="n">python</span> <span class="n">gc_get_threshold</span><span class="o">.</span><span class="n">py</span>
 
 <span class="p">(</span><span class="mi">700</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>thresholds 的值可以通过<code class="highlighter-rouge">set_threshold()</code>函数修改，这个例子在命令行中读取0代的 threshold 的值，然后然后分配 objects。</p>
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">gc</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">gc</span>
 <span class="kn">import</span> <span class="nn">pprint</span>
 <span class="kn">import</span> <span class="nn">sys</span>
 
@@ -652,11 +638,10 @@ int main() {
 <span class="n">objs</span> <span class="o">=</span> <span class="p">[]</span>
 <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">):</span>
     <span class="n">objs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">MyObj</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>不同的 thresholds 的值导致垃圾收集的频率发生变化，打开 debug 之后可以看到。</p>
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="err">$</span> <span class="n">python</span> <span class="o">-</span><span class="n">u</span> <span class="n">gc_threshold</span><span class="o">.</span><span class="n">py</span> <span class="mi">5</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="err">$</span> <span class="n">python</span> <span class="o">-</span><span class="n">u</span> <span class="n">gc_threshold</span><span class="o">.</span><span class="n">py</span> <span class="mi">5</span>
 
 <span class="n">Thresholds</span><span class="p">:</span> <span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
 <span class="n">Clear</span> <span class="n">the</span> <span class="n">collector</span> <span class="n">by</span> <span class="n">forcing</span> <span class="n">a</span> <span class="n">run</span>
@@ -684,10 +669,9 @@ int main() {
 <span class="n">gc</span><span class="p">:</span> <span class="n">collecting</span> <span class="n">generation</span> <span class="mf">2.</span><span class="o">..</span>
 <span class="n">gc</span><span class="p">:</span> <span class="n">objects</span> <span class="ow">in</span> <span class="n">each</span> <span class="n">generation</span><span class="p">:</span> <span class="mi">5</span> <span class="mi">6</span> <span class="mi">3232</span>
 <span class="n">gc</span><span class="p">:</span> <span class="n">done</span><span class="p">,</span> <span class="mf">0.0004</span><span class="n">s</span> <span class="n">elapsed</span><span class="o">.</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>threshold 的值变小可以让垃圾收集更频繁</p>
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="err">$</span> <span class="n">python</span> <span class="o">-</span><span class="n">u</span> <span class="n">gc_threshold</span><span class="o">.</span><span class="n">py</span> <span class="mi">2</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="err">$</span> <span class="n">python</span> <span class="o">-</span><span class="n">u</span> <span class="n">gc_threshold</span><span class="o">.</span><span class="n">py</span> <span class="mi">2</span>
 
 <span class="n">Thresholds</span><span class="p">:</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
 <span class="n">Clear</span> <span class="n">the</span> <span class="n">collector</span> <span class="n">by</span> <span class="n">forcing</span> <span class="n">a</span> <span class="n">run</span>
@@ -724,24 +708,22 @@ int main() {
 <span class="n">gc</span><span class="p">:</span> <span class="n">collecting</span> <span class="n">generation</span> <span class="mf">2.</span><span class="o">..</span>
 <span class="n">gc</span><span class="p">:</span> <span class="n">objects</span> <span class="ow">in</span> <span class="n">each</span> <span class="n">generation</span><span class="p">:</span> <span class="mi">2</span> <span class="mi">6</span> <span class="mi">3235</span>
 <span class="n">gc</span><span class="p">:</span> <span class="n">done</span><span class="p">,</span> <span class="mf">0.0004</span><span class="n">s</span> <span class="n">elapsed</span><span class="o">.</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <h2 id="调试">调试</h2>
 <p>Python gc 的 <code class="highlighter-rouge">set_debug()</code>可以接受一些参数来配置垃圾收集器。调试信息被输出到 stderr。</p>
 
 <p><code class="highlighter-rouge">DEBUG_STATS</code>标志可以打开统计报告，显示每一代追踪的 objects 的数量，还有收集花费的时间。</p>
 
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">gc</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">gc</span>
 
 <span class="n">gc</span><span class="o">.</span><span class="n">set_debug</span><span class="p">(</span><span class="n">gc</span><span class="o">.</span><span class="n">DEBUG_STATS</span><span class="p">)</span>
 
 <span class="n">gc</span><span class="o">.</span><span class="n">collect</span><span class="p">()</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>这个例子输出了两次独立的垃圾收集过程，一次是手动调用的时候，一次就是 Python 解释器退出的时候。</p>
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="err">$</span> <span class="n">python</span> <span class="n">gc_debug_stats</span><span class="o">.</span><span class="n">py</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="err">$</span> <span class="n">python</span> <span class="n">gc_debug_stats</span><span class="o">.</span><span class="n">py</span>
 
 <span class="n">gc</span><span class="p">:</span> <span class="n">collecting</span> <span class="n">generation</span> <span class="mf">2.</span><span class="o">..</span>
 <span class="n">gc</span><span class="p">:</span> <span class="n">objects</span> <span class="ow">in</span> <span class="n">each</span> <span class="n">generation</span><span class="p">:</span> <span class="mi">667</span> <span class="mi">2808</span> <span class="mi">0</span>
@@ -749,12 +731,11 @@ int main() {
 <span class="n">gc</span><span class="p">:</span> <span class="n">collecting</span> <span class="n">generation</span> <span class="mf">2.</span><span class="o">..</span>
 <span class="n">gc</span><span class="p">:</span> <span class="n">objects</span> <span class="ow">in</span> <span class="n">each</span> <span class="n">generation</span><span class="p">:</span> <span class="mi">0</span> <span class="mi">0</span> <span class="mi">3164</span>
 <span class="n">gc</span><span class="p">:</span> <span class="n">done</span><span class="p">,</span> <span class="mf">0.0009</span><span class="n">s</span> <span class="n">elapsed</span><span class="o">.</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>打开<code class="highlighter-rouge">DEBUG_COLLECTABLE</code>和<code class="highlighter-rouge">DEBUG_UNCOLLECTABLE</code>可以让垃圾回收器在检查每一个 object 的时候显示它能否被收集，你还可以同时和<code class="highlighter-rouge">DEBUG_OBJECTS</code>一起使用，这样的话，每个 objects 被检查的时候都会输出一些信息。</p>
 
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">gc</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">gc</span>
 
 <span class="n">flags</span> <span class="o">=</span> <span class="p">(</span><span class="n">gc</span><span class="o">.</span><span class="n">DEBUG_COLLECTABLE</span> <span class="o">|</span>
          <span class="n">gc</span><span class="o">.</span><span class="n">DEBUG_UNCOLLECTABLE</span> <span class="o">|</span>
@@ -801,12 +782,11 @@ int main() {
 <span class="k">print</span> <span class="s">'Collecting'</span>
 <span class="n">gc</span><span class="o">.</span><span class="n">collect</span><span class="p">()</span>
 <span class="k">print</span> <span class="s">'Done'</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>输出结果可以看出来，Graph 实例<code class="highlighter-rouge">one</code>和<code class="highlighter-rouge">two</code>出现了循环依赖，但是仍然可以被垃圾回收，因为它们没有自己的 findlizer 方法，而且它们只有来自可以被垃圾回收的 objects 的引用。虽然<code class="highlighter-rouge">CleanupGraph</code>有 finalizer 方法，但是<code class="highlighter-rouge">three</code>一旦引用计数变为0还是可以被重新识别的。相比之下，<code class="highlighter-rouge">four</code>和<code class="highlighter-rouge">five</code>就有循环以来，而且没办法被释放。</p>
 
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="err">$</span> <span class="n">python</span> <span class="o">-</span><span class="n">u</span> <span class="n">gc_debug_collectable_objects</span><span class="o">.</span><span class="n">py</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="err">$</span> <span class="n">python</span> <span class="o">-</span><span class="n">u</span> <span class="n">gc_debug_collectable_objects</span><span class="o">.</span><span class="n">py</span>
 
 <span class="n">Creating</span> <span class="n">Graph</span> <span class="mh">0x10045f750</span> <span class="p">(</span><span class="n">one</span><span class="p">)</span>
 <span class="n">Creating</span> <span class="n">Graph</span> <span class="mh">0x10045f790</span> <span class="p">(</span><span class="n">two</span><span class="p">)</span>
@@ -829,12 +809,11 @@ int main() {
 <span class="n">gc</span><span class="p">:</span> <span class="n">uncollectable</span> <span class="o">&lt;</span><span class="nb">dict</span> <span class="mh">0x100361de0</span><span class="o">&gt;</span>
 <span class="n">gc</span><span class="p">:</span> <span class="n">uncollectable</span> <span class="o">&lt;</span><span class="nb">dict</span> <span class="mh">0x100362140</span><span class="o">&gt;</span>
 <span class="n">Done</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p><code class="highlighter-rouge">DEBUG_INSTANCES</code>调试标志可以用来追踪旧式类，不继承 object 的那种。</p>
 
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">gc</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">gc</span>
 
 <span class="n">flags</span> <span class="o">=</span> <span class="p">(</span><span class="n">gc</span><span class="o">.</span><span class="n">DEBUG_COLLECTABLE</span> <span class="o">|</span>
          <span class="n">gc</span><span class="o">.</span><span class="n">DEBUG_UNCOLLECTABLE</span> <span class="o">|</span>
@@ -881,12 +860,11 @@ int main() {
 <span class="k">print</span> <span class="s">'Collecting'</span>
 <span class="n">gc</span><span class="o">.</span><span class="n">collect</span><span class="p">()</span>
 <span class="k">print</span> <span class="s">'Done'</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>这种情况下，<code class="highlighter-rouge">dict</code> object 包含的实例属性没有包含在输出中。</p>
 
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="err">$</span> <span class="n">python</span> <span class="o">-</span><span class="n">u</span> <span class="n">gc_debug_collectable_instances</span><span class="o">.</span><span class="n">py</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="err">$</span> <span class="n">python</span> <span class="o">-</span><span class="n">u</span> <span class="n">gc_debug_collectable_instances</span><span class="o">.</span><span class="n">py</span>
 
 <span class="n">Creating</span> <span class="n">Graph</span> <span class="mh">0x1004687a0</span> <span class="p">(</span><span class="n">one</span><span class="p">)</span>
 <span class="n">Creating</span> <span class="n">Graph</span> <span class="mh">0x1004687e8</span> <span class="p">(</span><span class="n">two</span><span class="p">)</span>
@@ -905,8 +883,7 @@ int main() {
 <span class="n">gc</span><span class="p">:</span> <span class="n">uncollectable</span> <span class="o">&lt;</span><span class="n">CleanupGraph</span> <span class="n">instance</span> <span class="n">at</span> <span class="mh">0x1004688c0</span><span class="o">&gt;</span>
 <span class="n">gc</span><span class="p">:</span> <span class="n">uncollectable</span> <span class="o">&lt;</span><span class="n">CleanupGraph</span> <span class="n">instance</span> <span class="n">at</span> <span class="mh">0x100468908</span><span class="o">&gt;</span>
 <span class="n">Done</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>主要参考 <a href="http://pymotw.com/2/gc/index.html">http://pymotw.com/2/gc/index.html</a></p>
 

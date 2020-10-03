@@ -73,7 +73,7 @@
 
 <p>核心代码如下</p>
 
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="k">class</span> <span class="nc">StaticFilesView</span><span class="p">(</span><span class="n">generic</span><span class="o">.</span><span class="n">View</span><span class="p">):</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">StaticFilesView</span><span class="p">(</span><span class="n">generic</span><span class="o">.</span><span class="n">View</span><span class="p">):</span>
     <span class="n">content_type</span> <span class="o">=</span> <span class="s">'text/plain'</span>
 
     <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -111,12 +111,11 @@
     <span class="n">information</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">TextField</span><span class="p">(</span><span class="s">'介绍'</span><span class="p">)</span>
     <span class="n">secret</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="s">'内部信息'</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">128</span><span class="p">)</span>
     <span class="n">created_time</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">DateTimeField</span><span class="p">(</span><span class="s">'创建时间'</span><span class="p">,</span> <span class="n">auto_now_add</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>可以看到直接将用户发送的数据作为 filter 的条件传递了，如果用户存在，而 data 中没有 <code class="highlighter-rouge">passkey</code> 就会造成 500，如果用户不存在就会403，所以可以使用 Django 中的 like 查询。它的特点就是字段名后面添加两个下划线，接着才是搜索条件，可以作为参数传给 filter。</p>
 
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="c"># 精确查询 where name="test"</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># 精确查询 where name="test"</span>
 <span class="n">Student</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="nb">filter</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">"test"</span><span class="p">)</span>
 
 <span class="c"># 按照字符串开头查询 where name="test%"</span>
@@ -124,8 +123,7 @@
 
 <span class="c"># 按照字符串包含查询 where name="%test%"</span>
 <span class="n">Student</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="nb">filter</span><span class="p">(</span><span class="n">name__contains</span><span class="o">=</span><span class="s">"test"</span><span class="p">)</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>其实这里还有个坑，但是后来给ph师傅说了之后还是填上了，防止题目过于难，就是这里Django使用的是sqlite3数据库，而sqlite3的like是不区分大小写的，而数据库里面存的确实是大小写混合的，然而实际上还是有两个解决方案的</p>
 
@@ -136,7 +134,7 @@
 
 <p>当然这个问题并不需要用户的密码，使用相同的方式去获取secret就好了。语句是<code class="highlighter-rouge">Student.objects.filter(group__secret__contains="pwnhub")</code>。最终利用的代码是</p>
 
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">requests</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">requests</span>
 <span class="kn">import</span> <span class="nn">json</span>
 
 <span class="kn">import</span> <span class="nn">string</span>
@@ -153,8 +151,7 @@
             <span class="k">break</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="nb">exit</span><span class="p">()</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 
 

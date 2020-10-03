@@ -69,15 +69,14 @@
 
 <p>一般认为说这样的代码是存在命令注入问题的，比如</p>
 
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">os</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">subprocess</span>
 
 <span class="n">host</span> <span class="o">=</span> <span class="s">"baidu.com"</span>
 
 <span class="n">subprocess</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="s">"ping -c 1 </span><span class="si">%</span><span class="s">s"</span> <span class="o">%</span> <span class="n">host</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s">"ping -c 1 </span><span class="si">%</span><span class="s">s"</span> <span class="o">%</span> <span class="n">host</span><span class="p">)</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>如果 <code class="highlighter-rouge">host = "baidu.com; ls"</code> 就可以执行 <code class="highlighter-rouge">ls</code> 了</p>
 
@@ -89,33 +88,30 @@
 
 <p>所以写法应该修改为</p>
 
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">subprocess</span><span class="o">.</span><span class="n">call</span><span class="p">([</span><span class="s">"ping"</span><span class="p">,</span> <span class="s">"-c"</span><span class="p">,</span> <span class="s">"1"</span><span class="p">,</span> <span class="n">host</span><span class="p">])</span>
-</code></pre>
-</div>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">subprocess</span><span class="o">.</span><span class="n">call</span><span class="p">([</span><span class="s">"ping"</span><span class="p">,</span> <span class="s">"-c"</span><span class="p">,</span> <span class="s">"1"</span><span class="p">,</span> <span class="n">host</span><span class="p">])</span>
+</code></pre></div></div>
 
 <p>如果传入 <code class="highlighter-rouge">host = "baidu.com; ls"</code>，就会提示 <code class="highlighter-rouge">ping: cannot resolve baidu.com; ls: Unknown host</code>，那是因为 ping 会把最后一个参数看做一个整体。下面是另外一个 demo</p>
 
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">os</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">subprocess</span>
 
 <span class="k">for</span> <span class="n">host</span> <span class="ow">in</span> <span class="p">[</span><span class="s">"baidu.com"</span><span class="p">,</span> <span class="s">"baidu.com; echo 1"</span><span class="p">]:</span>
     <span class="n">subprocess</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="s">"./ping.py -c 1 </span><span class="si">%</span><span class="s">s"</span> <span class="o">%</span> <span class="n">host</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
     <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s">"./ping.py -c 1 </span><span class="si">%</span><span class="s">s"</span> <span class="o">%</span> <span class="n">host</span><span class="p">)</span>
     <span class="n">subprocess</span><span class="o">.</span><span class="n">call</span><span class="p">([</span><span class="s">"./ping.py"</span><span class="p">,</span> <span class="s">"-c"</span><span class="p">,</span> <span class="s">"1"</span><span class="p">,</span> <span class="n">host</span><span class="p">])</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p><code class="highlighter-rouge">ping.py</code> 的内容是</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code><span class="c">#!/usr/bin/python</span>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c">#!/usr/bin/python</span>
 <span class="kn">import</span> <span class="nn">sys</span>
 <span class="k">print</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>输出是</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>['./ping.py', '-c', '1', 'baidu.com']
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>['./ping.py', '-c', '1', 'baidu.com']
 ['./ping.py', '-c', '1', 'baidu.com']
 ['./ping.py', '-c', '1', 'baidu.com']
 ['./ping.py', '-c', '1', 'baidu.com']
@@ -123,14 +119,12 @@
 ['./ping.py', '-c', '1', 'baidu.com']
 1
 ['./ping.py', '-c', '1', 'baidu.com; echo 1']
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>因为 <code class="highlighter-rouge">ping</code> 只会去最后一个 args 中取 host，并不会自己去 parse 参数，所以第三种写法是安全的，但是也不是绝对的，这里很多人都有误解。因为对于很多参数非常复杂的程序来说，args 提供的拆分可能并不是预期的，比如说</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>tcpdump -i lo tcp port 80
-</code></pre>
-</div>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>tcpdump -i lo tcp port 80
+</code></pre></div></div>
 
 <p>tcpdump 支持写各种 expression 作为过滤条件，这种情况下，args 还是按照空格分隔的，取到的参数是 <code class="highlighter-rouge">['tcpdump', '-i', 'lo', 'tcp', 'port', '80']</code>，而实际期望是 <code class="highlighter-rouge">['tcpdump', '-i', 'lo', 'tcp port 80']</code>，这样就不能简单的去看 args 了，tcpdump 就会自己去 parse 命令行参数，可能是比较宽松的，这种情况下，如果 expression 可以被用户控制，还是可能产生命令注入的问题。</p>
 
@@ -138,23 +132,20 @@
 
 <h2 id="可以写文件么">可以写文件么</h2>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>sudo python -c 'import subprocess; subprocess.call(["tcpdump", "-i", "lo", "-w /tmp/1.pcap"])'
-</code></pre>
-</div>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>sudo python -c 'import subprocess; subprocess.call(["tcpdump", "-i", "lo", "-w /tmp/1.pcap"])'
+</code></pre></div></div>
 
 <p>这种情况下会报错，提示 <code class="highlighter-rouge">tcpdump:  /tmp/1.pcap: No such file or directory</code></p>
 
 <p>这样才可以</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>sudo python -c 'import subprocess; subprocess.call(["tcpdump", "-i", "lo", "-w/tmp/2.pcap"])'
-</code></pre>
-</div>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>sudo python -c 'import subprocess; subprocess.call(["tcpdump", "-i", "lo", "-w/tmp/2.pcap"])'
+</code></pre></div></div>
 
 <h2 id="可以执行命令么">可以执行命令么</h2>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>sudo python -c 'import subprocess; subprocess.call(["tcpdump", "-i", "lo", "-G1", "-w", "/tmp/1.pcap", "-z/usr/games/cowsay"])'
-</code></pre>
-</div>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>sudo python -c 'import subprocess; subprocess.call(["tcpdump", "-i", "lo", "-G1", "-w", "/tmp/1.pcap", "-z/usr/games/cowsay"])'
+</code></pre></div></div>
 
 <p>更详细的利用可以参考 https://www.anquanke.com/post/id/87260</p>
 
@@ -162,11 +153,10 @@
 
 <p>虽然文档上没有提到，但是作为 Linux 下的通用做法，tcpdump 也支持使用 <code class="highlighter-rouge">--</code> 分隔参数和表达式。比如果有个文件的文件名是 <code class="highlighter-rouge">-la</code>，想使用 <code class="highlighter-rouge">ls -la</code> 查看文件的详细信息的话，就需要 <code class="highlighter-rouge">ls -la -- -la</code>。</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>sudo python -c 'import subprocess; subprocess.call(["tcpdump", "-i", "lo", "-G1", "-w", "/tmp/1.pcap", "--", "-z/usr/games/cowsay"])'
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>sudo python -c 'import subprocess; subprocess.call(["tcpdump", "-i", "lo", "-G1", "-w", "/tmp/1.pcap", "--", "-z/usr/games/cowsay"])'
 
 sudo python -c 'import subprocess; subprocess.call(["tcpdump", "-i", "lo", "-G1", "-w", "/tmp/1.pcap", "--", "tcp port 80"])'
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>无论最后一个参数怎么写，都不会出现问题了。</p>
 

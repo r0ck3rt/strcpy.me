@@ -67,7 +67,7 @@
 <img src="http://storage.virusdefender.net/blog/images/73/1.png" alt="b1.png" />
 将这个js下载下来，然后格式化一下代码。在http://paste.ubuntu.org.cn/1873103备份一个，蛋疼的github gitst貌似被墙了。
 里面有个这样的函数</p>
-<div class="language-javascript highlighter-rouge"><pre class="highlight"><code><span class="nx">getSubmitUrl</span><span class="err">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">b</span><span class="p">)</span> <span class="p">{</span>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">getSubmitUrl</span><span class="p">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">b</span><span class="p">)</span> <span class="p">{</span>
         <span class="kd">var</span> <span class="nx">a</span> <span class="o">=</span> <span class="nx">pt</span><span class="p">.</span><span class="nx">plogin</span><span class="p">.</span><span class="nx">loginUrl</span> <span class="o">+</span> <span class="nx">b</span> <span class="o">+</span> <span class="s2">"?"</span><span class="p">;</span>
         <span class="kd">var</span> <span class="nx">f</span> <span class="o">=</span> <span class="p">{};</span>
         <span class="k">if</span> <span class="p">(</span><span class="nx">b</span> <span class="o">==</span> <span class="s2">"login"</span><span class="p">)</span> <span class="p">{</span>
@@ -78,7 +78,7 @@
             <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
                 <span class="nx">f</span><span class="p">.</span><span class="nx">pt_vcode_v1</span> <span class="o">=</span> <span class="mi">0</span>
             <span class="p">}</span>
-            <span class="nx">f</span><span class="p">.</span><span class="nx">pt_verifysession_v1</span> <span class="o">=</span> <span class="nx">pt</span><span class="p">.</span><span class="nx">plogin</span><span class="p">.</span><span class="nx">pt_verifysession</span> <span class="o">||</span> <span class="nx">$</span><span class="p">.</span><span class="nx">cookie</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s2">"verifysession"</span><span class="p">);</span>
+            <span class="nx">f</span><span class="p">.</span><span class="nx">pt_verifysession_v1</span> <span class="o">=</span> <span class="nx">pt</span><span class="p">.</span><span class="nx">plogin</span><span class="p">.</span><span class="nx">pt_verifysession</span> <span class="o">||</span> <span class="nx">$</span><span class="p">.</span><span class="nx">cookie</span><span class="p">.</span><span class="kd">get</span><span class="p">(</span><span class="s2">"verifysession"</span><span class="p">);</span>
             <span class="kd">var</span> <span class="nx">d</span> <span class="o">=</span> <span class="nx">$</span><span class="p">(</span><span class="s2">"p"</span><span class="p">).</span><span class="nx">value</span><span class="p">;</span>
             <span class="k">if</span> <span class="p">(</span><span class="nx">pt</span><span class="p">.</span><span class="nx">plogin</span><span class="p">.</span><span class="nx">armSafeEdit</span><span class="p">.</span><span class="nx">isSafe</span><span class="p">)</span> <span class="p">{</span>
                 <span class="nx">d</span> <span class="o">=</span> <span class="nx">pt</span><span class="p">.</span><span class="nx">plogin</span><span class="p">.</span><span class="nx">armSafeEdit</span><span class="p">.</span><span class="nx">safepwd</span>
@@ -91,10 +91,9 @@
                 <span class="nx">f</span><span class="p">.</span><span class="nx">pt_rsa</span> <span class="o">=</span> <span class="mi">0</span>
             <span class="p">}</span>
         <span class="p">}</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>其中调用的加密函数是这样的</p>
-<div class="language-javascript highlighter-rouge"><pre class="highlight"><code><span class="nx">$</span><span class="p">.</span><span class="nx">Encryption</span> <span class="o">=</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">$</span><span class="p">.</span><span class="nx">Encryption</span> <span class="o">=</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
     <span class="kd">var</span> <span class="nx">hexcase</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
     <span class="kd">var</span> <span class="nx">b64pad</span> <span class="o">=</span> <span class="s2">""</span><span class="p">;</span>
     <span class="kd">var</span> <span class="nx">chrsz</span> <span class="o">=</span> <span class="mi">8</span><span class="p">;</span>
@@ -117,8 +116,7 @@
         <span class="na">getRSAEncryption</span><span class="p">:</span> <span class="nx">getRSAEncryption</span>
     <span class="p">}</span>
 <span class="p">}</span> <span class="p">();</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>上面的那个<code class="highlighter-rouge">getSubmitUrl</code>方法主要就是拼接登陆用的url，其中就要带上密码。可以发现密码并不是明文传输的，而且是有两种不同的算法，一个是RSA，一个是md5。</p>
 
 <p>这样大致的思路有了以后就可以直接去调试了，使用firebug在相关的语句上都下断点，果然进入了md5加密的函数。

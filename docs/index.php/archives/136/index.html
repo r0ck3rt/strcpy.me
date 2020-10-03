@@ -67,7 +67,7 @@
 
 <p><code class="highlighter-rouge">__new__</code>原型为<code class="highlighter-rouge">object.__new__(cls,[...])</code>,cls是一个类对象。当你调用<code class="highlighter-rouge">C(*arg, **kargs)</code>来创建一个类C的实例时。python内部调用是<code class="highlighter-rouge">C.__new__(C, *arg, **kargs)</code>,然后返回值是类C的实例c。在确认c是C的实例后，python再调用<code class="highlighter-rouge">C.__init__(c, *arg, **kargs)</code>来实例化c</p>
 
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="k">class</span> <span class="nc">Person</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">Person</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="k">def</span> <span class="nf">__new__</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">age</span><span class="p">):</span>
         <span class="k">print</span> <span class="s">'__new__ called.'</span>
         <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">Person</span><span class="p">,</span> <span class="n">cls</span><span class="p">)</span><span class="o">.</span><span class="n">__new__</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">age</span><span class="p">)</span>
@@ -83,43 +83,38 @@
 <span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">'__main__'</span><span class="p">:</span>
     <span class="n">piglei</span> <span class="o">=</span> <span class="n">Person</span><span class="p">(</span><span class="s">'piglei'</span><span class="p">,</span> <span class="mi">24</span><span class="p">)</span>
     <span class="k">print</span> <span class="n">piglei</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p><code class="highlighter-rouge">__new__</code>方法主要是当你继承一些不可变的class时(比如int, str, tuple)， 提供给你一个自定义这些类的实例化过程的途径。还有就是实现自定义的metaclass</p>
 
 <p>比如这样是没效果的</p>
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="k">class</span> <span class="nc">PositiveInteger</span><span class="p">(</span><span class="nb">int</span><span class="p">):</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">PositiveInteger</span><span class="p">(</span><span class="nb">int</span><span class="p">):</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">PositiveInteger</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">abs</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>这样才行</p>
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="k">class</span> <span class="nc">PositiveInteger</span><span class="p">(</span><span class="nb">int</span><span class="p">):</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">PositiveInteger</span><span class="p">(</span><span class="nb">int</span><span class="p">):</span>
     <span class="k">def</span> <span class="nf">__new__</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">PositiveInteger</span><span class="p">,</span> <span class="n">cls</span><span class="p">)</span><span class="o">.</span><span class="n">__new__</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="nb">abs</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>使用<code class="highlighter-rouge">__new__</code>可以实现单例模式</p>
 
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="k">class</span> <span class="nc">Singleton</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">Singleton</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="k">def</span> <span class="nf">__new__</span><span class="p">(</span><span class="n">cls</span><span class="p">):</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="s">'instance'</span><span class="p">):</span>
             <span class="n">cls</span><span class="o">.</span><span class="n">instance</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">Singleton</span><span class="p">,</span> <span class="n">cls</span><span class="p">)</span><span class="o">.</span><span class="n">__new__</span><span class="p">(</span><span class="n">cls</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">cls</span><span class="o">.</span><span class="n">instance</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>或者</p>
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="k">class</span> <span class="nc">Singleton</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">Singleton</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="n">_singleton</span> <span class="o">=</span> <span class="p">{}</span>
      
     <span class="k">def</span> <span class="nf">__new__</span><span class="p">(</span><span class="n">cls</span><span class="p">):</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">cls</span><span class="o">.</span><span class="n">_singleton</span><span class="o">.</span><span class="n">has_key</span><span class="p">(</span><span class="n">cls</span><span class="p">):</span>
             <span class="n">cls</span><span class="o">.</span><span class="n">_singleton</span><span class="p">[</span><span class="n">cls</span><span class="p">]</span> <span class="o">=</span> <span class="nb">object</span><span class="o">.</span><span class="n">__new__</span><span class="p">(</span><span class="n">cls</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">cls</span><span class="o">.</span><span class="n">_singleton</span><span class="p">[</span><span class="n">cls</span><span class="p">]</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>下面是<code class="highlighter-rouge">__metaclass__</code></p>
 
@@ -129,36 +124,33 @@
 </blockquote>
 
 <p>比如我们想给python的list增加一个<code class="highlighter-rouge">add</code>方法，实现<code class="highlighter-rouge">append</code>方法的功能的时候，我们可以这样</p>
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="k">class</span> <span class="nc">MyList</span><span class="p">(</span><span class="nb">list</span><span class="p">):</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">MyList</span><span class="p">(</span><span class="nb">list</span><span class="p">):</span>
     <span class="k">def</span> <span class="nf">add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>还可以这样</p>
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="k">class</span> <span class="nc">ListMetaclass</span><span class="p">(</span><span class="nb">type</span><span class="p">):</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">ListMetaclass</span><span class="p">(</span><span class="nb">type</span><span class="p">):</span>
     <span class="k">def</span> <span class="nf">__new__</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">attrs</span><span class="p">):</span>
         <span class="n">attrs</span><span class="p">[</span><span class="s">'add'</span><span class="p">]</span> <span class="o">=</span> <span class="k">lambda</span> <span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
         <span class="k">return</span> <span class="nb">type</span><span class="o">.</span><span class="n">__new__</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">attrs</span><span class="p">)</span>
 
 <span class="k">class</span> <span class="nc">MyList</span><span class="p">(</span><span class="nb">list</span><span class="p">):</span>
     <span class="n">__metaclass__</span> <span class="o">=</span> <span class="n">ListMetaclass</span> 
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>在这里面也能看出来<code class="highlighter-rouge">__new__</code>方法接受的参数是四个，而前面用到的一般只使用了cls一个参数</p>
 
 <p>对于</p>
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="k">class</span> <span class="nc">Foo</span><span class="p">(</span><span class="n">Bar</span><span class="p">):</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">Foo</span><span class="p">(</span><span class="n">Bar</span><span class="p">):</span>
     <span class="k">pass</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>Python做了如下的操作：</p>
 
 <p>Foo中有<code class="highlighter-rouge">__metaclass__</code>这个属性吗？如果是，Python会在内存中通过<code class="highlighter-rouge">__metaclass__</code>创建一个名字为Foo的类对象（我说的是类对象，请紧跟我的思路）。如果Python没有找到<code class="highlighter-rouge">__metaclass__</code>，它会继续在Bar（父类）中寻找<code class="highlighter-rouge">__metaclass__</code>属性，并尝试做和前面同样的操作。如果Python在任何父类中都找不到<code class="highlighter-rouge">__metaclass__</code>，它就会在模块层次中去寻找<code class="highlighter-rouge">__metaclass__</code>，并尝试做同样的操作。如果还是找不到<code class="highlighter-rouge">__metaclass__</code>,Python就会用内置的type来创建这个类对象。</p>
 
 <p>所以类的父类的<code class="highlighter-rouge">__metaclass__</code>是会被调用两次的，也就是说metaclass可以隐式地继承到子类，但子类自己却感觉不到。比如</p>
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="k">class</span> <span class="nc">ListMetaclass</span><span class="p">(</span><span class="nb">type</span><span class="p">):</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">ListMetaclass</span><span class="p">(</span><span class="nb">type</span><span class="p">):</span>
     <span class="k">def</span> <span class="nf">__new__</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">attrs</span><span class="p">):</span>
         <span class="k">print</span> <span class="n">name</span>
         <span class="n">attrs</span><span class="p">[</span><span class="s">'add'</span><span class="p">]</span> <span class="o">=</span> <span class="k">lambda</span> <span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
@@ -173,17 +165,15 @@
     
 <span class="n">l</span> <span class="o">=</span> <span class="n">MyList1</span><span class="p">()</span>
 <span class="n">l</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>可以发现输出为</p>
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">MyList</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">MyList</span>
 <span class="n">MyList1</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>使用<code class="highlighter-rouge">__metaclass__</code>实现的一个简单的orm</p>
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="k">class</span> <span class="nc">User</span><span class="p">(</span><span class="n">Model</span><span class="p">):</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">User</span><span class="p">(</span><span class="n">Model</span><span class="p">):</span>
     <span class="c"># 定义类的属性到列的映射：</span>
     <span class="nb">id</span> <span class="o">=</span> <span class="n">IntegerField</span><span class="p">(</span><span class="s">'id'</span><span class="p">)</span>
     <span class="n">name</span> <span class="o">=</span> <span class="n">StringField</span><span class="p">(</span><span class="s">'username'</span><span class="p">)</span>
@@ -238,8 +228,7 @@
         <span class="c"># 保存属性和列的映射关系</span>
         <span class="n">attrs</span><span class="p">[</span><span class="s">'__mappings__'</span><span class="p">]</span> <span class="o">=</span> <span class="n">mappings</span> 
         <span class="k">return</span> <span class="nb">type</span><span class="o">.</span><span class="n">__new__</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">attrs</span><span class="p">)</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>本文参考</p>
 

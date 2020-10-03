@@ -65,12 +65,11 @@
     <article class="markdown-body">
         <p>flash也是可以和js一样动态的请求和加载，类似这样
 a.com上的a.swf</p>
-<div class="language-js highlighter-rouge"><pre class="highlight"><code><span class="kd">var</span> <span class="nx">myLoader</span><span class="err">:</span><span class="nx">Loader</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Loader</span><span class="p">();</span>                     
-<span class="kd">var</span> <span class="nx">url</span><span class="err">:</span><span class="nx">URLRequest</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">URLRequest</span><span class="p">(</span><span class="s2">"http://b.com/b.swf"</span><span class="p">);</span> 
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">var</span> <span class="nx">myLoader</span><span class="p">:</span><span class="nx">Loader</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Loader</span><span class="p">();</span>                     
+<span class="kd">var</span> <span class="nx">url</span><span class="p">:</span><span class="nx">URLRequest</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">URLRequest</span><span class="p">(</span><span class="s2">"http://b.com/b.swf"</span><span class="p">);</span> 
 <span class="nx">myLoader</span><span class="p">.</span><span class="nx">load</span><span class="p">(</span><span class="nx">url</span><span class="p">);</span>
 <span class="nx">addChild</span><span class="p">(</span><span class="nx">myLoader</span><span class="p">);</span>  
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>但是默认情况下是swf是不能被跨域引用的，所以这个调用不一定成功，只有在b.swf设置了<code class="highlighter-rouge">System.security.allowDomain("a.com")</code>或者<code class="highlighter-rouge">System.security.allowDomain("*")</code>的情况下才可以。</p>
 
 <p>这样的话，b.swf中的有一些方法就可以在a.swf中调用了，而且发送的请求会显示来自b.swf，造成了跨域请求，大部分的浏览器是携带cookies的（貌似safari不发送）。</p>
@@ -80,7 +79,7 @@ a.com上的a.swf</p>
 <!--more-->
 
 <p>首先看一下exp的反编译后的代码。</p>
-<div class="language-java highlighter-rouge"><pre class="highlight"><code><span class="kn">package</span> <span class="o">{</span>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">package</span> <span class="o">{</span>
     <span class="kn">import</span> <span class="nn">flash.utils.*</span><span class="o">;</span>
     <span class="kn">import</span> <span class="nn">flash.display.*</span><span class="o">;</span>
     <span class="kn">import</span> <span class="nn">flash.system.*</span><span class="o">;</span>
@@ -143,20 +142,18 @@ a.com上的a.swf</p>
 
     <span class="o">}</span>
 <span class="o">}</span><span class="c1">//package</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>加载了<code class="highlighter-rouge">http://tieba.baidu.com/tb/static-itieba3/swf/itiebaVote.swf</code>这个swf，然后调用了里面的<code class="highlighter-rouge">requestVoteDetail</code>方法，我们再反编译一下百度贴吧的swf，看看这个方法是干什么的。</p>
 
-<div class="language-java highlighter-rouge"><pre class="highlight"><code><span class="kd">private</span> <span class="n">function</span> <span class="nf">initialize</span><span class="o">():</span><span class="kt">void</span><span class="o">{</span>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">private</span> <span class="n">function</span> <span class="nf">initialize</span><span class="o">():</span><span class="kt">void</span><span class="o">{</span>
             <span class="n">System</span><span class="o">.</span><span class="na">useCodePage</span> <span class="o">=</span> <span class="kc">true</span><span class="o">;</span>
             <span class="n">Security</span><span class="o">.</span><span class="na">allowDomain</span><span class="o">(</span><span class="s">"*"</span><span class="o">);</span>
             <span class="n">stage</span><span class="o">.</span><span class="na">scaleMode</span> <span class="o">=</span> <span class="s">"noScale"</span><span class="o">;</span>
             <span class="o">......</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>请求网络的代码</p>
-<div class="language-java highlighter-rouge"><pre class="highlight"><code><span class="kd">public</span> <span class="n">function</span> <span class="nf">requestVoteDetail</span><span class="o">():</span><span class="kt">void</span><span class="o">{</span>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">public</span> <span class="n">function</span> <span class="nf">requestVoteDetail</span><span class="o">():</span><span class="kt">void</span><span class="o">{</span>
             <span class="n">var</span> <span class="nl">_local1:</span><span class="n">String</span> <span class="o">=</span> <span class="n">Constants</span><span class="o">.</span><span class="na">URL_VOTE_DETAIL</span><span class="o">;</span>
             <span class="n">_local1</span> <span class="o">=</span> <span class="o">(</span><span class="n">_local1</span> <span class="o">+</span> <span class="n">pageData</span><span class="o">.</span><span class="na">voteId</span><span class="o">);</span>
             <span class="n">_local1</span> <span class="o">=</span> <span class="o">(</span><span class="n">_local1</span> <span class="o">+</span> <span class="o">(</span><span class="s">"?alt=json&amp;stamp="</span> <span class="o">+</span> <span class="n">Math</span><span class="o">.</span><span class="na">random</span><span class="o">()));</span>
@@ -166,10 +163,9 @@ a.com上的a.swf</p>
             <span class="n">_local3</span><span class="o">.</span><span class="na">addEventListener</span><span class="o">(</span><span class="n">IOErrorEvent</span><span class="o">.</span><span class="na">IO_ERROR</span><span class="o">,</span> <span class="n">onVoteDetailError</span><span class="o">);</span>
             <span class="n">_local3</span><span class="o">.</span><span class="na">load</span><span class="o">(</span><span class="n">_local2</span><span class="o">);</span>
         <span class="o">}</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>处理访问数据的方法</p>
-<div class="language-java highlighter-rouge"><pre class="highlight"><code><span class="kd">private</span> <span class="n">function</span> <span class="nf">onVoteDetailComplete</span><span class="o">(</span><span class="nl">_arg1:</span><span class="n">Event</span><span class="o">):</span><span class="kt">void</span><span class="o">{</span>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">private</span> <span class="n">function</span> <span class="nf">onVoteDetailComplete</span><span class="o">(</span><span class="nl">_arg1:</span><span class="n">Event</span><span class="o">):</span><span class="kt">void</span><span class="o">{</span>
             <span class="n">var</span> <span class="nl">_local2:</span><span class="n">URLLoader</span> <span class="o">=</span> <span class="o">(</span><span class="n">_arg1</span><span class="o">.</span><span class="na">currentTarget</span> <span class="n">as</span> <span class="n">URLLoader</span><span class="o">);</span>
             <span class="n">_local2</span><span class="o">.</span><span class="na">removeEventListener</span><span class="o">(</span><span class="n">Event</span><span class="o">.</span><span class="na">COMPLETE</span><span class="o">,</span> <span class="n">onVoteDetailComplete</span><span class="o">);</span>
             <span class="n">_local2</span><span class="o">.</span><span class="na">removeEventListener</span><span class="o">(</span><span class="n">IOErrorEvent</span><span class="o">.</span><span class="na">IO_ERROR</span><span class="o">,</span> <span class="n">onVoteDetailError</span><span class="o">);</span>
@@ -181,15 +177,13 @@ a.com上的a.swf</p>
                 <span class="n">dispatchEvent</span><span class="o">(</span><span class="k">new</span> <span class="n">DataManagerEvent</span><span class="o">(</span><span class="n">DataManagerEvent</span><span class="o">.</span><span class="na">VOTE_DETAIL_ERROR</span><span class="o">));</span>
             <span class="o">};</span>
         <span class="o">}</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>然后是json解码</p>
-<div class="language-java highlighter-rouge"><pre class="highlight"><code><span class="kd">public</span> <span class="kd">static</span> <span class="n">function</span> <span class="nf">fromJsonString</span><span class="o">(</span><span class="nl">_arg1:</span><span class="n">String</span><span class="o">,</span> <span class="nl">_arg2:</span><span class="n">Boolean</span><span class="o">=</span><span class="kc">false</span><span class="o">):</span><span class="n">VoteDetail</span><span class="o">{</span>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">public</span> <span class="kd">static</span> <span class="n">function</span> <span class="nf">fromJsonString</span><span class="o">(</span><span class="nl">_arg1:</span><span class="n">String</span><span class="o">,</span> <span class="nl">_arg2:</span><span class="n">Boolean</span><span class="o">=</span><span class="kc">false</span><span class="o">):</span><span class="n">VoteDetail</span><span class="o">{</span>
             <span class="n">var</span> <span class="nl">_local3:</span><span class="n">Object</span> <span class="o">=</span> <span class="n">JSON</span><span class="o">.</span><span class="na">decode</span><span class="o">(</span><span class="n">_arg1</span><span class="o">);</span>
             <span class="k">return</span> <span class="o">(</span><span class="n">fromObject</span><span class="o">(</span><span class="n">_local3</span><span class="o">,</span> <span class="n">_arg2</span><span class="o">));</span>
         <span class="o">}</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>但是这个地方请求获取的是html，不是json，所以处理就会抛出异常，自己catch住就好了，异常的信息里面是包含html的。</p>
 
 <p>这样就造成了一个跨域读取的漏洞，不仅仅是获取用户名，更可以csrf啊。</p>

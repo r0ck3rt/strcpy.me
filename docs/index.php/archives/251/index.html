@@ -64,7 +64,7 @@
     
     <article class="markdown-body">
         <p>在js中对特殊字符进行转义我们可以使用下面的函数，</p>
-<div class="language-js highlighter-rouge"><pre class="highlight"><code>    <span class="kd">function</span> <span class="nx">_html_encode</span><span class="p">(</span><span class="nx">str</span><span class="p">)</span> <span class="p">{</span>
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    <span class="kd">function</span> <span class="nx">_html_encode</span><span class="p">(</span><span class="nx">str</span><span class="p">)</span> <span class="p">{</span>
         <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">str</span><span class="p">.</span><span class="nx">length</span><span class="p">)</span> <span class="p">{</span>
             <span class="k">return</span> <span class="s2">""</span><span class="p">;</span>
         <span class="p">}</span>
@@ -75,35 +75,31 @@
         <span class="nx">result</span> <span class="o">=</span> <span class="nx">result</span><span class="p">.</span><span class="nx">replace</span><span class="p">(</span><span class="sr">/</span><span class="se">\"</span><span class="sr">/g</span><span class="p">,</span> <span class="s2">"&amp;quot;"</span><span class="p">);</span>
         <span class="k">return</span> <span class="nx">result</span><span class="p">;</span>
     <span class="p">}</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>然后可以将转义之后的代码写入页面，但是这样不一定是安全的，比如</p>
-<div class="language-html highlighter-rouge"><pre class="highlight"><code><span class="nt">&lt;button</span> <span class="na">onclick=</span><span class="s">"document.write(_html_encode('&lt;script&gt;alert(1)&lt;/script&gt;'))"</span><span class="nt">&gt;</span>click me 1<span class="nt">&lt;/button&gt;</span>
+<div class="language-html highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">&lt;button</span> <span class="na">onclick=</span><span class="s">"document.write(_html_encode('&lt;script&gt;alert(1)&lt;/script&gt;'))"</span><span class="nt">&gt;</span>click me 1<span class="nt">&lt;/button&gt;</span>
 <span class="nt">&lt;button</span> <span class="na">onclick=</span><span class="s">"document.write('&amp;lt;script&amp;gt;alert(1)&amp;lt;/script&amp;gt;')"</span><span class="nt">&gt;</span>click me 2<span class="nt">&lt;/button&gt;</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>第一个点击之后页面上显示<code class="highlighter-rouge">&lt;script&gt;alert(1)&lt;/script&gt;</code>，而第二个确实弹窗了。</p>
 
 <p>这是因为这段js是出现在html中的，在执行的时候会先对字符串进行html的解码(html的编码除了这个还有一个是<code class="highlighter-rouge">&amp;#</code>的形式)，第二句里面被转义的内容又被转义回来了，导致xss。而第一句没有解码过程，将转义后的内容写入页面。</p>
 
 <p>而在js上下文中，是不会对html编码进行自动解码的，比如把上面的代码放入script标签中</p>
-<div class="language-javascript highlighter-rouge"><pre class="highlight"><code>    <span class="kd">function</span> <span class="nx">click1</span><span class="p">(){</span>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    <span class="kd">function</span> <span class="nx">click1</span><span class="p">(){</span>
         <span class="nb">document</span><span class="p">.</span><span class="nx">write</span><span class="p">(</span><span class="nx">_html_encode</span><span class="p">(</span><span class="s2">"&lt;img src=# onerror=alert(1)&gt;"</span><span class="p">));</span>
     <span class="p">}</span>
     <span class="kd">function</span> <span class="nx">click2</span><span class="p">(){</span>
         <span class="nb">document</span><span class="p">.</span><span class="nx">write</span><span class="p">(</span><span class="s2">"&amp;lt;img src=# onerror=alert(1)&amp;gt;"</span><span class="p">);</span>
     <span class="p">}</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>都不会弹框的。
 在js环境中，会对js编码进行解码，比如\u的unicode，\x的十六进制形式，<code class="highlighter-rouge">\'</code> <code class="highlighter-rouge">\&lt;</code> <code class="highlighter-rouge">\&gt;</code>等等。</p>
 
 <p>比如说用户的输入被转义为<code class="highlighter-rouge">\&lt;img src\=# onerror\=alert(1)\&gt;</code>，在执行的时候也会被再次转义回来的，可以自己写个函数测试一下。</p>
 
 <p>还有一个就是textarea标签是自带html encode功能的，比如</p>
-<div class="language-html highlighter-rouge"><pre class="highlight"><code><span class="nt">&lt;textarea</span> <span class="na">id=</span><span class="s">"t"</span><span class="nt">&gt;&lt;script&gt;</span><span class="nx">alert</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="nt">&lt;/script&gt;&lt;/textarea&gt;</span>
-</code></pre>
-</div>
+<div class="language-html highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">&lt;textarea</span> <span class="na">id=</span><span class="s">"t"</span><span class="nt">&gt;&lt;script&gt;</span><span class="nx">alert</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="nt">&lt;/script&gt;&lt;/textarea&gt;</span>
+</code></pre></div></div>
 <p>在<code class="highlighter-rouge">document.getElementById("t").innerHTML</code>的时候返回的是<code class="highlighter-rouge">"&amp;lt;script&amp;gt;alert(1)&amp;lt;/script&amp;gt;"</code>。有相同功能的还有title，noscript等。</p>
 
 

@@ -70,7 +70,7 @@
 这里有一个案例 http://wooyun.org/bugs/wooyun-2010-025053
 还比如 https://github.com/tianyu0915/DjangoCaptcha/blob/1b43e2af98b055c2e4b55a724f772b352de9c914/DjangoCaptcha/<strong>init</strong>.py</p>
 
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="k">def</span> <span class="nf">check</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">code</span><span class="p">):</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">check</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">code</span><span class="p">):</span>
     <span class="s">""" 
     检查用户输入的验证码是否正确 
     """</span>
@@ -78,11 +78,10 @@
     <span class="k">if</span> <span class="ow">not</span> <span class="n">_code</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">False</span>
     <span class="k">return</span> <span class="n">_code</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="nb">str</span><span class="p">(</span><span class="n">code</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>比如说这个验证码用在用户登录页面上，每次提交都需要验证码。我就可以把第一次显示验证码<code class="highlighter-rouge">aeft</code>设置的cookies记录下来，每次提交这个cookies和对应的验证码<code class="highlighter-rouge">aeft</code>就行了。这样就能绕过验证码了。
 我后来基于这个自己改写的验证码逻辑是</p>
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="k">def</span> <span class="nf">check</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">code</span><span class="p">):</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">check</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">code</span><span class="p">):</span>
         <span class="s">"""
         检查用户输入的验证码是否正确
         """</span>
@@ -97,8 +96,7 @@
             <span class="k">return</span> <span class="bp">True</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">False</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p><strong>（3）.</strong> 验证码不过期
 验证码应该是有过期时间的，验证的时候判断，如果超时就认为是输入错误。参考上面我的代码</p>

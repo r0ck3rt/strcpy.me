@@ -98,20 +98,18 @@
 
 <p>在 Django 中，数据的核心是 model，所以只要给 model 加上我们的 decorator 就可以在 migrate 的时候声明为分区表了。</p>
 
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="nd">@TimeRangePartitioningSupport</span><span class="p">(</span><span class="s">"timestamp"</span><span class="p">,</span> <span class="n">default_interval</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nd">@TimeRangePartitioningSupport</span><span class="p">(</span><span class="s">"timestamp"</span><span class="p">,</span> <span class="n">default_interval</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">AttackLog</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
     <span class="n">timestamp</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">DateTimeField</span><span class="p">()</span>
 <span class="n">rule_id</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">TextField</span><span class="p">()</span>
 <span class="err">……</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>但是这个时候只有主表没有子表，需要再去扫描所有的 model 然后创建或者归档子表。</p>
 
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">model</span><span class="o">.</span><span class="n">partitioning</span><span class="o">.</span><span class="n">create_partition</span><span class="p">()</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">model</span><span class="o">.</span><span class="n">partitioning</span><span class="o">.</span><span class="n">create_partition</span><span class="p">()</span>
 <span class="n">model</span><span class="o">.</span><span class="n">partitioning</span><span class="o">.</span><span class="n">detach_partition</span><span class="p">()</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>雷池的分区自动创建和归档是通过后端的定时器来触发上面的 API 实现的。</p>
 

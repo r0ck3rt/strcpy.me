@@ -87,7 +87,7 @@
 
 <p>下面是一段伪代码</p>
 
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="k">class</span> <span class="nc">UserProfileAPI</span><span class="p">(</span><span class="n">APIView</span><span class="p">):</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">UserProfileAPI</span><span class="p">(</span><span class="n">APIView</span><span class="p">):</span>
     <span class="nd">@validate_serializer</span><span class="p">(</span><span class="n">ChangeUserProfileSeralizer</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">put</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="o">....</span>
@@ -98,8 +98,7 @@
 <span class="k">class</span> <span class="nc">ProblemAPI</span><span class="p">(</span><span class="n">APIView</span><span class="p">):</span>
     <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">success</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">paginate</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">Problem</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="nb">all</span><span class="p">(),</span> <span class="n">ProblemSerializer</span><span class="p">)))</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <h2 id="现有的文档存在什么问题">现有的文档存在什么问题</h2>
 
@@ -127,7 +126,7 @@
 
 <p>由一个 serializer 生成对应的描述性文档相对是比较简单的，一个典型的 serializer 是这样的</p>
 
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="k">class</span> <span class="nc">IPOrSubnetField</span><span class="p">(</span><span class="n">serializers</span><span class="o">.</span><span class="n">CharField</span><span class="p">):</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">IPOrSubnetField</span><span class="p">(</span><span class="n">serializers</span><span class="o">.</span><span class="n">CharField</span><span class="p">):</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">"help_text"</span><span class="p">):</span>
@@ -148,8 +147,7 @@
     <span class="n">f</span> <span class="o">=</span> <span class="n">serializers</span><span class="o">.</span><span class="n">IntegerField</span><span class="p">(</span><span class="n">required</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">allow_null</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">min_value</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
     <span class="n">g</span> <span class="o">=</span> <span class="n">serializers</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span> <span class="n">allow_blank</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
     <span class="n">h</span> <span class="o">=</span> <span class="n">serializers</span><span class="o">.</span><span class="n">ListField</span><span class="p">(</span><span class="n">child</span><span class="o">=</span><span class="n">IPOrSubnetField</span><span class="p">())</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>下面是我们生成的表格文档</p>
 
@@ -269,7 +267,7 @@
 
 <p>一个典型的单元测试是这样子的</p>
 
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="k">class</span> <span class="nc">ACLAPITest</span><span class="p">(</span><span class="n">APITestCase</span><span class="p">):</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">ACLAPITest</span><span class="p">(</span><span class="n">APITestCase</span><span class="p">):</span>
     <span class="nd">@document</span>
     <span class="k">def</span> <span class="nf">test_create_acl_rule</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="s">"""
@@ -290,12 +288,11 @@
         <span class="n">resp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">url</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">new_rule</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">assertSuccess</span><span class="p">(</span><span class="n">resp</span><span class="p">)</span>
         <span class="o">...</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>这里测试创建和编辑 ACL 规则。<code class="highlighter-rouge">@document</code> 是标记这个测试用例要生成文档。我们通过修改 Client 的属性来实现。</p>
 
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="k">def</span> <span class="nf">document</span><span class="p">(</span><span class="n">method</span><span class="p">):</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">document</span><span class="p">(</span><span class="n">method</span><span class="p">):</span>
     <span class="nd">@functools.wraps</span><span class="p">(</span><span class="n">method</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">handle</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">_testMethodName</span> <span class="o">==</span> <span class="n">method</span><span class="o">.</span><span class="n">__name__</span><span class="p">:</span>
@@ -305,14 +302,13 @@
         <span class="n">ret</span> <span class="o">=</span> <span class="n">method</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">ret</span>
     <span class="k">return</span> <span class="n">handle</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>要注意的是，只有修饰在当前正在执行的测试上，才会去更新这些属性，否则运行 <code class="highlighter-rouge">test_edit_acl_rule</code> 的时候，<code class="highlighter-rouge">test_create_acl_rule</code> 会把 Client 的属性改错。</p>
 
 <p>测试中的 Client 就是一个生成 HTTP 请求，然后模拟发送请求的组件，要想记录下请求和响应的内容，替换掉 DRF 原生 Client 是必须的，当然这个也不难，只要继承原来的 Client，重载相关方法，记录请求数据，然后调用父类的方法，再记录响应数据就可以了。</p>
 
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="k">class</span> <span class="nc">DocumentAPIClient</span><span class="p">(</span><span class="n">APIClient</span><span class="p">):</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">DocumentAPIClient</span><span class="p">(</span><span class="n">APIClient</span><span class="p">):</span>
     <span class="n">test_method_name</span> <span class="o">=</span> <span class="s">""</span>
     <span class="n">doc</span> <span class="o">=</span> <span class="s">""</span>
     <span class="n">running_module</span> <span class="o">=</span> <span class="s">""</span>
@@ -330,8 +326,7 @@
 
 <span class="k">class</span> <span class="nc">APITestCase</span><span class="p">(</span><span class="n">TestCase</span><span class="p">):</span>
     <span class="n">client_class</span> <span class="o">=</span> <span class="n">DocumentAPIClient</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>有几点是要注意的</p>
 
@@ -359,13 +354,12 @@
   <li>
     <p>不是所有的 API 都是可 JSON 的，比如上传或者下载文件的请求，生成文档的时候需要特例处理下。可以写一个自定义的 JSON Encoder 来实现。</p>
 
-    <div class="language-python highlighter-rouge"><pre class="highlight"><code> <span class="k">class</span> <span class="nc">MultipartToJsonLikeEncoder</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">JSONEncoder</span><span class="p">):</span>
+    <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code> <span class="k">class</span> <span class="nc">MultipartToJsonLikeEncoder</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">JSONEncoder</span><span class="p">):</span>
      <span class="k">def</span> <span class="nf">default</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">o</span><span class="p">):</span>
          <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">o</span><span class="p">,</span> <span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">o</span><span class="p">,</span> <span class="n">io</span><span class="o">.</span><span class="n">StringIO</span><span class="p">):</span>
              <span class="k">return</span> <span class="s">"&lt;文件上传 💾 &gt;"</span>
          <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">JSONEncoder</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">o</span><span class="p">)</span>
-</code></pre>
-    </div>
+</code></pre></div>    </div>
   </li>
   <li>
     <p>生成文档的时候要排序，将响应正确的排在前面，响应错误的排在后面。</p>

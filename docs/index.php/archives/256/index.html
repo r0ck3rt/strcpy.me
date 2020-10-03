@@ -89,22 +89,20 @@
 <p>上面的uers变量，如果你没有对它进行这些操作，也就说那个查询数据库的操作永远不会进行。</p>
 
 <p>而且queryset是支持链式调用的，比如说</p>
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="o">&gt;&gt;&gt;</span> <span class="n">q</span> <span class="o">=</span> <span class="n">Entry</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="nb">filter</span><span class="p">(</span><span class="n">headline__startswith</span><span class="o">=</span><span class="s">"What"</span><span class="p">)</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">&gt;&gt;&gt;</span> <span class="n">q</span> <span class="o">=</span> <span class="n">Entry</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="nb">filter</span><span class="p">(</span><span class="n">headline__startswith</span><span class="o">=</span><span class="s">"What"</span><span class="p">)</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="n">q</span> <span class="o">=</span> <span class="n">q</span><span class="o">.</span><span class="nb">filter</span><span class="p">(</span><span class="n">pub_date__lte</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">date</span><span class="o">.</span><span class="n">today</span><span class="p">())</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="n">q</span> <span class="o">=</span> <span class="n">q</span><span class="o">.</span><span class="n">exclude</span><span class="p">(</span><span class="n">body_text__icontains</span><span class="o">=</span><span class="s">"food"</span><span class="p">)</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="k">print</span><span class="p">(</span><span class="n">q</span><span class="p">)</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>最终只会执行一条sql语句，而不是三条。</p>
 
 <h2 id="python的生成器">Python的生成器</h2>
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="k">def</span> <span class="nf">generator</span><span class="p">():</span>                      
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">generator</span><span class="p">():</span>                      
     <span class="n">l</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">]</span>                  
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">l</span><span class="p">:</span>                       
         <span class="k">print</span> <span class="s">"in generator"</span><span class="p">,</span> <span class="n">i</span>
         <span class="k">yield</span> <span class="n">i</span> <span class="o">*</span> <span class="n">i</span>                   
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>yield 是一个类似 return 的关键字，只是这个函数返回的是个生成器。</p>
 
 <p>为了理解yield，你必须要理解：当你调用这个函数的时候，函数内部的代码并不立马执行，这个函数只是返回一个生成器对象。当你使用for进行迭代的时候，才会执行真正的代码。</p>
@@ -112,13 +110,12 @@
 <p>第一次迭代中你的函数会执行，从开始到达 yield 关键字，然后返回 yield 后的值作为第一次迭代的返回值. 然后，每次执行这个函数都会继续执行你在函数内部定义的那个循环的下一次，再返回那个值，直到没有可以返回的。</p>
 
 <p>直接<code class="highlighter-rouge">print generator()</code>，发现只有一个<code class="highlighter-rouge">&lt;generator object generator at 0x106b79e60&gt;</code>，而使用这样的代码，</p>
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">generator</span><span class="p">():</span>       
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">generator</span><span class="p">():</span>       
     <span class="k">print</span> <span class="s">"in for"</span><span class="p">,</span> <span class="n">i</span>
     <span class="k">print</span> <span class="n">i</span>                 
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>你就会发现打印的是</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>in generator 1 
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>in generator 1 
 in for 1 
 1
 
@@ -133,11 +130,10 @@ in for 9
 in generator 4 
 in for 16 
 16
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <h2 id="lazy-evaluation">Lazy evaluation</h2>
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="k">class</span> <span class="nc">Person</span><span class="p">:</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">Person</span><span class="p">:</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">occupation</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">occupation</span> <span class="o">=</span> <span class="n">occupation</span>
@@ -147,10 +143,9 @@ in for 16
         <span class="c"># 非常耗时的计算</span>
         <span class="n">sleep</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
         <span class="o">...</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>我们可以将这个耗时的操作推迟，在需要的时候才进行，然后缓存结果</p>
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="k">class</span> <span class="nc">Person</span><span class="p">:</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">Person</span><span class="p">:</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">occupation</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">occupation</span> <span class="o">=</span> <span class="n">occupation</span>
@@ -166,11 +161,10 @@ in for 16
         <span class="c"># 非常耗时的计算</span>
         <span class="n">sleep</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
         <span class="o">...</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>更加pythonic的方法是使用修饰符</p>
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="k">def</span> <span class="nf">lazy_property</span><span class="p">(</span><span class="n">fn</span><span class="p">):</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">lazy_property</span><span class="p">(</span><span class="n">fn</span><span class="p">):</span>
     <span class="s">'''Decorator that makes a property lazy-evaluated.
     '''</span>
     <span class="n">attr_name</span> <span class="o">=</span> <span class="s">'_lazy_'</span> <span class="o">+</span> <span class="n">fn</span><span class="o">.</span><span class="n">__name__</span>
@@ -192,8 +186,7 @@ in for 16
         <span class="c"># Get all relatives</span>
         <span class="n">relatives</span> <span class="o">=</span> <span class="o">...</span>
         <span class="k">return</span> <span class="n">relatives</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>参考 http://stevenloria.com/lazy-evaluated-properties-in-python/</p>
 

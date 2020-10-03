@@ -65,7 +65,7 @@
     <article class="markdown-body">
         <p>此问题在公司内部已经被两个项目组遇到了，表现为在删除操作的时候，PostgreSQL 进程会直接崩溃，服务器日志大概如下</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>2020-03-25 02:30:59.813 UTC [1] LOG:  server process (PID 89) was terminated by signal 11: Segmentation fault
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>2020-03-25 02:30:59.813 UTC [1] LOG:  server process (PID 89) was terminated by signal 11: Segmentation fault
 2020-03-25 02:30:59.813 UTC [1] DETAIL:  Failed process was running: DELETE FROM a;
 2020-03-25 02:30:59.815 UTC [1] LOG:  terminating any other active server processes
 2020-03-25 02:30:59.817 UTC [74] WARNING:  terminating connection because of crash of another server process
@@ -75,16 +75,14 @@
 2020-03-25 02:30:59.861 UTC [91] LOG:  database system was interrupted; last known up at 2020-03-25 02:30:49 UTC
 2020-03-25 02:31:00.032 UTC [91] LOG:  database system was not properly shut down; automatic recovery in progress
 2020-03-25 02:31:00.036 UTC [91] LOG:  redo starts at 0/1652540
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <h2 id="解决方案">解决方案</h2>
 
 <p>这是 PostgreSQL 的一个 bug，尝试运行</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>VACUUM FULL ANALYZE; 
-</code></pre>
-</div>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>VACUUM FULL ANALYZE; 
+</code></pre></div></div>
 
 <p>之后一般可以恢复正常。</p>
 
@@ -94,7 +92,7 @@
 
 <p>使用 PostgreSQL 11.0 版本，然后执行下面的 sql</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>CREATE TABLE a (
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>CREATE TABLE a (
      id bigint
 );
 
@@ -109,18 +107,16 @@ CREATE TABLE b (
 ALTER TABLE ONLY b ADD CONSTRAINT b_a_id_fkey FOREIGN KEY (a_id) REFERENCES a(id);
 
 ALTER TABLE a ADD x BOOLEAN NOT NULL DEFAULT FALSE; 
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>再执行 <code class="highlighter-rouge">DELETE FROM a;</code> 的时候就可以复现问题。</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>root=# DELETE FROM a;
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>root=# DELETE FROM a;
 server closed the connection unexpectedly
 	This probably means the server terminated abnormally
 	before or while processing the request.
 The connection to the server was lost. Attempting reset: Failed.
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>修复的代码见 <a href="https://git.postgresql.org/gitweb/?p=postgresql.git&amp;a=commit&amp;h=7636e5c60f">https://git.postgresql.org/gitweb/?p=postgresql.git&amp;a=commit&amp;h=7636e5c60f</a></p>
 

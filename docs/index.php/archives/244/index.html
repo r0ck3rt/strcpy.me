@@ -64,7 +64,7 @@
     
     <article class="markdown-body">
         <p>有一个app调用后端api的时候，会在http头里面放置<code class="highlighter-rouge">AUTH_TOKEN</code>字段，用来用户鉴权，但是后端一直返回用户没有登录，但是本地使用django自带的runserver是可以的。后端的代码是这样的。</p>
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="k">class</span> <span class="nc">TokenAuthMiddleware</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">TokenAuthMiddleware</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="k">def</span> <span class="nf">process_request</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">):</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">,</span> <span class="n">User</span><span class="p">):</span>
             <span class="k">return</span>
@@ -91,8 +91,7 @@
         <span class="k">return</span> <span class="n">HttpResponse</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">({</span><span class="s">"status"</span><span class="p">:</span> <span class="s">"error"</span><span class="p">,</span>
                                         <span class="s">"content"</span><span class="p">:</span> <span class="s">u"必须登录之后才能查看~"</span><span class="p">}),</span>
                             <span class="n">content_type</span><span class="o">=</span><span class="s">"application/json"</span><span class="p">)</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>就考虑后端可能取到的http头有问题，在日志中打印<code class="highlighter-rouge">request.META</code>，发现服务器上没有找到<code class="highlighter-rouge">AUTH_TOKEN</code>的http头，而加一个其他的http头就可以找到，猜测是下划线的问题，将<code class="highlighter-rouge">AUTH_TOKEN</code>换成<code class="highlighter-rouge">AUTH-TOKEN</code>后可以找到<code class="highlighter-rouge">HTTP_AUTH_TOKEN</code>字段。</p>
 
 <p>然后搜索发现nginx对header的字符做了限制，默认<code class="highlighter-rouge">underscores_in_headers</code>为<code class="highlighter-rouge">off</code>，表示如果header中包含下划线，则忽略掉。在配置文件增加<code class="highlighter-rouge">underscores_in_headers on;</code>就可以了。</p>

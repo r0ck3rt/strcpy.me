@@ -73,19 +73,16 @@
 
 <p>步骤很简单</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>sudo apt-get install libpam-google-authenticator
-</code></pre>
-</div>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>sudo apt-get install libpam-google-authenticator
+</code></pre></div></div>
 
 <p>然后</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>vim /etc/pam.d/sshd
-</code></pre>
-</div>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>vim /etc/pam.d/sshd
+</code></pre></div></div>
 <p>把<code class="highlighter-rouge">auth required pam_google_authenticator.so</code>加到文件开头。</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>vim /etc/ssh/sshd_config
-</code></pre>
-</div>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>vim /etc/ssh/sshd_config
+</code></pre></div></div>
 <p>把<code class="highlighter-rouge">ChallengeResponseAuthentication no</code>改成<code class="highlighter-rouge">ChallengeResponseAuthentication yes</code>。</p>
 
 <p>运行<code class="highlighter-rouge">google-authenticator</code>，可以都选择<code class="highlighter-rouge">y</code>，其中第一步完成后会有一个 url 和一堆数字代码，打开那个 url，使用洋葱扫描添加网站就好了。</p>

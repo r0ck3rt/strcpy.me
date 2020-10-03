@@ -64,7 +64,7 @@
     
     <article class="markdown-body">
         <p>最近在看 Typecho 的时候，在页面中发现了这样一段奇怪的代码</p>
-<div class="language-js highlighter-rouge"><pre class="highlight"><code><span class="kd">var</span> <span class="nx">_FKbCJ</span> <span class="o">=</span> <span class="c1">//'l'</span>
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">var</span> <span class="nx">_FKbCJ</span> <span class="o">=</span> <span class="c1">//'l'</span>
 <span class="s1">'l'</span><span class="o">+</span><span class="c1">//'h'</span>
 <span class="s1">'df'</span><span class="o">+</span><span class="s1">'f'</span><span class="c1">//'pga'</span>
 <span class="o">+</span><span class="s1">'6a4'</span><span class="c1">//'ZR'</span>
@@ -97,8 +97,7 @@
     <span class="p">}</span>
 
     <span class="k">return</span> <span class="nx">_FKbCJ</span><span class="p">;</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>猜测和反垃圾评论有关，因为机器人直接评论的话，一般都是直接 post 评论数据，如果在评论之前需要先运行一段 js，然后带上这段 js 生成的值再 post 的话，就能挡住一大批低级的机器人了。现在很多地方用到了这个，比如一些云 WAF，在可疑请求的时候也是返回一段 js 要运行的，更高级点的可以检测浏览器环境，鼠标手势等等。相对于验证码，对真实用户更友好一些。</p>
 
 <p>看 Typecho 的<a href="https://github.com/typecho/typecho/blob/3d4b7babb4451857815bcbc2b1f92d37ac4a40da/var/Typecho/Common.php#L963">源码</a>也确实是这样的。</p>
@@ -107,7 +106,7 @@
 
 <!--more-->
 
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="c"># coding=utf-8</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># coding=utf-8</span>
 <span class="kn">import</span> <span class="nn">time</span>
 <span class="kn">import</span> <span class="nn">random</span>
 <span class="kn">import</span> <span class="nn">hashlib</span>
@@ -174,10 +173,9 @@
  
 <span class="n">s</span> <span class="o">=</span> <span class="n">confuse_string</span><span class="p">()</span>
 <span class="k">print</span> <span class="n">s</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">s</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>生成这样的一段 js</p>
-<div class="language-js highlighter-rouge"><pre class="highlight"><code><span class="kd">function</span> <span class="nx">check</span><span class="p">(){</span><span class="kd">var</span> <span class="nx">v1fa</span> <span class="o">=</span> <span class="s1">'44f'</span><span class="o">+</span>  <span class="c1">///*7661*/</span>
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">function</span> <span class="nx">check</span><span class="p">(){</span><span class="kd">var</span> <span class="nx">v1fa</span> <span class="o">=</span> <span class="s1">'44f'</span><span class="o">+</span>  <span class="c1">///*7661*/</span>
 <span class="s1">'2d6'</span><span class="o">+</span> <span class="c1">///*4f2</span>
 <span class="s1">'02'</span><span class="o">+</span>  <span class="c1">//07</span>
 <span class="s1">'90f'</span><span class="o">+</span> <span class="cm">/*/00*/</span><span class="s1">'f4'</span><span class="o">+</span> <span class="c1">///*7</span>
@@ -204,8 +202,7 @@
 <span class="nx">v1fa</span><span class="p">.</span><span class="cm">/*5de*/</span><span class="nx">substr</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span> <span class="o">+</span>  
 <span class="nx">v1fa</span><span class="p">.</span><span class="cm">/*//bf2d*/</span><span class="nx">substr</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">19</span><span class="p">)</span> <span class="o">+</span>
 <span class="s1">''</span><span class="p">;}</span><span class="k">return</span> <span class="nx">r45a</span><span class="p">;}</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>js 的运行结果是<code class="highlighter-rouge">0-3944f2d60290f-3624-23-3444f2d60290ff422c2ebdb3729-6044f2d60290ff422c2ebdbd44f2d60290ff422c2ebdbd7be7b829bd44f2d60290ff422c2e-3044f2d6-7744f244f2d60290ff422c2eb</code>，而这个结果在生成 js 的时候就确定了，只要拿到评论数据和 session 中的值比较一下就好了~</p>
 

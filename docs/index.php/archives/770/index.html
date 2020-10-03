@@ -69,23 +69,21 @@
 
 <p>某个系统，突然数据库无法插入数据，报错如下</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>[2017-04-22 23:17:55] - [ERROR] - [utils.api.api:146]  - integer out of range
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[2017-04-22 23:17:55] - [ERROR] - [utils.api.api:146]  - integer out of range
 Traceback (most recent call last):
   File "/usr/local/lib/python3.5/dist-packages/django/db/backends/utils.py", line 64, in execute
     return self.cursor.execute(sql, params)
 psycopg2.DataError: integer out of range
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>然后表结构是这样的</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>user=# select * from acl_ip_data_id_seq;
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>user=# select * from acl_ip_data_id_seq;
    sequence_name    | last_value | start_value | increment_by |      max_value      | min_value | cache_value | log_cnt | is_cycled | is_called 
 --------------------+------------+-------------+--------------+---------------------+-----------+-------------+---------+-----------+-----------
  acl_ip_data_id_seq | 2147550630 |           1 |            1 | 9223372036854775807 |         1 |           1 |       7 | f         | t
 (1 row)
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>看到21亿这个数字很熟悉，是 int 最大值，怀疑是数据库 id 字段达到了最大值，无法继续增长了。</p>
 
@@ -103,16 +101,14 @@ psycopg2.DataError: integer out of range
 
 <p>入口是 Nginx，反代 uwsgi，日志中时不时出现下面的内容</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>[error] 54#54: *1644 connect() failed (111: Connection refused) while connecting to upstream, client: 172.18.0.5, server: _, request: "POST /log HTTP/1.1", upstream: "http://[::1]:10000/log", host: "mgt-api"
-</code></pre>
-</div>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[error] 54#54: *1644 connect() failed (111: Connection refused) while connecting to upstream, client: 172.18.0.5, server: _, request: "POST /log HTTP/1.1", upstream: "http://[::1]:10000/log", host: "mgt-api"
+</code></pre></div></div>
 
 <p>比较确定的是不是后面的 uwsgi 挂掉了，之后 tcpdump 抓包，发现每次出现问题的都是一个 IPV6 的地址，结合上面的日志恍然大悟，原来是 Nginx 反向代理写的是 <code class="highlighter-rouge">localhost</code> 而不是 <code class="highlighter-rouge">127.0.0.1</code>，而且在 host 文件中是</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>127.0.0.1	localhost
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>127.0.0.1	localhost
 ::1             localhos
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p><code class="highlighter-rouge">gethostbyname</code> 在多个 IP 的情况下，返回结果是随机的，导致有时候被解析到了 IPV6 的地址上了。</p>
 
@@ -120,7 +116,7 @@ psycopg2.DataError: integer out of range
 
 <p>某 Django 系统在 POST 的时候一直提示 CSRF 验证失败，即使看到的 <code class="highlighter-rouge">CSRFToken</code> 是没问题的，后来打开 <code class="highlighter-rouge">DEBUG</code> 看到提示，原因摘抄 Django 源码。</p>
 
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">is_secure</span><span class="p">():</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">is_secure</span><span class="p">():</span>
     <span class="c"># Suppose user visits http://example.com/</span>
     <span class="c"># An active network attacker (man-in-the-middle, MITM) sends a</span>
     <span class="c"># POST form that targets https://example.com/detonate-bomb/ and</span>
@@ -174,8 +170,7 @@ psycopg2.DataError: integer out of range
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span><span class="n">is_same_domain</span><span class="p">(</span><span class="n">referer</span><span class="o">.</span><span class="n">netloc</span><span class="p">,</span> <span class="n">host</span><span class="p">)</span> <span class="k">for</span> <span class="n">host</span> <span class="ow">in</span> <span class="n">good_hosts</span><span class="p">):</span>
         <span class="n">reason</span> <span class="o">=</span> <span class="n">REASON_BAD_REFERER</span> <span class="o">%</span> <span class="n">referer</span><span class="o">.</span><span class="n">geturl</span><span class="p">()</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reject</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">reason</span><span class="p">)</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 
         <section class="author-detail">

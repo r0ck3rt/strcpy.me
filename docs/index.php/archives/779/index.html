@@ -73,7 +73,7 @@
 
 <p>使用 <code class="highlighter-rouge">gcc -S -fno-stack-protector -o 1.s main.c</code> 和 <code class="highlighter-rouge">gcc -S -o 2.s main.c</code> 分别生成两个汇编文件，然后 diff 结果如下。</p>
 
-<div class="language-diff highlighter-rouge"><pre class="highlight"><code>35,37d34
+<div class="language-diff highlighter-rouge"><div class="highlight"><pre class="highlight"><code>35,37d34
 &lt; 	movq	%fs:40, %rax
 &lt; 	movq	%rax, -8(%rbp)
 &lt; 	xorl	%eax, %eax
@@ -83,12 +83,11 @@
 &lt; 	je	.L8
 &lt; 	call	__stack_chk_fail
 &lt; .L8:
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>实际调试也很清楚的展示了这一点</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>[----------------------------------registers-----------------------------------]
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[----------------------------------registers-----------------------------------]
 RAX: 0x1a5ab696c6c08700
 RBP: 0x7fffffffe340 --&gt; 0x400810 (&lt;__libc_csu_init&gt;:	push   r15)
 ...
@@ -103,8 +102,7 @@ Legend: code, data, rodata, value
 0x0000000000400732	9	int main(int argc, char **argv) {
 gdb-peda$ x 0x7fffffffe338
 0x7fffffffe338:	0x1a5ab696c6c08700
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>在部分情况下，<code class="highlighter-rouge">__stack_chk_fail</code> 也可以来漏洞利用，以后会提到。</p>
 
@@ -123,23 +121,21 @@ int main() {
 
 <p>使用 <code class="highlighter-rouge">gcc -g -o aslr aslr.c</code> 编译，然后 <code class="highlighter-rouge">cat /proc/sys/kernel/randomize_va_space</code> 是默认值 <code class="highlighter-rouge">2</code>，发现每次输出都是不一样的，说明堆栈的地址会每次都变化。</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>➜  new ./aslr
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>➜  new ./aslr
 0x7ffe9fbb2374                                                                                                                                         ➜  new ./aslr
 0x7ffd2d1286b4                                                                                                                                         ➜  new ./aslr
 0x7ffc697f8af4
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>但是如果在 GDB 中多次运行，然后 <code class="highlighter-rouge">p &amp;a</code> 会发现地址是固定不变的。</p>
 
 <p>然后使用 <code class="highlighter-rouge">echo 0 | sudo tee /proc/sys/kernel/randomize_va_space</code> 禁用 ASLR，再次运行，发现直接运行地址也是固定了的。</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>➜  new ./aslr
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>➜  new ./aslr
 0x7fffffffe3a4                                                                                                                                       ➜  new ./aslr
 0x7fffffffe3a4                                                                                                                                        ➜  new ./aslr
 0x7fffffffe3a4
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>ASLR 会随机化堆栈地址和共享库的地址，这样的话，我们就无法在 payload 中硬编码 <code class="highlighter-rouge">student</code> 的地址，也就是 shellcode 的地址了。因为 GDB 在调试的时候会默认禁用 ASLR，所以我们的 payload 在 GDB 中还是可以运行的。</p>
 
@@ -151,14 +147,13 @@ int main() {
 
 <p>先运行 <code class="highlighter-rouge">vuln</code> 进程，然后运行 <code class="highlighter-rouge">sudo gdb --pid $(pidof vuln)</code> attach 到指定的进程上。</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>gdb-peda$ p &amp;student
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>gdb-peda$ p &amp;student
 No symbol "student" in current context.
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>因为目前的栈 frame 不对，要切换到 main 函数所在的 frame。</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>gdb-peda$ bt
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>gdb-peda$ bt
 #0  0x00007ffff7b04230 in __read_nocancel () at ../sysdeps/unix/syscall-template.S:84
 #1  0x00007ffff7a875e8 in _IO_new_file_underflow (fp=0x7ffff7dd18e0 &lt;_IO_2_1_stdin_&gt;) at fileops.c:592
 #2  0x00007ffff7a8860e in __GI__IO_default_uflow (fp=0x7ffff7dd18e0 &lt;_IO_2_1_stdin_&gt;) at genops.c:413
@@ -174,8 +169,7 @@ gdb-peda$ up 5
 13	    scanf("%d", &amp;student.birth);
 gdb-peda$ p &amp;student
 $1 = (struct Student *) 0x7fffffffe360
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>确定了 <code class="highlighter-rouge">student</code> 直接运行时候的地址，直接修改 payload 即可。</p>
 

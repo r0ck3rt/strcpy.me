@@ -89,7 +89,7 @@ int main(int argc, char* argv[]) {
 
 <p><code class="highlighter-rouge">main</code> 函数的汇编代码可以看到</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>gdb-peda$ pdisas main
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>gdb-peda$ pdisas main
 Dump of assembler code for function main:
    0x000000000040053c &lt;+0&gt;:	push   rbp
    0x000000000040053d &lt;+1&gt;:	mov    rbp,rsp
@@ -104,12 +104,11 @@ Dump of assembler code for function main:
    0x0000000000400564 &lt;+40&gt;:	mov    eax,0x0
    0x0000000000400569 &lt;+45&gt;:	leave
    0x000000000040056a &lt;+46&gt;:	ret
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>在两个 <code class="highlighter-rouge">printf</code> 那里下断点，然后 <code class="highlighter-rouge">si</code> 跟进第一个 <code class="highlighter-rouge">printf@plt</code> 看下。</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>=&gt; 0x400400 &lt;printf@plt&gt;:	jmp    QWORD PTR [rip+0x200c12]        # 0x601018
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>=&gt; 0x400400 &lt;printf@plt&gt;:	jmp    QWORD PTR [rip+0x200c12]        # 0x601018
  | 0x400406 &lt;printf@plt+6&gt;:	push   0x0
  | 0x40040b &lt;printf@plt+11&gt;:	jmp    0x4003f0
  | 0x400410 &lt;__libc_start_main@plt&gt;:	jmp    QWORD PTR [rip+0x200c0a]        # 0x601020
@@ -118,12 +117,11 @@ Dump of assembler code for function main:
        0x40040b &lt;printf@plt+11&gt;:	jmp    0x4003f0
        0x400410 &lt;__libc_start_main@plt&gt;:	jmp    QWORD PTR [rip+0x200c0a]        # 0x601020
        0x400416 &lt;__libc_start_main@plt+6&gt;:	push   0x1
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>这时候 <code class="highlighter-rouge">0x601018</code> 存储的地址就是 <code class="highlighter-rouge">0x400406</code>，对应的是 <code class="highlighter-rouge">printf@plt+6</code>，跳转过去之后，接下来又是 <code class="highlighter-rouge">jmp 0x4003f0</code>，之后就是 <code class="highlighter-rouge">_dl_runtime_resolve_avx</code> 函数了。</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>   0x4003f0:	push   QWORD PTR [rip+0x200c12]        # 0x601008
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>   0x4003f0:	push   QWORD PTR [rip+0x200c12]        # 0x601008
 =&gt; 0x4003f6:	jmp    QWORD PTR [rip+0x200c14]        # 0x601010
  | 0x4003fc:	nop    DWORD PTR [rax+0x0]
  | 0x400400 &lt;printf@plt&gt;:	jmp    QWORD PTR [rip+0x200c12]        # 0x601018
@@ -133,12 +131,11 @@ Dump of assembler code for function main:
        0x7ffff7dee871 &lt;_dl_runtime_resolve_avx+1&gt;:	mov    rbx,rsp
        0x7ffff7dee874 &lt;_dl_runtime_resolve_avx+4&gt;:	and    rsp,0xffffffffffffffe0
        0x7ffff7dee878 &lt;_dl_runtime_resolve_avx+8&gt;:	sub    rsp,0x180
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>接下来就是一大堆指令，没耐心看了，直接按 <code class="highlighter-rouge">c</code> 到了第二个 <code class="highlighter-rouge">printf@plt</code> 那里，这时候发现第一个 <code class="highlighter-rouge">jmp</code> 的行为已经不一样了。</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>=&gt; 0x400400 &lt;printf@plt&gt;:	jmp    QWORD PTR [rip+0x200c12]        # 0x601018
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>=&gt; 0x400400 &lt;printf@plt&gt;:	jmp    QWORD PTR [rip+0x200c12]        # 0x601018
  | 0x400406 &lt;printf@plt+6&gt;:	push   0x0
  | 0x40040b &lt;printf@plt+11&gt;:	jmp    0x4003f0
  | 0x400410 &lt;__libc_start_main@plt&gt;:	jmp    QWORD PTR [rip+0x200c0a]        # 0x601020
@@ -147,8 +144,7 @@ Dump of assembler code for function main:
        0x7ffff7a62807 &lt;__printf+7&gt;:	test   al,al
        0x7ffff7a62809 &lt;__printf+9&gt;:	mov    QWORD PTR [rsp+0x28],rsi
        0x7ffff7a6280e &lt;__printf+14&gt;:	mov    QWORD PTR [rsp+0x30],rdx
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>这时候 <code class="highlighter-rouge">0x601018</code> 指向的地址已经是 <code class="highlighter-rouge">0x7ffff7a62800</code>，在 <code class="highlighter-rouge">__printf</code> 中，而之前是在 <code class="highlighter-rouge">printf@plt</code> 中。</p>
 
@@ -166,11 +162,10 @@ Dump of assembler code for function main:
 
 <p>plt 表的信息也可以通过 <code class="highlighter-rouge">readelf -r exe_file</code> 看到</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>Relocation section '.rela.plt' at offset 0x398 contains 2 entries:
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Relocation section '.rela.plt' at offset 0x398 contains 2 entries:
   Offset          Info           Type           Sym. Value    Sym. Name + Addend
 000000601018  000100000007 R_X86_64_JUMP_SLO 0000000000000000 printf@GLIBC_2.2.5 + 0
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <h3 id="利用">利用</h3>
 

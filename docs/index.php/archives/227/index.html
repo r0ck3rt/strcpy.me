@@ -66,19 +66,18 @@
         <p>今天想到给以前写的东西增加缓存支持，每次数据库发生变化之后主动的去修改缓存。当然最笨的方法就是在每次更新数据库的代码后面写一段更新缓存的代码，我们能不能在数据库被更新之后对外发一个信号呢，更新缓存的函数收到这个信号就知道数据库发生了变化。</p>
 
 <p>这个在django中其实已经有了实现，就是siginal，用法大致的这样的</p>
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="k">def</span> <span class="nf">my_callback</span><span class="p">(</span><span class="n">sender</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">my_callback</span><span class="p">(</span><span class="n">sender</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="k">print</span><span class="p">(</span><span class="s">"Request finished!"</span><span class="p">)</span>
 
 <span class="kn">from</span> <span class="nn">django.core.signals</span> <span class="kn">import</span> <span class="n">request_finished</span>
 
 <span class="n">request_finished</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">my_callback</span><span class="p">)</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>这个其实就是经典的观察者模式的实现。</p>
 
 <p>http://dongweiming.github.io/python-observer.html 有一段代码，我认为很好，直接贴过来了(其实后来发现原版在 https://github.com/faif/python-patterns/blob/master/observer.py )</p>
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="c"># 这个是观察者基类</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># 这个是观察者基类</span>
 <span class="k">class</span> <span class="nc">Subject</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_observers</span> <span class="o">=</span> <span class="p">[]</span>
@@ -158,11 +157,10 @@
     <span class="n">data1</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="mi">10</span>
     <span class="k">print</span> <span class="s">"Setting Data 2 = 15"</span>
     <span class="n">data2</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="mi">15</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>输出结果是</p>
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">Setting</span> <span class="n">Data</span> <span class="mi">1</span> <span class="o">=</span> <span class="mi">10</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">Setting</span> <span class="n">Data</span> <span class="mi">1</span> <span class="o">=</span> <span class="mi">10</span>
 <span class="n">DecimalViewer</span><span class="p">:</span> <span class="n">Subject</span> <span class="n">Data</span> <span class="mi">1</span> <span class="n">has</span> <span class="n">data</span> <span class="mi">10</span>
 <span class="n">HexViewer</span><span class="p">:</span> <span class="n">Subject</span> <span class="n">Data</span> <span class="mi">1</span> <span class="n">has</span> <span class="n">data</span> <span class="mh">0xa</span>
 <span class="n">Setting</span> <span class="n">Data</span> <span class="mi">2</span> <span class="o">=</span> <span class="mi">15</span>
@@ -182,11 +180,10 @@
 </span><span class="s">Setting Data 2 = 15</span><span class="err">
 </span><span class="s">DecimalViewer: Subject Data 2 has data 15</span><span class="err">
 </span><span class="s">[Finished in 0.1s]</span><span class="err">
-</span></code></pre>
-</div>
+</span></code></pre></div></div>
 
 <p>如果要像django那样直接传递一个类而不是类实例，我们可以使用classmethod或者staticmethod，仿照http://www.the5fire.com/python-observer.html 我自己写了一个</p>
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="c">#event.py</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c">#event.py</span>
 <span class="k">class</span> <span class="nc">Event</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="n">_observers</span> <span class="o">=</span> <span class="p">[]</span>
 
@@ -239,15 +236,13 @@
 <span class="n">Event</span><span class="o">.</span><span class="n">unregister</span><span class="p">(</span><span class="n">log1</span><span class="p">)</span>
 <span class="n">Data</span><span class="p">(</span><span class="mi">456</span><span class="p">)</span>
 
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>输出是</p>
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">log</span> <span class="nb">set</span> <span class="n">value</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">log</span> <span class="nb">set</span> <span class="n">value</span>
 <span class="n">log1</span> <span class="nb">set</span> <span class="n">value</span>
 <span class="n">log</span> <span class="nb">set</span> <span class="n">value</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>是不是更像django里面的用法了呢~</p>
 

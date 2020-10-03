@@ -73,7 +73,7 @@
 
 <p>根据 https://github.com/celery/kombu/blob/master/kombu/utils/limits.py ， 我简单改写了一下，可以很直观的看出来流量控制结果。</p>
 
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="c"># coding=utf-8</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># coding=utf-8</span>
 <span class="kn">import</span> <span class="nn">time</span>
 
 
@@ -125,8 +125,7 @@
         <span class="n">false</span> <span class="o">+=</span> <span class="mi">1</span>
         <span class="k">print</span> <span class="s">"Dropped, time left "</span><span class="p">,</span> <span class="n">bucket</span><span class="o">.</span><span class="n">expected_time</span><span class="p">()</span>
 <span class="k">print</span> <span class="n">true</span><span class="p">,</span> <span class="n">false</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>要注意的是，我上面的demo代码是存在存在并发竞态条件问题的，但是出于性能和简化写法的考虑，这个是可以接受的，毕竟流量限制一般也不需要太精确。</p>
 

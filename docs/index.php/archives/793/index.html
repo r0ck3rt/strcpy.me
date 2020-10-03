@@ -71,45 +71,40 @@
 
 <p>创建数据表，只含有一个 id 字段</p>
 
-<div class="language-sql highlighter-rouge"><pre class="highlight"><code><span class="k">CREATE</span> <span class="k">TABLE</span> <span class="n">example</span> <span class="k">AS</span> <span class="k">SELECT</span> <span class="n">generate_series</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">100000000</span><span class="p">)</span> <span class="k">AS</span> <span class="n">id</span><span class="p">;</span>
-</code></pre>
-</div>
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">CREATE</span> <span class="k">TABLE</span> <span class="n">example</span> <span class="k">AS</span> <span class="k">SELECT</span> <span class="n">generate_series</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">100000000</span><span class="p">)</span> <span class="k">AS</span> <span class="n">id</span><span class="p">;</span>
+</code></pre></div></div>
 
 <p>数据表大小为 <code class="highlighter-rouge">3.4G</code></p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>\dt+ example
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>\dt+ example
                       List of relations
  Schema |  Name   | Type  |  Owner   |  Size   | Description
 --------+---------+-------+----------+---------+-------------
  public | example | table | safeline | 3457 MB |
 (1 row)
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>创建索引</p>
 
-<div class="language-sql highlighter-rouge"><pre class="highlight"><code><span class="k">CREATE</span> <span class="k">INDEX</span> <span class="n">idx</span> <span class="k">ON</span> <span class="n">example</span> <span class="k">USING</span> <span class="n">brin</span><span class="p">(</span><span class="n">id</span><span class="p">)</span> <span class="k">WITH</span> <span class="p">(</span><span class="n">pages_per_range</span><span class="o">=</span><span class="mi">1024</span><span class="p">,</span> <span class="n">autosummarize</span><span class="o">=</span><span class="k">on</span><span class="p">);</span>
-</code></pre>
-</div>
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">CREATE</span> <span class="k">INDEX</span> <span class="n">idx</span> <span class="k">ON</span> <span class="n">example</span> <span class="k">USING</span> <span class="n">brin</span><span class="p">(</span><span class="n">id</span><span class="p">)</span> <span class="k">WITH</span> <span class="p">(</span><span class="n">pages_per_range</span><span class="o">=</span><span class="mi">1024</span><span class="p">,</span> <span class="n">autosummarize</span><span class="o">=</span><span class="k">on</span><span class="p">);</span>
+</code></pre></div></div>
 
 <p>索引大小为 <code class="highlighter-rouge">56K</code></p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>\dti+ idx
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>\dti+ idx
                         List of relations
  Schema | Name | Type  |  Owner   |  Table  | Size  | Description
 --------+------+-------+----------+---------+-------+-------------
  public | idx  | index | safeline | example | 56 kB |
 (1 row)
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>explain 一下 BRIN 索引使用情况</p>
 
-<div class="language-sql highlighter-rouge"><pre class="highlight"><code><span class="k">EXPLAIN</span> <span class="k">ANALYZE</span> <span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">example</span> <span class="k">WHERE</span> <span class="n">id</span> <span class="o">=</span> <span class="mi">492167</span><span class="p">;</span>
-</code></pre>
-</div>
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">EXPLAIN</span> <span class="k">ANALYZE</span> <span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">example</span> <span class="k">WHERE</span> <span class="n">id</span> <span class="o">=</span> <span class="mi">492167</span><span class="p">;</span>
+</code></pre></div></div>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>                                                           QUERY PLAN
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>                                                           QUERY PLAN
 --------------------------------------------------------------------------------------------------------------------------------
  Gather  (cost=1016.26..807981.92 rows=1 width=4) (actual time=12.700..86.880 rows=1 loops=1)
    Workers Planned: 2
@@ -123,23 +118,20 @@
  Planning Time: 0.318 ms
  Execution Time: 86.950 ms
 (11 rows)
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>索引很小，尝试使用 B-Tree 索引，体积会是 <code class="highlighter-rouge">2.1G</code>，大约是数据本身的三分之二大小了。</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>create index idx_btree on example (id);
-</code></pre>
-</div>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>create index idx_btree on example (id);
+</code></pre></div></div>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>\dti+ idx_btree
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>\dti+ idx_btree
                             List of relations
  Schema |   Name    | Type  |  Owner   |  Table  |  Size   | Description
 --------+-----------+-------+----------+---------+---------+-------------
  public | idx_btree | index | safeline | example | 2142 MB |
 (1 row)
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <h2 id="brin-索引结构">BRIN 索引结构</h2>
 
@@ -149,14 +141,13 @@
 
 <p>第一页 <code class="highlighter-rouge">meta page</code> 保存 BRIN 索引的元数据</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>select * from brin_metapage_info(get_raw_page('idx', 0));
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>select * from brin_metapage_info(get_raw_page('idx', 0));
 
    magic    | version | pagesperrange | lastrevmappage
 ------------+---------+---------------+----------------
  0xA8109CFA |       1 |          1024 |              1
 (1 row)
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>其中 <code class="highlighter-rouge">lastrevmapage</code> 表示 <code class="highlighter-rouge">revmap pages</code> 最后一页的下标，即从 <code class="highlighter-rouge">meta page</code> 的下一页到 <code class="highlighter-rouge">lastrevmapage</code> 都是 <code class="highlighter-rouge">revmap pages</code>。</p>
 
@@ -164,7 +155,7 @@
 
 <p>接下来的 revmap 相当于一个目录，保存数据块到索引记录的映射关系，而且每一页 revmap 的记录数是固定的。</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>SELECT * FROM brin_revmap_data(get_raw_page('idx', 1)) LIMIT 5;
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>SELECT * FROM brin_revmap_data(get_raw_page('idx', 1)) LIMIT 5;
 
  pages
 -------
@@ -174,8 +165,7 @@
  (2,4)
  (2,5)
 (5 rows)
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p><a href="https://github.com/postgres/postgres/blob/master/src/backend/access/brin/brin_revmap.c">下面的宏</a>可以计算出一个数据块在 revmap 中的位置，然后可以在 revmap 中查询到索引的位置。</p>
 
@@ -193,7 +183,7 @@
 
 <p>可以通过 <code class="highlighter-rouge">brin_page_items</code> 查看索引记录</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>SELECT * FROM brin_page_items(get_raw_page('idx', 2), 'idx') LIMIT 5;
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>SELECT * FROM brin_page_items(get_raw_page('idx', 2), 'idx') LIMIT 5;
 
  itemoffset | blknum | attnum | allnulls | hasnulls | placeholder |        value
 ------------+--------+--------+----------+----------+-------------+---------------------
@@ -203,8 +193,7 @@
           4 |   3072 |      1 | f        | f        | f           | {694273 .. 925696}
           5 |   4096 |      1 | f        | f        | f           | {925697 .. 1157120}
 (5 rows)
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>其中 <code class="highlighter-rouge">blknum</code>、<code class="highlighter-rouge">attnum</code>、<code class="highlighter-rouge">allnulls</code>、<code class="highlighter-rouge">hasnulls</code>、<code class="highlighter-rouge">value</code> 分别表示起始块数、字段下标、是否全为空值、是否存在空值和块范围内字段的最大最小值。这其中最重要的就是 value 这个字段了。PostgreSQL 就是根据这个 value 值来判断是否需要扫描这些数据块。以第三个条目为例，它的 <code class="highlighter-rouge">blknum</code> 为 2048，说明是 2048 - 3072 数据块存储的数据范围是 <code class="highlighter-rouge">462849 .. 694272</code>。如果我们查询的 SQL 是 <code class="highlighter-rouge">WHERE id = 492167</code>，那在这些数据块中再搜索就足够了。</p>
 
@@ -286,13 +275,12 @@ LWLockRelease(AutovacuumLock);
 
 <p>当请求队列已满且 <code class="highlighter-rouge">autovacuum_work</code> 来不及处理时 <code class="highlighter-rouge">autosummarize</code> 就会失败。只要数据插入足够快，索引就跟不上我，所以即便是开启了 <code class="highlighter-rouge">autosummarize</code>，在大量数据被不断插入表中的情况下，请求队列会被迅速占满，导致 <code class="highlighter-rouge">autosummarize</code> 失败，出现大量错误日志：</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>XXXX-XX-XX 09:39:55.832 UTC [67] LOG:  request for BRIN range summarization for index "idx" page 58311 was not recorded
-</code></pre>
-</div>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>XXXX-XX-XX 09:39:55.832 UTC [67] LOG:  request for BRIN range summarization for index "idx" page 58311 was not recorded
+</code></pre></div></div>
 
 <p>BRIN 索引需要定期被更新，否则就可能存在大量还未索引的记录，还有数据更新也导致一些索引条目失效或统计出现偏差。在 BRIN 索引不完整时过滤性能变差，无论查询的记录是否在已存在的索引条目中，在 Heap bitmap index scan 之后仍需要重新 Recheck 未统计的数据块，速度可能会变得非常缓慢，从原来的十几毫秒延长到几秒是有可能的，进而影响相关的业务系统。下面是一个比较极端的情况下的查询。</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>EXPLAIN (analyze,buffers) SELECT * FROM example WHERE id &gt; 100 AND id &lt;= 2000;
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>EXPLAIN (analyze,buffers) SELECT * FROM example WHERE id &gt; 100 AND id &lt;= 2000;
 
                                                        QUERY PLAN
 -------------------------------------------------------------------------------------------------------------------------
@@ -307,12 +295,11 @@ LWLockRelease(AutovacuumLock);
  Planning Time: 0.782 ms
  Execution Time: 6048.140 ms
 (10 rows)
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>对比使用 Parallel Seq Scan 的查询：</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>EXPLAIN (analyze,buffers) SELECT * FROM example WHERE id &gt; 100 AND id &lt;= 2000;
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>EXPLAIN (analyze,buffers) SELECT * FROM example WHERE id &gt; 100 AND id &lt;= 2000;
 
                                                           QUERY PLAN
 ------------------------------------------------------------------------------------------------------------------------------
@@ -327,20 +314,18 @@ LWLockRelease(AutovacuumLock);
  Planning Time: 0.659 ms
  Execution Time: 1646.008 ms
 (10 rows)
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <h3 id="autovacuum-为什么也没用">autovacuum 为什么也没用</h3>
 
 <p>上面一节提到了问题可能是 <code class="highlighter-rouge">AutoAacuumWork</code> 队列已满，但是日常运行的 <code class="highlighter-rouge">autovacuum</code> 也应该可以实现相同的效果，为什么也没用呢。为了方便测试，我们可单独将表运行 <code class="highlighter-rouge">autovacuum</code> 的相关阈值调低，其他保持则默认值：</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>ALTER TABLE example SET (autovacuum_vacuum_scale_factor = 0.0);
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ALTER TABLE example SET (autovacuum_vacuum_scale_factor = 0.0);
 ALTER TABLE example SET (autovacuum_vacuum_threshold = 100);
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>然后根据我们的业务场景，不断在表中插入大量数据，然后观察 <code class="highlighter-rouge">pg_stat_user_tables</code> 中记录：</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>safeline=# SELECT * FROM pg_stat_user_tables where relname = 'example';
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>safeline=# SELECT * FROM pg_stat_user_tables where relname = 'example';
 
 -[ RECORD 1 ]-------+------------------------------
 relid               | 32824
@@ -365,8 +350,7 @@ vacuum_count        | 0
 autovacuum_count    | 0
 analyze_count       | 0
 autoanalyze_count   | 3
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>发现 <code class="highlighter-rouge">last_autovacuum</code> 一直为空，而 <code class="highlighter-rouge">autoanalyze</code> 能够预期地按照一定频率运行。原来在 <code class="highlighter-rouge">do_autovacuum</code> 函数执行时，大致可分为 <code class="highlighter-rouge">dovacuum</code>、<code class="highlighter-rouge">doanalyze</code> 和 <code class="highlighter-rouge">doworkitems</code> 等过程，而其中的 <code class="highlighter-rouge">relation_needs_vacanalyze</code> 函数将判断关系表是否需要做 <code class="highlighter-rouge">vacuum</code> 或 <code class="highlighter-rouge">analyze</code>。在仅插入的场景下，表的 <code class="highlighter-rouge">n_dead_tup</code> 很小（本例中没有行被更新或删除，<code class="highlighter-rouge">n_dead_tup</code> 为 0），如果只调整 <code class="highlighter-rouge">autovacuum</code> 的运行频率等配置，<code class="highlighter-rouge">dovacuum</code> 也可能不会被触发。</p>
 

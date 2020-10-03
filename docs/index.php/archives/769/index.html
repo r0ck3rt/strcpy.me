@@ -69,7 +69,7 @@
 
 <p>类似后端模板注入，前端模板注入也是存在的，被分析最多的还是 AngularJS，详见 <a href="https://docs.angularjs.org/guide/security">https://docs.angularjs.org/guide/security</a></p>
 
-<p>首先是后端直接生成前端模板，比如 <code class="highlighter-rouge"><span class="p">{</span><span class="err">{1+1</span><span class="p">}</span><span class="err">}</span></code>，然后 AngularJS 去解析和执行。</p>
+<p>首先是后端直接生成前端模板，比如 <code class="highlighter-rouge">{{1+1}}</code>，然后 AngularJS 去解析和执行。</p>
 
 <p>其次是前端部分表达式和表达式 parser 的参数可以被控制，比如 <code class="highlighter-rouge">$watch(userContent, ...)</code> <code class="highlighter-rouge">$compile(userContent)</code></p>
 
@@ -82,7 +82,7 @@
 <p>MVVM框架一般不需要关心 dom 操作，但是有时候还必须手动的插入和控制一些 HTML，框架也是提供了相关的方法的。</p>
 
 <ul>
-  <li>Vue.js 的 <code class="highlighter-rouge"><span class="p">{</span><span class="err">{{</span><span class="w"> </span><span class="err">data</span><span class="w"> </span><span class="p">}</span><span class="err">}}</span></code> 和 <code class="highlighter-rouge">v-html</code></li>
+  <li>Vue.js 的 <code class="highlighter-rouge">{{{ data }}}</code> 和 <code class="highlighter-rouge">v-html</code></li>
   <li>AngularJS 的 <code class="highlighter-rouge">$sce.trustAsHtml</code></li>
   <li>React 的 <code class="highlighter-rouge">dangerouslySetInnerHTML</code></li>
 </ul>
@@ -101,7 +101,7 @@
 
 <p>Vue.js 在 SSR 的时候，默认会转义用户输入，但是在样式中忘记处理了，导致了 XSS。见下面的 demo</p>
 
-<div class="language-js highlighter-rouge"><pre class="highlight"><code><span class="kd">var</span> <span class="nx">Vue</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">'vue'</span><span class="p">)</span>
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">var</span> <span class="nx">Vue</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">'vue'</span><span class="p">)</span>
 <span class="kd">var</span> <span class="nx">app</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Vue</span><span class="p">({</span>
   <span class="nx">data</span> <span class="p">()</span> <span class="p">{</span>
     <span class="k">return</span> <span class="p">{</span>
@@ -117,8 +117,7 @@
   <span class="k">if</span> <span class="p">(</span><span class="nx">error</span><span class="p">)</span> <span class="k">throw</span> <span class="nx">error</span>
   <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">html</span><span class="p">)</span>
 <span class="p">})</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 
 

@@ -74,7 +74,7 @@ $$havarsin(θ) = sin^{2}(\frac{θ}{2}) = \frac{1 - cos(θ)}{2}$$
 <p>R是地球半径，$l_{1} l_{2}$是两点纬度，Δk是两点经度的差。</p>
 
 <p>使用Python实现就是</p>
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">sin</span><span class="p">,</span> <span class="n">asin</span><span class="p">,</span> <span class="n">cos</span><span class="p">,</span> <span class="n">radians</span><span class="p">,</span> <span class="n">fabs</span><span class="p">,</span> <span class="n">sqrt</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">sin</span><span class="p">,</span> <span class="n">asin</span><span class="p">,</span> <span class="n">cos</span><span class="p">,</span> <span class="n">radians</span><span class="p">,</span> <span class="n">fabs</span><span class="p">,</span> <span class="n">sqrt</span>
 
 <span class="n">EARTH_RADIUS</span><span class="o">=</span><span class="mi">6371</span>           <span class="c"># 地球平均半径，6371km</span>
 
@@ -95,8 +95,7 @@ $$havarsin(θ) = sin^{2}(\frac{θ}{2}) = \frac{1 - cos(θ)}{2}$$
     <span class="n">distance</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">EARTH_RADIUS</span> <span class="o">*</span> <span class="n">asin</span><span class="p">(</span><span class="n">sqrt</span><span class="p">(</span><span class="n">h</span><span class="p">))</span>
 
     <span class="k">return</span> <span class="n">distance</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>这样的话，每次搜索附近的人，都可以通过公式计算出来附近x km的经纬度范围，然后去数据库查询。这样的缺点就是每次生成的sql语句都不一样，很难缓存，毕竟附近的人不是特别精确的，只要两个人在同一个范围内就可以认为是在一起的。</p>
 
@@ -107,7 +106,7 @@ $$havarsin(θ) = sin^{2}(\frac{θ}{2}) = \frac{1 - cos(θ)}{2}$$
 <p>接下来将经度和纬度的编码合并，奇数位是纬度，偶数位是经度，得到编码 11100 11101 00100 01111 00000 01101 01011 00001。最后，用0-9、b-z（去掉a, i, l, o）这32个字母进行base32编码，得到(39.92324, 116.3906)的编码为wx4g0ec1。</p>
 
 <p>http://code.google.com/p/python-geohash/有一个Python的geohash库，相关的api有</p>
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">r</span> <span class="o">=</span> <span class="n">encode</span><span class="p">(</span><span class="mf">50.231</span><span class="p">,</span> <span class="mf">15.234</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">r</span> <span class="o">=</span> <span class="n">encode</span><span class="p">(</span><span class="mf">50.231</span><span class="p">,</span> <span class="mf">15.234</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
 <span class="k">print</span> <span class="n">r</span>
 <span class="k">print</span> <span class="n">bbox</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
 <span class="k">print</span> <span class="n">expand</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
@@ -116,8 +115,7 @@ u2fvf
 {'s': 50.2294921875, 'e': 15.2490234375, 'w': 15.205078125, 'n': 50.2734375}
 ['u2fvc', 'u2fvg', 'u2fy1', 'u2fy4', 'u2fy5', 'u2fv9', 'u2fvd', 'u2fve', 'u2fvf']
 """</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>由上面的计算公式可以得到，编码长度为3的时候，一个编码能表示大约155km边长的正方形，4位的时候代表大约40km * 20km的矩形，5位的时候能代表5km * 5km的正方形。</p>
 
 <p>还有一个误差对照表</p>

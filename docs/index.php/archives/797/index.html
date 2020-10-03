@@ -86,7 +86,7 @@
   <li>潜在的命令注入问题，更何况这里使用了 <code class="highlighter-rouge">shell=True</code> 参数。这个可以借助下面的代码来理解</li>
 </ul>
 
-<div class="highlighter-rouge"><pre class="highlight"><code> &gt;&gt;&gt; subprocess.check_output("curl http://example.com; expr 1024 + 20480000", shell=False)
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code> &gt;&gt;&gt; subprocess.check_output("curl http://example.com; expr 1024 + 20480000", shell=False)
 Traceback (most recent call last):
   ......
 FileNotFoundError: [Errno 2] No such file or directory: 'curl http://example.com; expr 1024 + 20480000': 'curl http://example.com; expr 1024 + 20480000'
@@ -94,31 +94,27 @@ FileNotFoundError: [Errno 2] No such file or directory: 'curl http://example.com
 
 &gt;&gt;&gt; subprocess.check_output("curl http://example.com; expr 1024 + 20480000", shell=True)
 b'<span class="cp">&lt;!doctype html&gt;</span>\n<span class="nt">&lt;html&gt;</span>\n<span class="nt">&lt;head&gt;</span>\n    .....<span class="nt">&lt;/html&gt;</span>\n20481024\n'
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <h2 id="一个重大逻辑错误">一个重大逻辑错误</h2>
 
 <p>如果说上面的问题不影响 poc 的效果的话，下面这个问题是真正的错误了。</p>
 
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="k">if</span> <span class="p">(</span><span class="s">"[global]"</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="s">"encrypt passwords"</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="s">"name resolve order"</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">response</span><span class="p">):</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">if</span> <span class="p">(</span><span class="s">"[global]"</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="s">"encrypt passwords"</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="s">"name resolve order"</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">response</span><span class="p">):</span>
 	<span class="k">pass</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>根据漏洞原理和代码写法猜测，原作者的意思是 response 中同时含有这三个字符串，但是这里的写法却错误的理解了 Python 的优先级。</p>
 
 <p>这个代码等价于</p>
 
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="bp">True</span> <span class="ow">and</span> <span class="bp">True</span> <span class="ow">and</span> <span class="p">(</span><span class="s">"name resolve order"</span><span class="p">)</span> <span class="ow">in</span> <span class="s">"name resolve order"</span>
-</code></pre>
-</div>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="bp">True</span> <span class="ow">and</span> <span class="bp">True</span> <span class="ow">and</span> <span class="p">(</span><span class="s">"name resolve order"</span><span class="p">)</span> <span class="ow">in</span> <span class="s">"name resolve order"</span>
+</code></pre></div></div>
 
 <p>只要 response 含有最后一个字符串就会是 <code class="highlighter-rouge">True</code>，实际应该为</p>
 
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="s">"str1"</span> <span class="ow">in</span> <span class="n">response</span> <span class="ow">and</span> <span class="s">"str2"</span> <span class="ow">in</span> <span class="n">response</span>
-</code></pre>
-</div>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="s">"str1"</span> <span class="ow">in</span> <span class="n">response</span> <span class="ow">and</span> <span class="s">"str2"</span> <span class="ow">in</span> <span class="n">response</span>
+</code></pre></div></div>
 
 <p>这种写法。</p>
 
@@ -126,12 +122,11 @@ b'<span class="cp">&lt;!doctype html&gt;</span>\n<span class="nt">&lt;html&gt;</
 
 <p>还是在这段代码</p>
 
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="k">if</span> <span class="p">(</span><span class="s">"[global]"</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="s">"encrypt passwords"</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="s">"name resolve order"</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">response</span><span class="p">):</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">if</span> <span class="p">(</span><span class="s">"[global]"</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="s">"encrypt passwords"</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="s">"name resolve order"</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">response</span><span class="p">):</span>
     <span class="k">pass</span>
 <span class="k">elif</span> <span class="n">NSIP_RESPONSE_MSG</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">"utf-8"</span><span class="p">,</span> <span class="n">errors</span><span class="o">=</span><span class="s">"ignore"</span><span class="p">)):</span>
     <span class="k">pass</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>很多处没必要 bytes 转 string，直接去 bytes 匹配即可，毕竟匹配的都是英文单词，不涉及到解码的问题。</p>
 
@@ -164,22 +159,21 @@ b'<span class="cp">&lt;!doctype html&gt;</span>\n<span class="nt">&lt;html&gt;</
 
 <p>我们后续的设计就是基于 yaml 格式去写 poc，使用表达式去判断漏洞，这样可以兼顾静态和动态特性，下面是一个 demo。</p>
 
-<div class="language-yaml highlighter-rouge"><pre class="highlight"><code><span class="s">name</span><span class="pi">:</span> <span class="s">poc-yaml-bash-cve-2014-6271</span>
-<span class="s">set</span><span class="pi">:</span>
-  <span class="s">r1</span><span class="pi">:</span> <span class="s">randomInt(800000000, 1000000000)</span>
-  <span class="s">r2</span><span class="pi">:</span> <span class="s">randomInt(800000000, 1000000000)</span>
-<span class="s">rules</span><span class="pi">:</span>
-  <span class="pi">-</span> <span class="s">method</span><span class="pi">:</span> <span class="s">GET</span>
-    <span class="s">headers</span><span class="pi">:</span>
-      <span class="s">User-Agent</span><span class="pi">:</span> <span class="s2">"</span><span class="s">()</span><span class="nv"> </span><span class="s">{</span><span class="nv"> </span><span class="s">:;</span><span class="nv"> </span><span class="s">};</span><span class="nv"> </span><span class="s">echo;</span><span class="nv"> </span><span class="s">echo;</span><span class="nv"> </span><span class="s">/bin/bash</span><span class="nv"> </span><span class="s">-c</span><span class="nv"> </span><span class="s">'expr</span><span class="nv"> </span><span class="s">{{r1}}</span><span class="nv"> </span><span class="s">+</span><span class="nv"> </span><span class="s">{{r2}}'"</span>
-    <span class="s">follow_redirects</span><span class="pi">:</span> <span class="s">false</span>
-    <span class="s">expression</span><span class="pi">:</span> <span class="s">response.body.bcontains(bytes(string(r1 + r2)))</span>
-<span class="s">detail</span><span class="pi">:</span>
-  <span class="s">author</span><span class="pi">:</span> <span class="s">neal1991(https://github.com/neal1991)</span>
-  <span class="s">links</span><span class="pi">:</span>
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">name</span><span class="pi">:</span> <span class="s">poc-yaml-bash-cve-2014-6271</span>
+<span class="na">set</span><span class="pi">:</span>
+  <span class="na">r1</span><span class="pi">:</span> <span class="s">randomInt(800000000, 1000000000)</span>
+  <span class="na">r2</span><span class="pi">:</span> <span class="s">randomInt(800000000, 1000000000)</span>
+<span class="na">rules</span><span class="pi">:</span>
+  <span class="pi">-</span> <span class="na">method</span><span class="pi">:</span> <span class="s">GET</span>
+    <span class="na">headers</span><span class="pi">:</span>
+      <span class="na">User-Agent</span><span class="pi">:</span> <span class="s2">"</span><span class="s">()</span><span class="nv"> </span><span class="s">{</span><span class="nv"> </span><span class="s">:;</span><span class="nv"> </span><span class="s">};</span><span class="nv"> </span><span class="s">echo;</span><span class="nv"> </span><span class="s">echo;</span><span class="nv"> </span><span class="s">/bin/bash</span><span class="nv"> </span><span class="s">-c</span><span class="nv"> </span><span class="s">'expr</span><span class="nv"> </span><span class="s">{{r1}}</span><span class="nv"> </span><span class="s">+</span><span class="nv"> </span><span class="s">{{r2}}'"</span>
+    <span class="na">follow_redirects</span><span class="pi">:</span> <span class="no">false</span>
+    <span class="na">expression</span><span class="pi">:</span> <span class="s">response.body.bcontains(bytes(string(r1 + r2)))</span>
+<span class="na">detail</span><span class="pi">:</span>
+  <span class="na">author</span><span class="pi">:</span> <span class="s">neal1991(https://github.com/neal1991)</span>
+  <span class="na">links</span><span class="pi">:</span>
     <span class="pi">-</span> <span class="s">https://github.com/opsxcq/exploit-CVE-2014-6271</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>expression 字段是一个表达式，除了上面的函数，还支持正则、字符串处理等函数，map、括号嵌套等更是基本语法层面的东西，并不是死板简单的正则匹配参数。我们使用的实现是 Google 的 cel 表达式，它是带有类型检查的，有错误根本通不过检查，不会到运行时才报错。同时我们给了 <code class="highlighter-rouge">poclint</code> 工具，类似 <code class="highlighter-rouge">go fmt</code> 帮助你格式化 poc 的代码和检查错误。</p>
 

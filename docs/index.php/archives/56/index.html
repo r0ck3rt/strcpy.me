@@ -73,7 +73,7 @@
 
 <p>后来还尝试了几种别的办法，最终的到的提示是使用类似队列的结构来保存每个节点的”热度”，每次get或者set一个值的时候就把这个key放到最上面，然后在最底部的肯定就是最不常用的元素了。这样就避免了使用O(n)来查找那个元素。</p>
 
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="c">#coding=utf-8</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c">#coding=utf-8</span>
 <span class="k">class</span> <span class="nc">LRUCache</span><span class="p">:</span>
 
     <span class="c"># @param capacity, an integer</span>
@@ -111,20 +111,18 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">history</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">oldest</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">history</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">cache</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>这个题里面应该还有一个经常会搞错的地方，就是在判断get时候成功的时候，如果题目没有限定value的值都是正数，就不能使用<code class="highlighter-rouge">if self.get(key) == -1</code>来确定没有命中缓存了。因为有可能value的值就是-1。当然这个题目确定了value就是正数了。</p>
 
 <p>如果使用链表的话，结构上应该会更简单一点。set的时候使用c++ map查找，map的底层貌似是使用红黑树实现的，所以肯定低于O(n)的时间复杂度。但是找到这个值以后怎么将这个节点移到链表头上去呢，因为现在指针是指向的这个节点，我们如果知道它的上一个节点才能简单的删除。这个时候就会用到一个技巧，可以让当前节点和它后面的节点交换一下，然后再移动。这个技巧貌似在编程之美上提到过。如果从头来找这个节点又变成了O(n)了，同理，再单独维护一个尾指针就好了。当然如果使用双向链表就不存在这个问题了。</p>
-<div class="language-c highlighter-rouge"><pre class="highlight"><code><span class="c1">//交换两个值
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">//交换两个值
 </span><span class="n">tmp</span> <span class="o">=</span> <span class="n">p3</span> <span class="o">-&gt;</span> <span class="n">data</span>
 <span class="n">p3</span> <span class="o">-&gt;</span> <span class="n">data</span> <span class="o">=</span> <span class="n">p2</span> <span class="o">-&gt;</span> <span class="n">data</span>
 <span class="n">p2</span> <span class="o">-&gt;</span> <span class="n">data</span> <span class="o">=</span> <span class="n">tmp</span>
 <span class="c1">//移动节点
 </span><span class="n">p2</span> <span class="o">-&gt;</span> <span class="n">next</span> <span class="o">=</span> <span class="n">p3</span> <span class="o">-&gt;</span> <span class="n">next</span>
 <span class="n">p3</span> <span class="o">-&gt;</span> <span class="n">next</span> <span class="o">=</span> <span class="n">head</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 <p><img src="http://storage.virusdefender.net/blog/images/56/1.png" alt="p1.png" />
 <img src="http://storage.virusdefender.net/blog/images/56/2.png" alt="p2.png" />
 <img src="http://storage.virusdefender.net/blog/images/56/3.jpg" alt="4a8e2688jw1em8ehbuatkj20on0ze0zr.jpg" /></p>

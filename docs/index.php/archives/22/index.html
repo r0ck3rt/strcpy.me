@@ -88,7 +88,7 @@ cal函数，大致就是自己通过一系列的运算产生一个字符串，</
 这个程序的逻辑搞清了，自己实现以下那个cal函数就好了。注意里面有一个全局变量，先去找到它的值。
 <img src="http://storage.virusdefender.net/blog/images/22/7.png" alt="7.png" />
 然后自己把c代码复制过来，稍加调整。</p>
-<div class="language-c highlighter-rouge"><pre class="highlight"><code><span class="cp">#include &lt;stdio.h&gt;
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">#include &lt;stdio.h&gt;
 #include&lt;string.h&gt;
 </span><span class="kt">char</span> <span class="n">word</span><span class="p">[</span><span class="mi">34</span><span class="p">]</span> <span class="o">=</span> <span class="s">"sAFHLJAacKFvS@FeL;S_Ja*FMFSuasDnsd"</span><span class="p">;</span>
 
@@ -120,18 +120,16 @@ cal函数，大致就是自己通过一系列的运算产生一个字符串，</
     <span class="n">Cal</span><span class="p">();</span>
     <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
 <span class="p">}</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>程序写的不全，在return v1那下断点，看到值为have_fun!
 <img src="http://storage.virusdefender.net/blog/images/22/8.png" alt="8.png" /></p>
 
 <p>第二题：你会用vim么</p>
 
 <p>这个文件直接打开也是有一点信息的，但是没啥用，后来使用file命令判断文件格式，发现是vim交换文件。</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>liyang@vm:~/Desktop$ file hacker
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>liyang@vm:~/Desktop$ file hacker
 hacker: Vim swap file, version 7.3
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>以前 其实没见过这个，初步的猜测就是vim崩溃的时候的内存dump，搜索一下，发现有由交换文件获取之前文件的办法。
 <code class="highlighter-rouge">vim -r xxx.swp</code>
 <img src="http://storage.virusdefender.net/blog/images/22/9.png" alt="9.png" />

