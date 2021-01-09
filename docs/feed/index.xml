@@ -1,4 +1,232 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.6.2">Jekyll</generator><link href="https://strcpy.me/feed/index.xml" rel="self" type="application/atom+xml" /><link href="https://strcpy.me/" rel="alternate" type="text/html" /><updated>2020-12-27T05:53:05+00:00</updated><id>https://strcpy.me/</id><title type="html">virusdefender’s blog (＾－＾)V</title><subtitle> 学而不思则罔，思而不学则殆</subtitle><author><name>virusdefender</name></author><entry><title type="html">PostgreSQL 11.0 删除操作 Segmentation fault 解决方案</title><link href="https://strcpy.me/index.php/archives/798/" rel="alternate" type="text/html" title="PostgreSQL 11.0 删除操作 Segmentation fault 解决方案" /><published>2020-03-24T00:00:01+00:00</published><updated>2020-03-24T00:00:01+00:00</updated><id>https://strcpy.me/index.php/archives/PostgreSQL%2011.0%20%E5%88%A0%E9%99%A4%E6%93%8D%E4%BD%9C%20Segmentation%20fault%20%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88</id><content type="html" xml:base="https://strcpy.me/index.php/archives/798/">&lt;p&gt;此问题在公司内部已经被两个项目组遇到了，表现为在删除操作的时候，PostgreSQL 进程会直接崩溃，服务器日志大概如下&lt;/p&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.6.2">Jekyll</generator><link href="https://strcpy.me/feed/index.xml" rel="self" type="application/atom+xml" /><link href="https://strcpy.me/" rel="alternate" type="text/html" /><updated>2021-01-09T12:51:25+00:00</updated><id>https://strcpy.me/</id><title type="html">virusdefender’s blog (＾－＾)V</title><subtitle> 学而不思则罔，思而不学则殆</subtitle><author><name>virusdefender</name></author><entry><title type="html">2019 &amp;amp;&amp;amp; 2020</title><link href="https://strcpy.me/index.php/archives/799/" rel="alternate" type="text/html" title="2019 &amp;&amp; 2020" /><published>2020-12-31T00:00:01+00:00</published><updated>2020-12-31T00:00:01+00:00</updated><id>https://strcpy.me/index.php/archives/%E8%BF%99%E4%B8%80%E5%B9%B4%E5%8D%8A%E6%88%91%E5%9C%A8%E5%B9%B2%E4%BB%80%E4%B9%88</id><content type="html" xml:base="https://strcpy.me/index.php/archives/799/">&lt;p&gt;往年在年底我会写一篇年度总结的文章，历史文章文章列表可以见博客 “年度分类” tag，但是 2020 年过了几个月我才想起来没有写 2019 年的总结，也索性就先不写了。&lt;/p&gt;
+
+&lt;p&gt;所以本文其实是 2019 年和 2020 年两年的总结合并而来，不过不重要，技术和生活上的事情都是连贯的。&lt;/p&gt;
+
+&lt;h1 id=&quot;工作方面&quot;&gt;工作方面&lt;/h1&gt;
+
+&lt;h2 id=&quot;xray-扫描器的工作&quot;&gt;xray 扫描器的工作&lt;/h2&gt;
+
+&lt;p&gt;2019 年初，我还是在雷池 waf 团队。当时随着雷池的客户越来越多，部署规模越来越大，之前创业初期做的 waf 平台已经不能满足高性能、高可靠性的要求了，各种问题越来越多，所以整个团队决定进行一次大型重构升级工作，新增了大量的新技术。&lt;/p&gt;
+
+&lt;p&gt;2019 三四月份的时候，Monster 给我说，希望我去扫描器那边做一些安全策略的工作，我答应了，之后就是 大约 8 个月的 xray 扫描器开发工作了。&lt;/p&gt;
+
+&lt;p&gt;这个开发工作又是一次重构，当时整个洞鉴扫描器效果确实很一般，每天最头疼的问题就是为什么又卡住了。&lt;/p&gt;
+
+&lt;h3 id=&quot;为什么放弃动态语言&quot;&gt;为什么放弃动态语言&lt;/h3&gt;
+
+&lt;p&gt;这不得不从开发语言 Python 说起。&lt;/p&gt;
+
+&lt;p&gt;我认为，下面这些问题能搞清楚才能写出一个高质量的模块不过分吧，但是 Python 能做到么？&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;一个函数接受几个参数？返回几个值？各自是什么类型？&lt;/li&gt;
+  &lt;li&gt;一个对象有什么属性？一个属性什么情况下存在什么情况下不存在？&lt;/li&gt;
+  &lt;li&gt;这个函数可能抛出什么异常？&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;有人会说 Python 的 type hint，但是那只是标记，并不是真的检查，何况很多三方库也没有 type hint 或者代码过于动态没办法 hint，实现完整的类型检查是很难的。&lt;/p&gt;
+
+&lt;p&gt;还有一些更高阶的工程问题，Python 同样解决方案很乱&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;内存和 cpu pprof&lt;/li&gt;
+  &lt;li&gt;查看每个进程/线程的运行栈&lt;/li&gt;
+  &lt;li&gt;方便的并发控制和调度&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;之前提到了卡住的问题，当时的引擎使用的是 Python 的 asyncio 框架，asyncio 可以简单理解为一个进程只有一个线程，在 io 操作的时候，可以切换到别的非 io 的代码执行。如果一个 async 函数就是不结束，那整个进程看上去就是卡死的状态，比如你的代码中有一个 &lt;code class=&quot;highlighter-rouge&quot;&gt;input()&lt;/code&gt; 或者非 asyncio 版本的 sleep 等。&lt;/p&gt;
+
+&lt;p&gt;我们在卡住的时候，第一感觉是想找个办法查看下当前 Python 的进程在执行什么代码，发现竟然没啥通用的办法，我们大部分时候还是 strace 到 Python 进程看的，比如发现卡在 &lt;code class=&quot;highlighter-rouge&quot;&gt;read(stdin)&lt;/code&gt; 上，然后就在某第三方的 poc 代码中找到一个 &lt;code class=&quot;highlighter-rouge&quot;&gt;input()&lt;/code&gt;。&lt;/p&gt;
+
+&lt;p&gt;一门工程语言不应该让人去猜测代码的行为，而是在人搞错的情况下，直接编译不通过。另外的需求就是尽可能简单，比如 C++ 和 Rust 就并不是一门非常通用的工程语言，只在特定的领域里面好使。&lt;/p&gt;
+
+&lt;h3 id=&quot;golang&quot;&gt;Golang&lt;/h3&gt;
+
+&lt;p&gt;后来我们就换成了 Golang，也就是后面 xray 的开发语言，Golang 的优点很明显&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;强类型，包含简单的 interface 和 public、private 的 OOP 机制，比其他语言的 OOP 简单很多&lt;/li&gt;
+  &lt;li&gt;明确的错误处理，&lt;code class=&quot;highlighter-rouge&quot;&gt;error&lt;/code&gt; 这东西我认为是利大于弊的，总比随随便便就可能抛异常好吧&lt;/li&gt;
+  &lt;li&gt;简单代码实现安全高效的并发，goroutine、channel、defer 等真是神器&lt;/li&gt;
+  &lt;li&gt;开发生态完善，比如 &lt;code class=&quot;highlighter-rouge&quot;&gt;go fmt&lt;/code&gt;、&lt;code class=&quot;highlighter-rouge&quot;&gt;go vet&lt;/code&gt;、跨平台编译的支持等&lt;/li&gt;
+  &lt;li&gt;调试生态完善，比如 pprof、竞争检查等，卡住、数据竞争都 debug 非常的方便，能直接看到每一个 goroutine 在运行哪行代码&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;当然 Golang 也有自己的缺点&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;没有泛型导致代码冗余，这一点对我们偏业务方向的其实没太多的影响，又不是天天写 sort 库，直接使用 &lt;code class=&quot;highlighter-rouge&quot;&gt;interface{}&lt;/code&gt; 的地方一般也不能靠泛型来解决。&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;error&lt;/code&gt; 处理确实繁琐了一些，因为大部分的时候，都是重复的三行代码&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt; if err != nil {
+     return err
+     // 或者 return errors.Wraf(err, &quot;do something&quot;)
+ }
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;xray-安全策略&quot;&gt;xray 安全策略&lt;/h3&gt;
+
+&lt;p&gt;在确定了语言之后，接下来就是整体架构和安全插件的编写了。那些就整理一下亮点吧&lt;/p&gt;
+
+&lt;p&gt;@&lt;a href=&quot;https://koalr.me/&quot;&gt;koalr&lt;/a&gt; 做了整个扫描器的基础架构部分，比如基于 Google 的 &lt;a href=&quot;https://github.com/google/martian&quot;&gt;martian&lt;/a&gt; 做了代理功能。还有流量的输出输出处理、HTTP 基础库、插件调度等，写了报告和反连平台的前端，写了非常强的 fastjson、weblogic 和 shiro 等检测插件，是非常有创新型的插件，有很多独家的 payload。后期也还有更加繁重的和业务对接的部分。&lt;/p&gt;
+
+&lt;p&gt;@&lt;a href=&quot;https://www.leavesongs.com/&quot;&gt;phithon&lt;/a&gt; 写了基于语义分析的 xss 引擎，扫描 payload 被 waf 拦截的概率降低很多，扫描速度和检出率提高了很多，同样是一个非常有创新的插件，其他的还包括 struts 和 thinkphp 插件等。另外基于 Google 的 &lt;a href=&quot;https://github.com/google/cel-go&quot;&gt;cel&lt;/a&gt; 做了一个基于表达式的 poc 框架，降低了写 poc 的灵活性，但是大大提高了可靠性和质量。这个具体在 &lt;a href=&quot;https://strcpy.me/index.php/archives/797/&quot;&gt;安全人员的代码水平&lt;/a&gt; 一文中已经说过了。&lt;/p&gt;
+
+&lt;p&gt;我主要写了一些其他的传统插件和框架，比如命令注入、模板注入、报错 sql 注入等，这些都是基于回显检测的一个框架，因为它们的输入都是一个随机串或者随机表达式（比如 &lt;code class=&quot;highlighter-rouge&quot;&gt;extractvalue(1,concat(char(126),md5([RandInt])))&lt;/code&gt;），然后检测输出是否包含随机串的哈希或者表达式的计算结果。&lt;/p&gt;
+
+&lt;p&gt;其他的还包括 sql 盲注、jsonp、任意跳转、反连平台后端等，有些检测思路还是挺有意思的。&lt;/p&gt;
+
+&lt;p&gt;比如 jsonp 相关的漏洞在蜜罐溯源等场景下广泛使用，如何有效的去检测 jsonp 敏感信息泄露呢？&lt;/p&gt;
+
+&lt;p&gt;我们发现可以花式在 jsonp 中存储敏感信息&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;callback({&quot;email&quot;:&quot;xray@xray.cool&quot;});&lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;a={&quot;email&quot;:&quot;xray@xray.cool&quot;}; cb({&quot;s&quot;: a})&lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;callback({&quot;key&quot;:&quot;email&quot;})&lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;callback({&quot;key&quot;:&quot;\u1234\u2345&quot;})&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;如果使用正则匹配，可能会受到编码和文本格式的影响，而且容易出现误报，比如上面的 &lt;code class=&quot;highlighter-rouge&quot;&gt;email&lt;/code&gt;，很难去写一个正则去判断是在 key 还是在 value 的问题。&lt;/p&gt;
+
+&lt;p&gt;具体的思路已经在 &lt;a href=&quot;https://files.alicdn.com/tpsservice/dae52ac33f6f3eb2f142ca7a150ec75c.pdf&quot;&gt;阿里白帽大会的一个 ppt&lt;/a&gt; 里面公开，原理很清晰和简单，在后续的牧云产品的攻击检测方向，我们也有在做类似的事情。&lt;/p&gt;
+
+&lt;p&gt;在重定向插件中，除了常见的无任何限制的跳转以外，还考虑了一些组件的处理缺陷和 bug 来进行一些绕过，比如 Django &lt;code class=&quot;highlighter-rouge&quot;&gt;CVE-2017-7233&lt;/code&gt; &lt;code class=&quot;highlighter-rouge&quot;&gt;CVE-2018-14574&lt;/code&gt;，比如 PHP &lt;code class=&quot;highlighter-rouge&quot;&gt;parseurl&lt;/code&gt; 的 bug（basic auth 的 &lt;code class=&quot;highlighter-rouge&quot;&gt;@&lt;/code&gt; 和 &lt;code class=&quot;highlighter-rouge&quot;&gt;#&lt;/code&gt; 导致了混淆），比如开发人员使用字符串包含或者前后缀匹配来防范 （比如 &lt;code class=&quot;highlighter-rouge&quot;&gt;example.com&lt;/code&gt; -&amp;gt; &lt;code class=&quot;highlighter-rouge&quot;&gt;example.com.evil-example.com&lt;/code&gt;）等等。这些思路同样可以用于 ssrf 插件。&lt;/p&gt;
+
+&lt;p&gt;在开发反连平台的功能的时候，除了服务于扫描器本身，还有一个目标就是可以独立部署，当一个私有化的 ceye 或者 dnslog 来用，那就需要多考虑一些问题，比如监听地址和访问地址不同、比如使用一个域名借助 glue record 搭建 dns server 等等，后面 @koalr 还给写个前端页面，易用性++。&lt;/p&gt;
+
+&lt;p&gt;长亭是一个 TO B 的公司，但是后续的 xray 的运营就像一个 TO C 的业务了。在 xray 运营的过程中，还去做了一些运营辅助的服务，比如使用函数计算搭建了更新检测服务和反馈系统，使用 sls 搭建了更新日志统计和分析系统等等。&lt;/p&gt;
+
+&lt;p&gt;xray 引擎和社区现在看上去是非常的成功的。对于安全社区来说，帮很多白帽子挣到了钱，帮很多安服仔挖到了漏洞，还输出了很多高质量的规范的 poc。对于公司来说，安全效果得到了很多人的肯定，也带来了一些洞鉴的项目线索。&lt;/p&gt;
+
+&lt;h2 id=&quot;牧云的工作&quot;&gt;牧云的工作&lt;/h2&gt;
+
+&lt;p&gt;xray 在 6 月份放出去第一个版本，之后又快速迭代了几个月，发了十几个版本，进入到了功能和 bug 开始收敛的状态。快到年底的时候，Monster 又给我说，让我去牧云那边去做一些工作，我就翻过了 2019 年的 xray 翻到了 2020 年的 cloudwalker 那一页。&lt;/p&gt;
+
+&lt;p&gt;2020年一整年的工作重点都在牧云安全策略上，带来了一些以前踩的坑所得到的经验，也又踩了一些新坑。&lt;/p&gt;
+
+&lt;h3 id=&quot;lua-和-teal&quot;&gt;Lua 和 teal&lt;/h3&gt;
+
+&lt;p&gt;在 xray 抛弃了让让我们惶惶不安的 Python 之后，来到牧云，迎接我的是 Lua，一个比 Python 更加灵活更加动态，连数组和 map 都没有区分的语言，一个函数少传了参数也不会报错，接受少接收函数返回值也不会报错的语言。&lt;/p&gt;
+
+&lt;p&gt;首先介绍下整体的架构，主机安全产品主要由&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;管理平台，前后端数据库等&lt;/li&gt;
+  &lt;li&gt;探针，提供基础平台功能，比如 Lua runtime、Lua 部分基础库、与管理平台通信、进程文件网络监控、插件调度等等。&lt;/li&gt;
+  &lt;li&gt;安全策略插件，使用 Lua 编写，比如反弹 shell 检测、文件检测上传、暴力破解数据收集等等。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;为啥是 Lua 呢？&lt;/p&gt;
+
+&lt;p&gt;在当前的场景下，我们其实是没有别的选择的，因为&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;探针需要控制 Lua 代码的 cpu 占用，Lua 虚拟机很轻量和纯净，非常好做，而其他的语言做起来就太复杂了&lt;/li&gt;
+  &lt;li&gt;安全策略插件需要热更新，如果使用探针的原生语言 Golang 来编写，那更新策略插件的时候就需要更新整个探针，一个探针的大小（目前是几十兆）肯定是远大于一些 Lua 代码的，在大规模部署的情况下，对网络的要求会比较高，而且需要重启整个探针进程，对稳定性和在线时间指标等都不太有利。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;在这种情况下，只能硬着头皮去写 Lua 了，有可以提高代码质量的方法么？&lt;/p&gt;
+
+&lt;p&gt;在前端界，大家也遇到了类似的问题，前端界的办法是发明了一门新语言，叫 TypeScript，是带类型的 JavaScript，最后可以由工具转换为 JavaScript 来支持在浏览器上执行。类似的思路，经过一番搜寻，我发现了 &lt;a href=&quot;https://github.com/teal-language/tl&quot;&gt;teal&lt;/a&gt; 这个语言，一种带类型的 Lua 方言，支持语法和类型检查和转换为 Lua。&lt;/p&gt;
+
+&lt;p&gt;跑个题，teal 和常用的 htop 工具是一个作者 &lt;a href=&quot;https://hisham.hm&quot;&gt;Hisham H. Muhammad&lt;/a&gt;，这个人也在 Lua 其他的领域贡献了很多代码，是一个真正的大牛，这样让我对 teal 这个语言也充满了信心。&lt;/p&gt;
+
+&lt;p&gt;迁移 teal 是一个渐进的过程，大概是这样的过程&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;给所有的库写类型定义，因为插件调用的一些库还是 Lua 写的，那 teal 编译器怎么知道你的用法对不对呢？这个要靠类型定义文件来实现，也就是 &lt;code class=&quot;highlighter-rouge&quot;&gt;xx.d.tl&lt;/code&gt;，一个简单的样例如下&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;local file = require(&quot;file&quot;)
+
+local record md5
+    sum: function(string): string
+    file_sum: function(string): string, err_t
+    -- 该函数不会关闭 fd
+    fd_sum: function(file.file_t): string, err_t
+end
+
+return md5
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;因为我们使用的库还是比较少的，写类型定义很快就结束了，接下来是使用 teal 重构部分简单的模块。因为项目刚起步不就，受限于一些基础设施和经验，很多安全插件中都存在复制第三方库代码和自己造轮子的情况，比如 json 库就有好几个。重构过程中，需要慢慢的去规范和统一。当然在这个过程中，新插件都直接是 teal 来写的。&lt;/li&gt;
+  &lt;li&gt;完善 teal 开发体验，因为 teal 也是一个新事物，存在很多不完善的点，在使用过程中，我们需要经常的去和 teal 作者反馈 bug 和讨论需求。有一些小的不适合在主线上修改的点，我们在内部的 fork 版本里面做了修改。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;团队&quot;&gt;团队&lt;/h3&gt;
+
+&lt;p&gt;除了写代码能力以外，我觉得有想法和有创新能力非常重要的，前段时间做总结的时候，发现来到牧云之后一些大型项目架构几乎都是按照我自己的想法写的，比如换 teal 语言、新检测引擎和 file_server 的整体调整、远程基线检查工具、全量重点漏洞库等等，大家更像是被推着往前走，听工头的让怎么搬砖就怎么搬。对于积极主动有想法的同学，可能就也打消了热情，对于本来就不积极的同学，更不是一个良性的循环。&lt;/p&gt;
+
+&lt;h1 id=&quot;生活&quot;&gt;生活&lt;/h1&gt;
+
+&lt;h2 id=&quot;平淡的流水账&quot;&gt;平淡的流水账&lt;/h2&gt;
+
+&lt;p&gt;现在回想 2019 年的生活，好像也没有太多的事情发生，每天和孙同学都是平平淡淡的幸福。&lt;/p&gt;
+
+&lt;p&gt;等到快年底的时候，RSA Conference 2020 就要召开了，公司的一些人想去学习下国外的先进安全产品和经验，顺便去美国玩一圈。一月初，一个下完大雪的早晨，在美国大使馆门口排了两个小时的队之后，顺利的拿到了签证。&lt;/p&gt;
+
+&lt;p&gt;后面的事情大家都知道了，美国肯定去不成了，大年初二我就从山东回了北京，因为担心后续疫情继续蔓延会增加旅途上的风险和进京的困难程度，接下来就是春节假期延长和居家办公了好久。&lt;/p&gt;
+
+&lt;p&gt;八月份，从公司附近搬家到了回龙观，房子大了很多，也不用天天爬六楼了，我和孙同学继续开启新生活。当时搬家和后续的打扫整理真的累，但是非常的快乐。过了几天，顺手回了趟山东，顺手领了结婚证（这里应该有一个微信上的狗头表情）。&lt;/p&gt;
+
+&lt;h2 id=&quot;结婚&quot;&gt;结婚&lt;/h2&gt;
+
+&lt;p&gt;因为疫情的原因，婚礼一拖再拖，在 11 月底，终于办了婚礼。下面是我在婚礼上的发言，全文搬运过来。&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;大家好，欢迎各位亲朋好友来参加我和孙同学的婚礼，来见证这美好的时刻。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;我和孙同学是高中同学，在十多年前就认识了，但是深入的认识是在北京工作之后。2016 年我毕业去北京当程序员，她是医学类专业，要学五年，当年是大学五年级去北京的医院实习。在北京的这三四年里面，从最开始约饭，到后面去演唱会，去逛街逛公园，我们留下了很多美好的回忆，互相有了更深入的认识，我们今天我们终于结婚啦！&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;孙同学在工作和生活上都是一个非常出色的人。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;在工作上，她就是是超人和大侠，在医院里，她可以脚踩风火轮忙碌一天，但同时保持着一丝不苟的态度，因为那关乎着病人的安危。在北京新发地新冠疫情爆发的时候，她也奋战在抗击疫情一线。当时正是酷暑六月，为了保证空气流通，采样点都是露天的，全密闭的防护服穿上去没多久，里面的衣服就会完全被汗水浸湿，手脚都会被汗水泡的脱皮。但是她没有任何怨言，因为她知道这就是她的使命所在，职责所在。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;在生活上，她主要有两个角色，第一，是我的朋友，我们可以谈论各种感兴趣的事情，共同去做各种感兴趣的事情。第二，就是我们家庭的饲养员，她的厨艺非常好，同样的食材在我和她的手下做出来就完全是两种食物。在场的一些北京的同事去过我们家吃过饭，他们就可以证明。另外就是在生活上也非常关心我，不管我加班到多晚都会等着我，还比如这场婚礼的很多物资就是她在百忙之中准备的，我也没能帮上什么忙。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;在这里，我想对孙同学说，我会一直默默支持你，不管你累了，或者遇到不开心的事情，我都会一直在你身边陪伴你，我们还要去一起去尝试更多生活中最开心和最美妙的东西。有个非常圆满的人生，这是我的梦想。希望到老之后，你会跟我说，认识我是正确的、快乐的。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;从前，我真心觉得婚礼是一件特别烦琐，特别形式化的事情，直到此刻，看着宾朋满座，我们被祝福围绕，回想起这几天的点点滴滴，我才真正体会到，原来一直被感动，才是婚礼的感觉。当然此时此刻，除了感动，还有更多的是感谢。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;感谢我的父母从小对我的教育，给我指引了人生道路。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;感谢我的岳父岳母培养了这么优秀，这么有才华的女儿，我一定会全心全意的对她好。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;感谢我和孙同学的高中老师宋老师，没有您当年严格的管理就没有我们今天的成绩。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;感谢亲朋好友的光临，你们都是放弃假期休息的事件来参加婚礼，有的朋友还是在很远的地方赶过来的。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;感谢主持人摄影师和其他工作人员的忙碌。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;再一次感谢大家出席我们的婚礼，祝福大家一生都能幸福、健康、平安、喜乐。&lt;/p&gt;
+&lt;/blockquote&gt;</content><author><name>virusdefender</name></author><category term="生活" /><category term="年度总结" /><summary type="html">往年在年底我会写一篇年度总结的文章，历史文章文章列表可以见博客 “年度分类” tag，但是 2020 年过了几个月我才想起来没有写 2019 年的总结，也索性就先不写了。</summary></entry><entry><title type="html">PostgreSQL 11.0 删除操作 Segmentation fault 解决方案</title><link href="https://strcpy.me/index.php/archives/798/" rel="alternate" type="text/html" title="PostgreSQL 11.0 删除操作 Segmentation fault 解决方案" /><published>2020-03-24T00:00:01+00:00</published><updated>2020-03-24T00:00:01+00:00</updated><id>https://strcpy.me/index.php/archives/PostgreSQL%2011.0%20%E5%88%A0%E9%99%A4%E6%93%8D%E4%BD%9C%20Segmentation%20fault%20%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88</id><content type="html" xml:base="https://strcpy.me/index.php/archives/798/">&lt;p&gt;此问题在公司内部已经被两个项目组遇到了，表现为在删除操作的时候，PostgreSQL 进程会直接崩溃，服务器日志大概如下&lt;/p&gt;
 
 &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;2020-03-25 02:30:59.813 UTC [1] LOG:  server process (PID 89) was terminated by signal 11: Segmentation fault
 2020-03-25 02:30:59.813 UTC [1] DETAIL:  Failed process was running: DELETE FROM a;
@@ -1197,156 +1425,4 @@ $1 = (&amp;lt;data variable, no debug info&amp;gt; *) 0x555555757140 &amp;lt;tod
 
 &lt;ul&gt;
   &lt;li&gt;https://hackso.me/google-ctf-beginners-quest-part-2/&lt;/li&gt;
-&lt;/ul&gt;</content><author><name>virusdefender</name></author><category term="安全" /><category term="CTF" /><summary type="html">本文是 plt 和 got 表相关的漏洞利用实例，是 Google CTF 中的一道题，题目给了源码和 binary。</summary></entry><entry><title type="html">不按顺序来的 TCP 包</title><link href="https://strcpy.me/index.php/archives/789/" rel="alternate" type="text/html" title="不按顺序来的 TCP 包" /><published>2018-06-16T18:18:18+00:00</published><updated>2018-06-16T18:18:18+00:00</updated><id>https://strcpy.me/index.php/archives/%E4%B8%8D%E6%8C%89%E9%A1%BA%E5%BA%8F%E6%9D%A5%E7%9A%84%20TCP%20%E5%8C%85</id><content type="html" xml:base="https://strcpy.me/index.php/archives/789/">&lt;p&gt;关于 TCP 建立连接和断开连接的流程，很多人都能大致说出来，可以参考&lt;a href=&quot;http://www.cnblogs.com/vamei/archive/2012/12/16/2812188.html&quot;&gt;协议森林&lt;/a&gt;&lt;/p&gt;
-
-&lt;p&gt;正常的数据传输是在三次握手结束之后进行的，但是如果打破了这个流程，数据传输仍然可能成功，而部分防火墙 IDS 就可能被绕过，下面的两个例子来自 https://github.com/kirillwow/ids_bypass。&lt;/p&gt;
-
-&lt;h2 id=&quot;cve-2018-6794&quot;&gt;CVE-2018-6794&lt;/h2&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;# 客户端开始三次握手 发送 SYN
-Client    -&amp;gt;  [SYN] [Seq=0 Ack=0]           -&amp;gt;  Evil Server
-# 服务器端正常的响应了 SYN-ACK
-Client    &amp;lt;-  [SYN, ACK] [Seq=0 Ack=1]      &amp;lt;-  Evil Server
-# 但是服务器端在握手结束之前就发送了 PSH，里面包含了一些数据
-Client    &amp;lt;-  [PSH, ACK] [Seq=1 Ack=1]      &amp;lt;-  Evil Server
-# 服务器端主动关闭了连接
-Client    &amp;lt;-  [FIN, ACK] [Seq=83 Ack=1]     &amp;lt;-  Evil Server
-# 三次握手完成
-Client    -&amp;gt;  [ACK] [Seq=1 Ack=84]          -&amp;gt;  Evil Server
-# 客户端正常的发送数据
-Client    -&amp;gt;  [PSH, ACK] [Seq=1 Ack= 4]     -&amp;gt;  Evil Server
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;Suricata IDS 在 4.0.4 版本之前存在这个问题&lt;/p&gt;
-
-&lt;h2 id=&quot;rst-导致的绕过&quot;&gt;RST 导致的绕过&lt;/h2&gt;
-
-&lt;p&gt;有些 Windows 客户端在收到 RST 包之后，如果紧接着又收到了其他的 TCP 数据，那仍然是可以读取和处理的，有些 IDS 正确处理了这个问题，有的在收到 RST 包之后就停止了检查 TCP 包。&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;# Client starts a TCP 3-way handshake
-Client    -&amp;gt;  [SYN] [Seq=0 Ack=0]           -&amp;gt;  Evil Server
-# Server responses with TCP RST
-Client    &amp;lt;-  [RST, ACK] [Seq=0x0 Ack=1]    &amp;lt;-  Evil Server
-# And SYN-ACK shortly after RST
-Client    &amp;lt;-  [SYN, ACK] [Seq=1 Ack=1]      &amp;lt;-  Evil Server
-           ... 三次握手继续 ...
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-&lt;p&gt;Suricata IDS（全版本？）存在这个问题。对于 UDP 数据包，也有一个类似的问题。&lt;/p&gt;
-
-&lt;h2 id=&quot;应用&quot;&gt;应用&lt;/h2&gt;
-
-&lt;p&gt;某些云服务器厂商会实时的去过滤每台机器的 HTTP 请求的域名，也就是 Host 字段，一旦发现是没有[[(备)]]案的，就会返回一个拦截页面，怎么绕过这个呢。经过测试发现某云应该是不检测 HTTPS的，如果可以让 80 端口重定向到 443，然后设置 HSTS 头，这样基本长时间内浏览器就不会再访问 80 端口了，虽然 SSL SNI 和 证书中也是含有域名信息的。&lt;/p&gt;
-
-&lt;p&gt;访问 80 端口，发现三次握手是正常进行的，而拦截发生在客户端发送了 HTTP 请求包之后，这也说明，防火墙不是无条件封禁的和屏蔽端口的，而是实时的过滤。如果可以抢在防火墙发包之前发送，那就可以实现重定向了。&lt;/p&gt;
-
-&lt;p&gt;写了一个 Python 的脚本来完成这个事情&lt;/p&gt;
-
-&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c&quot;&gt;# coding=utf-8&lt;/span&gt;
-&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;scapy.all&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;IP&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;TCP&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;send&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sniff&lt;/span&gt;
-
-&lt;span class=&quot;n&quot;&gt;SERVER_DOMAIN&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;example.me&quot;&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;SERVER_PORT&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;4445&lt;/span&gt;
-
-&lt;span class=&quot;n&quot;&gt;FIN&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0x01&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;SYN&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0x02&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;ACK&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0x10&lt;/span&gt;
-
-
-&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;build_synack&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;syn&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;seq&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;
-    &lt;span class=&quot;c&quot;&gt;# 确认 SYN&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;ack&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;syn&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;TCP&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;seq&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;
-
-    &lt;span class=&quot;n&quot;&gt;ip&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;IP&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;src&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;syn&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;IP&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dst&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;dst&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;syn&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;IP&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;src&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;tcp&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;TCP&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;
-            &lt;span class=&quot;n&quot;&gt;sport&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;syn&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;IP&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dport&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-            &lt;span class=&quot;n&quot;&gt;dport&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;syn&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;TCP&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sport&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-            &lt;span class=&quot;n&quot;&gt;flags&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;SA&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-            &lt;span class=&quot;n&quot;&gt;seq&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;seq&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-            &lt;span class=&quot;n&quot;&gt;ack&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ack&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-            &lt;span class=&quot;n&quot;&gt;options&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;MSS&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1460&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)]&lt;/span&gt;
-    &lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ip&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;/&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tcp&lt;/span&gt;
-
-
-&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;build_finack&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;syn&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
-    &lt;span class=&quot;s&quot;&gt;&quot;&quot;&quot;
-    带重定向指令的包
-    &quot;&quot;&quot;&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;seq&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;ack&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;syn&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;TCP&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;seq&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;
-
-    &lt;span class=&quot;n&quot;&gt;ip&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;IP&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;src&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;syn&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;IP&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dst&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;dst&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;syn&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;IP&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;src&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;tcp&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;TCP&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;
-            &lt;span class=&quot;n&quot;&gt;sport&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;syn&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;IP&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dport&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-            &lt;span class=&quot;n&quot;&gt;dport&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;syn&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;TCP&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sport&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-            &lt;span class=&quot;n&quot;&gt;flags&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;FA&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-            &lt;span class=&quot;n&quot;&gt;seq&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;seq&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-            &lt;span class=&quot;n&quot;&gt;ack&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ack&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-            &lt;span class=&quot;n&quot;&gt;options&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;MSS&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1460&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)]&lt;/span&gt;
-    &lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;resp&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;HTTP/1.1 307 Internal Redirect&lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\r\n&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;&lt;/span&gt; \
-           &lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;Content-Length: 0&lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\r\n&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;&lt;/span&gt; \
-           &lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;Location: https://&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;%&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;s:443&lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\r\n&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;&lt;/span&gt; \
-           &lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;Strict-Transport-Security: max-age=31536000&lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\r\n&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;&lt;/span&gt; \
-           &lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\r\n&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;%&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;SERVER_DOMAIN&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ip&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;/&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tcp&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;/&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;resp&lt;/span&gt;
-
-
-&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;build_ack&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;p&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;seq&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;3&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;ack&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;p&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;TCP&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;seq&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;
-
-    &lt;span class=&quot;n&quot;&gt;ip&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;IP&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;src&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;p&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;IP&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dst&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;dst&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;p&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;IP&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;src&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;tcp&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;TCP&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;
-            &lt;span class=&quot;n&quot;&gt;sport&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;p&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;IP&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dport&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-            &lt;span class=&quot;n&quot;&gt;dport&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;p&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;TCP&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sport&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-            &lt;span class=&quot;n&quot;&gt;flags&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;A&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-            &lt;span class=&quot;n&quot;&gt;seq&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;seq&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-            &lt;span class=&quot;n&quot;&gt;ack&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ack&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-            &lt;span class=&quot;n&quot;&gt;options&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;MSS&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1460&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)]&lt;/span&gt;
-    &lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ip&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;/&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tcp&lt;/span&gt;
-
-
-&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;handle_packet&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;p&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
-    &lt;span class=&quot;c&quot;&gt;# 如果是 SYN 就回复 SYN-ACK 和 FIN-ACK&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;p&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;TCP&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;flags&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;SYN&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;and&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;not&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;p&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;TCP&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;flags&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ACK&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;send&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;build_synack&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;p&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
-        &lt;span class=&quot;k&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;SYN ACK sent&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;send&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;build_finack&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;p&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;send&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;FIN ACK sent&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;elif&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;p&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;TCP&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;flags&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;FIN&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;and&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;p&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;TCP&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;flags&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ACK&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
-        &lt;span class=&quot;c&quot;&gt;# 如果不 ACK，客户端可能一直重传&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;send&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;build_ack&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;p&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;send&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;ACK sent&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-
-&lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;__name__&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;__main__&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
-    &lt;span class=&quot;c&quot;&gt;# 对于 TCP 和 SERVER PORT 端口的包，回调 handle_packet 函数&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;sniff&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;filter&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;tcp and port &lt;/span&gt;&lt;span class=&quot;si&quot;&gt;%&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;d&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;%&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;SERVER_PORT&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;prn&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;handle_packet&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;使用 scapy 框架，监听一个端口，在接收到 SYN 包之后，按照正常的握手流程返回 SYN-ACK，然后不等接收到 ACK 就继续发送 FIN-ACK，告诉客户端我要断开连接了，然后在这个包中包含有重定向的 HTTP 包。&lt;/p&gt;
-
-&lt;p&gt;在服务器端视角看是这样的&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;https://storage.virusdefender.net/blog/images/789/1.jpg&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;在客户端视角看是这样的&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;https://storage.virusdefender.net/blog/images/789/3.jpeg&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;42 号包是代码的重定向，47 号包就是防火墙的重定向，可以看到 TTL 明显不一致，而且 seq 被我们代码扰乱，导致被认为 out-of-order 了。&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;https://storage.virusdefender.net/blog/images/789/2.jpg&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;因为 scapy 是用户态的，防止内核不知道整个连接流程而发送 rst 包，可以使用下面的命令屏蔽掉&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;iptables -A OUTPUT -p tcp --tcp-flags RST RST -s 172.21.0.3 -j DROP
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;也有人使用内核模块实现了这个功能&lt;/p&gt;
-
-&lt;p&gt;https://github.com/ptpt52/hstshack&lt;/p&gt;</content><author><name>virusdefender</name></author><category term="安全" /><summary type="html">关于 TCP 建立连接和断开连接的流程，很多人都能大致说出来，可以参考协议森林</summary></entry></feed>
+&lt;/ul&gt;</content><author><name>virusdefender</name></author><category term="安全" /><category term="CTF" /><summary type="html">本文是 plt 和 got 表相关的漏洞利用实例，是 Google CTF 中的一道题，题目给了源码和 binary。</summary></entry></feed>
