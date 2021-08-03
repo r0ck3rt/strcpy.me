@@ -1,6 +1,12 @@
 [
   
     {
+      "title"    : "招聘",
+      "tags"     : "其他",
+      "url"      : "/index.php/archives/job/"
+    } ,
+  
+    {
       "title"    : "2019 &amp;&amp; 2020",
       "tags"     : "生活 年度总结",
       "url"      : "/index.php/archives/799/"
