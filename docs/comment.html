@@ -6,7 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>~评论页~</title>
     <link rel="stylesheet" href="https://cdn.virusdefender.net/assets/css/bootstrap-material-design.min.css">
-    <script src="https://cdn.virusdefender.net/assets/js/av-min.js"></script>
     <style>
         .comment {
             margin-top: 20px;
@@ -21,7 +20,7 @@
 <div class="container">
     <div class="comment">
         <div>
-            <div class="alert alert-info" role="alert">本博客是纯静态网站，本评论系统依赖于 <a href="https://leancloud.cn" target="_blank">LeanCloud</a>。源代码右键即可查看。</div>
+            <div class="alert alert-info" role="alert">本博客是纯静态网站，本评论系统依赖于 <a href="https://github.com/virusdefender/site-comment" target="_blank">https://github.com/virusdefender/site-comment/blob/main/main.go</a>。源代码右键即可查看。</div>
             <h3>【<a id="article-url" href=""><span id="article-title"></span></a>】文章的评论</h3>
             <div class="alert alert-info" role="alert" id="no-comment">还没有评论 o(╯□╰)o 等你呢</div>
             <div class="card" id="comment-list">
@@ -48,29 +47,6 @@
     </div>
 </div>
 <script>
-    var hostname = window.location.hostname;
-    if (hostname == "127.0.0.1" || hostname == "strcpy.me") {
-        var APP_ID = "DtDfEVB7C3HUGv5tgwF0kTtu-gzGzoHsz";
-        var APP_KEY = "diD5ri3GRuyqIwUwA2ibfBgF";
-    } else {
-        alert("请到 https://www.leancloud.cn/ 申请自己的 APP_ID、APP_KEY");
-    }
-    var articleID = getParams("article_id");
-    var title = getParams("title");
-    if (!articleID || !title) {
-        alert("您是何方神圣~");
-        window.location.href = "/";
-    }
-    document.getElementById("article-title").innerText = escapeHtml(getParams("title"));
-    document.getElementById("article-url").href = articleID;
-
-    AV.init({
-        appId: APP_ID,
-        appKey: APP_KEY
-    });
-
-    var Comment = AV.Object.extend("comment");
-
     function getFormattedDate(timestamp) {
         var date = new Date(timestamp * 1000);
 
@@ -109,28 +85,30 @@
     }
 
     function queryComment() {
-        var query = new AV.Query("comment");
-        query.equalTo("article_id", articleID);
-        query.descending("timestamp");
-        query.find().then(function (result) {
+        fetch(api_path + "?article_id=" + articleID)
+        .then(function(response) {
+            return response.json();
+        }).then(function(data) {
+            var result = data["data"]
             if (result.length) {
                 document.getElementById("no-comment").style = "display: none";
                 var commentHtml = "";
                 for (var i = 0; i < result.length; i++) {
-                    commentHtml += makeComment(result[i].get("username"), result[i].get("timestamp"), result[i].get("content"));
+                    commentHtml += makeComment(result[i]["username"], result[i]["timestamp"], result[i]["content"]);
                 }
                 document.getElementById("comment-list").innerHTML = commentHtml;
             }
-        }).catch(function (err) {
-            alert("评论加载失败~");
-        })
+        }).catch(error =>  alert("评论加载失败~"));
     }
 
     function submitComment() {
+         if (err != "") {
+            alert(err);
+            return;
+        }
         var username = document.getElementById("username").value;
         var email = document.getElementById("email").value;
         var content = document.getElementById("content").value;
-        var timestamp = Math.round(+new Date() / 1000);
 
         if (!username) {
             alert("填个名字吧~");
@@ -141,24 +119,45 @@
             return;
         }
 
-        var comment = new Comment();
-        comment.set("article_id", articleID);
-        comment.set("username", username);
-        comment.set("content", content);
-        comment.set("timestamp", timestamp);
-        comment.set("email", email);
-        comment.save().then(function () {
+        fetch(api_path, {
+            method: "POST",
+            headers: {"content-type": "application/json"},
+            body: JSON.stringify({"article_id": articleID, "username": username, "content": content,"email": email})
+        }).then(res => res.json()).then((data) => {
+            console.log(data)
+            if (data["err"]) {
+                alert(data["err"]);
+                return;
+            }
             queryComment();
             document.getElementById("username").value = "";
             document.getElementById("email").value = "";
             document.getElementById("content").value = "";
-            AV.Cloud.run('dingding_send', {"url": window.location.href, "content": content});
         }).catch(function (err) {
-            alert("评论提交失败~");
+            alert("评论提交失败, " + err);
         })
     }
 
-    queryComment()
+    var hostname = window.location.hostname;
+    var api_path = "https://comment-fc.virusdefender.net/api/comment";
+    var articleID = getParams("article_id");
+    var title = getParams("title");
+    var err = ""
+
+    if (hostname != "127.0.0.1" && hostname != "strcpy.me") {
+        err = "域名不在白名单内";
+    }
+    if (!articleID || !title) {
+        err = "参数错误";
+    }
+
+    if (err != "") {
+        alert(err);
+    } else {   
+        document.getElementById("article-title").innerText = escapeHtml(getParams("title"));
+        document.getElementById("article-url").href = articleID;
+        queryComment();
+    }
 </script>
 </body>
 </html>
