@@ -1,15 +1,17 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.6.2">Jekyll</generator><link href="https://strcpy.me/feed/index.xml" rel="self" type="application/atom+xml" /><link href="https://strcpy.me/" rel="alternate" type="text/html" /><updated>2021-08-03T09:00:58+00:00</updated><id>https://strcpy.me/</id><title type="html">virusdefender’s blog (＾－＾)V</title><subtitle>学而不思则罔，思而不学则殆</subtitle><author><name>virusdefender</name></author><entry><title type="html">招聘</title><link href="https://strcpy.me/index.php/archives/job/" rel="alternate" type="text/html" title="招聘" /><published>2021-08-01T00:00:01+00:00</published><updated>2021-08-01T00:00:01+00:00</updated><id>https://strcpy.me/index.php/archives/job</id><content type="html" xml:base="https://strcpy.me/index.php/archives/job/">&lt;h1 id=&quot;招聘专栏&quot;&gt;招聘专栏&lt;/h1&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.6.2">Jekyll</generator><link href="https://strcpy.me/feed/index.xml" rel="self" type="application/atom+xml" /><link href="https://strcpy.me/" rel="alternate" type="text/html" /><updated>2021-11-14T10:28:28+00:00</updated><id>https://strcpy.me/</id><title type="html">virusdefender’s blog (＾－＾)V</title><subtitle>学而不思则罔，思而不学则殆</subtitle><author><name>virusdefender</name></author><entry><title type="html">招聘</title><link href="https://strcpy.me/index.php/archives/job/" rel="alternate" type="text/html" title="招聘" /><published>2021-08-01T00:00:01+00:00</published><updated>2021-08-01T00:00:01+00:00</updated><id>https://strcpy.me/index.php/archives/job</id><content type="html" xml:base="https://strcpy.me/index.php/archives/job/">&lt;h1 id=&quot;招聘专栏&quot;&gt;招聘专栏&lt;/h1&gt;
 
 &lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;#牧云安全研发工程师&quot;&gt;牧云安全研发工程师&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;#友情帮招monoidtech-前端工程师&quot;&gt;（友情帮招）monoidtech 前端工程师&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#chaitin-cloudwalker&quot;&gt;牧云安全研发工程师&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#monoidtech&quot;&gt;（友情帮招）monoidtech 前端工程师&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
+
+&lt;div id=&quot;chaitin-cloudwalker&quot;&gt;&lt;/div&gt;
 
 &lt;h2 id=&quot;牧云安全研发工程师&quot;&gt;牧云安全研发工程师&lt;/h2&gt;
 
 &lt;h3 id=&quot;牧云是什么&quot;&gt;牧云是什么&lt;/h3&gt;
 
-&lt;p&gt;牧云是长亭科技信息安全产品体系中的重要一环，为主机安全方向，介绍信息可见 &lt;a href=&quot;https://www.chaitin.cn/zh/cloudwalker&quot;&gt;https://www.chaitin.cn/zh/cloudwalker&lt;/a&gt;。&lt;/p&gt;
+&lt;p&gt;牧云是长亭科技 “攻防知查抓” 安全防护体系中的重要一环，为主机安全方向，介绍信息可见 &lt;a href=&quot;https://www.chaitin.cn/zh/cloudwalker&quot;&gt;https://www.chaitin.cn/zh/cloudwalker&lt;/a&gt;。&lt;/p&gt;
 
 &lt;p&gt;下面是按照模块功能的一个粗略分类：&lt;/p&gt;
 
@@ -92,11 +94,17 @@
   &lt;li&gt;检测插件是 Lua 写的，但是这种语言对大型项目非常不友好，我们参考了已有的一些开源项目，最终选择了一种带类型的 Lua 方言，但是开源项目并不完全满足需求，我们又对其进行了修改和增加了一些配套工具，比如构建工具、lint 工具等。（详见 &lt;a href=&quot;https://strcpy.me/index.php/archives/799/&quot;&gt;这里&lt;/a&gt; ）&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;h3 id=&quot;其他要求--工作环境--薪资待遇&quot;&gt;其他要求 / 工作环境 / 薪资待遇&lt;/h3&gt;
+&lt;h3 id=&quot;其他要求&quot;&gt;其他要求&lt;/h3&gt;
 
 &lt;ul&gt;
+  &lt;li&gt;计算机基础扎实，熟悉常见编程语言。&lt;/li&gt;
   &lt;li&gt;做事认真，有创新能力，思维活跃。&lt;/li&gt;
   &lt;li&gt;工作中不要被推着往前走，能积极的贡献自己的想法，推动想法去实现和落地。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;工作环境--薪资待遇&quot;&gt;工作环境 / 薪资待遇&lt;/h2&gt;
+
+&lt;ul&gt;
   &lt;li&gt;没有比较紧急的事情不会要求加班，2020 年周末加班次数小于五次。&lt;/li&gt;
   &lt;li&gt;最好 base 北京，但是杭州也可以。&lt;/li&gt;
   &lt;li&gt;工作时间大概为 &lt;code class=&quot;highlighter-rouge&quot;&gt;10:00&lt;/code&gt; - &lt;code class=&quot;highlighter-rouge&quot;&gt;19:00&lt;/code&gt;，保证总工作时间的基础上，可以浮动。&lt;/li&gt;
@@ -116,6 +124,12 @@
 	document.getElementById(&quot;email1&quot;).innerHTML = atob(&quot;eWFuZy5saUBjaGFpdGluLmNvbQ==&quot;);
 	document.getElementById(&quot;weixin&quot;).innerHTML = atob(&quot;dmlydXNkZWZlbmRlcg==&quot;);
 &lt;/script&gt;
+
+&lt;h3 id=&quot;其他&quot;&gt;其他&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://storage.virusdefender.net/blog/files/job/%E7%89%A7%E4%BA%91%E5%AE%89%E5%85%A8%E7%A0%94%E5%8F%91%E5%B7%A5%E7%A8%8B%E5%B8%88%E6%8B%9B%E8%81%98.pdf&quot;&gt;本招聘的文字版下载地址&lt;/a&gt; 欢迎扩散&lt;/p&gt;
+
+&lt;div id=&quot;monoidtech&quot;&gt;&lt;/div&gt;
 
 &lt;h2 id=&quot;友情帮招monoidtech-前端工程师&quot;&gt;（友情帮招）monoidtech 前端工程师&lt;/h2&gt;
 
