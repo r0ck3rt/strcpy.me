@@ -79,9 +79,16 @@
             .replace(/'/g, "&#039;");
     }
 
-    function makeComment(username, timestamp, content) {
+    function getDeleteBtn(id) {
+        if(!mgmtToken) {
+            return ""
+        }
+        return '<a href="javascript:deleteComment(\'' + id + '\')">删除</a>';
+    }
+
+    function makeComment(id, username, timestamp, content) {
         return '<div class="card-body"><h6 class="card-subtitle mb-2 text-muted">' +
-            escapeHtml(username) + " @" + getFormattedDate(timestamp) + '</h6><p class="card-text">' + escapeHtml(content) + '</p></div>';
+            escapeHtml(username) + " @" + getFormattedDate(timestamp) + getDeleteBtn(id) + '</h6><p class="card-text">' + escapeHtml(content) + '</p></div>';
     }
 
     function queryComment() {
@@ -94,11 +101,30 @@
                 document.getElementById("no-comment").style = "display: none";
                 var commentHtml = "";
                 for (var i = 0; i < result.length; i++) {
-                    commentHtml += makeComment(result[i]["username"], result[i]["timestamp"], result[i]["content"]);
+                    commentHtml += makeComment(result[i]["id"], result[i]["username"], result[i]["timestamp"], result[i]["content"]);
                 }
                 document.getElementById("comment-list").innerHTML = commentHtml;
             }
         }).catch(error =>  alert("评论加载失败~"));
+    }
+
+    function deleteComment(id) {
+        var r = confirm("确认删除 id " + id + "评论？")
+        if (!r) {
+            return
+        }
+        fetch(api_path + "?" + new URLSearchParams({"article_id": articleID, "id": id, "token": mgmtToken}), {
+            method: "DELETE",
+        }).then(res => res.json()).then((data) => {
+            console.log(data)
+            if (data["err"]) {
+                alert(data["err"]);
+                return;
+            }
+            queryComment();
+        }).catch(function (err) {
+            alert("评论提交失败, " + err);
+        })
     }
 
     function submitComment() {
@@ -143,6 +169,7 @@
     var articleID = getParams("article_id");
     var title = getParams("title");
     var err = ""
+    var mgmtToken = localStorage.getItem("mgmtToken");
 
     if (hostname != "127.0.0.1" && hostname != "strcpy.me") {
         err = "域名不在白名单内";
